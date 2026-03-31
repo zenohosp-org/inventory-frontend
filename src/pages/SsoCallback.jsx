@@ -1,23 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getMe } from '../api/client';
 import { Shield } from 'lucide-react';
 
 /**
  * /sso/callback
  *
- * Receives the JWT from the Asset Backend's OAuth2 success handler
- * via ?token=<jwt> query parameter. Stores it and redirects to dashboard.
+ * Called after OAuth2 backend redirects with authentication code.
+ * The backend has already:
+ * 1. Exchanged code for JWT from Directory
+ * 2. Set the sso_token HttpOnly cookie
+ * 
+ * This component validates the session and redirects to dashboard.
  */
 export default function SsoCallback() {
-    const { ssoLogin } = useAuth();
+    const { loading, user } = useAuth();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const token = searchParams.get('token');
         const errorParam = searchParams.get('error');
+        const token = searchParams.get('token');
 
         if (errorParam) {
             setError(errorParam === 'sso_failed'
@@ -26,21 +31,32 @@ export default function SsoCallback() {
             return;
         }
 
-        if (!token) {
-            setError('No authentication token received.');
+        // If user is already loaded from cookie, redirect immediately
+        if (!loading && user) {
+            navigate('/dashboard', { replace: true });
             return;
         }
 
-        // Store token and fetch user profile
-        ssoLogin(token)
-            .then(() => {
-                navigate('/dashboard', { replace: true });
-            })
-            .catch((err) => {
-                console.error('SSO callback error:', err);
-                setError('Failed to complete SSO login. The token may be invalid.');
-            });
-    }, [searchParams, ssoLogin, navigate]);
+        // Verify session with backend (this validates the cookie)
+        if (!loading && !user) {
+            getMe()
+                .then(() => {
+                    // Session is valid; AuthContext will update user
+                    // Wait a moment for AuthContext to update, then redirect
+                    setTimeout(() => {
+                        navigate('/dashboard', { replace: true });
+                    }, 500);
+                })
+                .catch((err) => {
+                    console.error('SSO callback validation error:', err);
+                    setError('Failed to validate your session. The cookie may have expired.');
+                    // Redirect back to login after 3 seconds
+                    setTimeout(() => {
+                        navigate('/login?error=session_validation_failed', { replace: true });
+                    }, 3000);
+                });
+        }
+    }, [searchParams, loading, user, navigate]);
 
     if (error) {
         return (

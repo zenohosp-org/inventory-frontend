@@ -1,52 +1,50 @@
 import axios from 'axios';
 
+export const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8082';
+export const DIRECTORY_API_URL = import.meta.env?.VITE_DIRECTORY_API_URL || 'http://localhost:9000';
+
 const api = axios.create({
-    baseURL: '/',
-    withCredentials: true,
+    baseURL: API_BASE_URL,
+    withCredentials: true,  // Automatically send/receive HTTPOnly cookies
 });
 
-// Request interceptor to add Bearer token
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('asset_jwt');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
-
-// Response interceptor to handle 401
+// Response interceptor to handle 401/403 (session expired)
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('asset_jwt');
-            // Optional: redirect to login
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            // Redirect to SSO login on session expiry
+            // But only if it's not the /api/user/me endpoint (bootstrapping session)
+            if (!error.config.url.includes('/api/user/me')) {
+                setTimeout(() => {
+                    window.location.href = `${API_BASE_URL}/oauth2/authorization/directory`;
+                }, 500);
+            }
         }
         return Promise.reject(error);
     }
 );
 
-// ── Auth & Directory ──
-export const localLogin = (credentials) => api.post('/api/auth/login', credentials);
-export const getMyProfile = () => api.get('/api/user/me');
+// ── Auth (Cookie-based) ──
+export const getMe = () => api.get('/api/user/me');
+export const logout = () => api.post('/api/auth/logout');
 
-// We are hardcoding the Directory Backend URL here for simplicity. In a real app it would be in an env var.
-export const getDirectoryUsers = (hospitalId) => axios.get(`http://localhost:9000/api/directory/hospitals/${hospitalId}/users`);
+// ── Inventory  ──
+export const getInventory = () => api.get('/api/inventory');
+export const getInventoryById = (id) => api.get(`/api/inventory/${id}`);
+export const createInventory = (data) => api.post('/api/inventory', data);
+export const updateInventory = (id, data) => api.put(`/api/inventory/${id}`, data);
+export const deleteInventory = (id) => api.delete(`/api/inventory/${id}`);
 
-// ── Assets ──
-export const getAssets = () => api.get('/api/assets');
-export const getAssetById = (id) => api.get(`/api/assets/${id}`);
-export const createAsset = (data) => api.post('/api/assets', data);
-export const updateAsset = (id, data) => api.put(`/api/assets/${id}`, data);
-export const deleteAsset = (id) => api.delete(`/api/assets/${id}`);
+// ── Vendors ──
+export const getVendors = () => api.get('/api/vendors');
+export const getVendorById = (id) => api.get(`/api/vendors/${id}`);
+export const createVendor = (data) => api.post('/api/vendors', data);
+export const updateVendor = (id, data) => api.put(`/api/vendors/${id}`, data);
+export const deleteVendor = (id) => api.delete(`/api/vendors/${id}`);
 
-// ── Maintenance ──
-export const getMaintenanceRecords = () => api.get('/api/maintenance');
-export const getMaintenanceRecordsByAsset = (id) => api.get(`/api/maintenance/asset/${id}`);
-export const createMaintenanceRecord = (data) => api.post('/api/maintenance', data);
-
-// ── Transfers ──
-export const getTransferLogs = () => api.get('/api/transfers');
-export const createTransferLog = (data) => api.post('/api/transfers', data);
+// ── Directory API (for fetching directory data) ──
+export const getHospitals = () => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals`, { withCredentials: true });
+export const getHospitalByCode = (code) => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals/${code}`, { withCredentials: true });
 
 export default api;
