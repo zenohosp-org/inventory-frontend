@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { getMe, logout as apiLogout } from '../api/client';
+import { getMe, logout as apiLogout, SSOCookieManager } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -55,6 +55,35 @@ export function AuthProvider({ children }) {
         return () => window.removeEventListener('focus', verifyOnFocus);
     }, [user]);
 
+    // Listen for cross-app logout signals (from other tabs/windows)
+    useEffect(() => {
+        const handleStorageChange = (event) => {
+            if (event.key === 'sso-logout') {
+                // Another window/app initiated SSO logout
+                sessionStorage.removeItem('inventory_user');
+                setUser(null);
+                SSOCookieManager.clearToken();
+                window.location.href = '/login?logged_out=1';
+            }
+        };
+
+        const handleCustomLogoutEvent = (event) => {
+            // Handle custom logout event (same-tab communication)
+            sessionStorage.removeItem('inventory_user');
+            setUser(null);
+            SSOCookieManager.clearToken();
+            window.location.href = '/login?logged_out=1';
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('sso-logout', handleCustomLogoutEvent);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('sso-logout', handleCustomLogoutEvent);
+        };
+    }, []);
+
     const doLogout = useCallback(async () => {
         try {
             await apiLogout();
@@ -64,6 +93,11 @@ export function AuthProvider({ children }) {
         }
         sessionStorage.removeItem('inventory_user');
         setUser(null);
+        
+        // Clear SSO cookie and signal logout across all apps
+        SSOCookieManager.clearToken();
+        SSOCookieManager.signalLogoutAcrossApps();
+        
         // Redirect to login
         window.location.href = '/login?logged_out=1';
     }, []);

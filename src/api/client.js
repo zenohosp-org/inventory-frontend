@@ -1,4 +1,5 @@
 import axios from 'axios';
+import SSOCookieManager from '../utils/ssoManager';
 
 export const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8082';
 export const DIRECTORY_API_URL = import.meta.env?.VITE_DIRECTORY_API_URL || 'http://localhost:9000';
@@ -47,4 +48,5 @@ export const deleteVendor = (id) => api.delete(`/api/vendors/${id}`);
 export const getHospitals = () => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals`, { withCredentials: true });
 export const getHospitalByCode = (code) => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals/${code}`, { withCredentials: true });
 
+export { SSOCookieManager };
 export default api;

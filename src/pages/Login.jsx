@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Shield, Globe, Box, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../api/client';
 
 export default function Login() {
     const [searchParams] = useSearchParams();
@@ -15,8 +16,8 @@ export default function Login() {
     }, [user, loading, navigate]);
 
     const handleLoginClick = () => {
-        // Redirect via Vite proxy → Asset Backend → Directory Backend
-        window.location.href = '/oauth2/authorization/directory';
+        // Redirect via Vite proxy → Inventory Backend → Directory Backend
+        window.location.href = `${API_BASE_URL}/oauth2/authorization/directory`;
     };
 
     const error = searchParams.get('error') ? (searchParams.get('error_description') || 'SSO login failed.') : null;
