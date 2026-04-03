@@ -92,7 +92,7 @@ export default function Stores() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
                     <Store size={28} style={{ color: 'var(--color-accent)' }} />
                     Stores Master
                 </h1>

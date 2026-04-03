@@ -10,6 +10,7 @@ export default function PurchaseOrders() {
     const [stores, setStores] = useState([]);
     const [activeStores, setActiveStores] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         vendorId: '',
@@ -23,6 +24,7 @@ export default function PurchaseOrders() {
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
         try {
             const [posRes, vendsRes, itemsRes, storesRes] = await Promise.all([
                 getPurchaseOrders(),
@@ -39,6 +41,12 @@ export default function PurchaseOrders() {
             setActiveStores(active);
         } catch (error) {
             console.error('Error fetching data:', error);
+            console.error('Error details:', {
+                message: error.message,
+                status: error.response?.status,
+                data: error.response?.data
+            });
+            setError('Failed to load purchase orders. ' + (error.response?.data?.message || error.message));
         } finally {
             setLoading(false);
         }
@@ -105,13 +113,16 @@ export default function PurchaseOrders() {
             console.log('Using store:', activeStores[0]?.name || 'Default');
             await createPurchaseOrder(payload);
 
+            // Success! Close modal and refresh data
             setShowModal(false);
             setFormData({
                 vendorId: '',
                 expectedDate: '',
                 items: [{ itemId: '', quantity: 1, unitPrice: 0 }]
             });
-            fetchData();
+            
+            // Refresh the data
+            await fetchData();
             alert('Purchase Order created successfully!');
         } catch (error) {
             console.error('Error creating PO:', error);
@@ -139,6 +150,40 @@ export default function PurchaseOrders() {
                     Create and manage purchase orders from suppliers.
                 </p>
             </div>
+
+            {/* Error Alert */}
+            {error && (
+                <div style={{
+                    display: 'flex',
+                    gap: 'var(--spacing-3)',
+                    padding: 'var(--spacing-4)',
+                    backgroundColor: '#fee2e2',
+                    border: '1px solid #fca5a5',
+                    borderRadius: 'var(--radius-md)',
+                    marginBottom: 'var(--spacing-4)',
+                    color: '#991b1b'
+                }}>
+                    <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ flex: 1 }}>
+                        <strong>Error</strong>
+                        <p style={{ margin: '4px 0 0 0', fontSize: 'var(--fs-sm)' }}>{error}</p>
+                    </div>
+                    <button
+                        onClick={fetchData}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#991b1b',
+                            cursor: 'pointer',
+                            fontSize: 'var(--fs-sm)',
+                            fontWeight: 'var(--fw-semibold)',
+                            textDecoration: 'underline'
+                        }}
+                    >
+                        Retry
+                    </button>
+                </div>
+            )}
 
             {/* Page Actions */}
             <div className="page-actions">
