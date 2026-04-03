@@ -26,7 +26,12 @@ export default function Vendors() {
         setLoading(true);
         try {
             const res = await getVendors();
-            const vendorsData = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+            let vendorsData = res.data || res;
+            // If data is a JSON string, parse it
+            if (typeof vendorsData === 'string') {
+                vendorsData = JSON.parse(vendorsData);
+            }
+            vendorsData = Array.isArray(vendorsData) ? vendorsData : [];
             setVendors(vendorsData);
         } catch (error) {
             console.error('Error fetching vendors:', error);

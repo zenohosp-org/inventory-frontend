@@ -22,7 +22,12 @@ export default function Stores() {
         setLoading(true);
         try {
             const response = await getStores();
-            const storesData = Array.isArray(response.data) ? response.data : (Array.isArray(response) ? response : []);
+            let storesData = response.data || response;
+            // If data is a JSON string, parse it
+            if (typeof storesData === 'string') {
+                storesData = JSON.parse(storesData);
+            }
+            storesData = Array.isArray(storesData) ? storesData : [];
             setStores(storesData);
         } catch (error) {
             console.error('Error fetching stores:', error);

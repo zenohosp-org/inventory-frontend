@@ -36,13 +36,27 @@ export default function PurchaseOrders() {
                 getStores()
             ]);
             
-            // Safely extract arrays from responses
-            const posData = Array.isArray(posRes.data) ? posRes.data : (Array.isArray(posRes) ? posRes : []);
-            const vendorsData = Array.isArray(vendsRes.data) ? vendsRes.data : (Array.isArray(vendsRes) ? vendsRes : []);
-            const itemsData = Array.isArray(itemsRes.data) ? itemsRes.data : (Array.isArray(itemsRes) ? itemsRes : []);
-            const storesData = Array.isArray(storesRes.data) ? storesRes.data : (Array.isArray(storesRes) ? storesRes : []);
+            // Helper function to safely extract and parse array data
+            const extractArray = (res) => {
+                let data = res.data || res;
+                // If data is a string, try to parse it as JSON
+                if (typeof data === 'string') {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        console.error('Failed to parse JSON string:', data);
+                        return [];
+                    }
+                }
+                return Array.isArray(data) ? data : [];
+            };
             
-            console.log('Loaded data:', {
+            const posData = extractArray(posRes);
+            const vendorsData = extractArray(vendsRes);
+            const itemsData = extractArray(itemsRes);
+            const storesData = extractArray(storesRes);
+            
+            console.log('Loaded data after parsing:', {
                 pos: posData,
                 vendors: vendorsData,
                 items: itemsData,

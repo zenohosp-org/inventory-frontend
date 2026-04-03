@@ -24,8 +24,12 @@ export default function StockOverview() {
                 getStockOverview(),
                 getCategories(),
             ]);
-            const stocksData = Array.isArray(stockRes.data) ? stockRes.data : (Array.isArray(stockRes) ? stockRes : []);
-            const categoriesData = Array.isArray(catRes.data) ? catRes.data : (Array.isArray(catRes) ? catRes : []);
+            let stocksData = stockRes.data || stockRes;
+            let categoriesData = catRes.data || catRes;
+            if (typeof stocksData === 'string') stocksData = JSON.parse(stocksData);
+            if (typeof categoriesData === 'string') categoriesData = JSON.parse(categoriesData);
+            stocksData = Array.isArray(stocksData) ? stocksData : [];
+            categoriesData = Array.isArray(categoriesData) ? categoriesData : [];
             setStocks(stocksData);
             setCategories(categoriesData);
         } catch (error) {

@@ -31,8 +31,13 @@ const Dashboard = () => {
         getStockLogs(),
       ]);
 
-      const stocks = Array.isArray(stockRes.data) ? stockRes.data : (Array.isArray(stockRes) ? stockRes : []);
-      const transactions = Array.isArray(transRes.data) ? transRes.data : (Array.isArray(transRes) ? transRes : []);
+      // Parse JSON strings if necessary
+      let stocks = stockRes.data || stockRes;
+      let transactions = transRes.data || transRes;
+      if (typeof stocks === 'string') stocks = JSON.parse(stocks);
+      if (typeof transactions === 'string') transactions = JSON.parse(transactions);
+      stocks = Array.isArray(stocks) ? stocks : [];
+      transactions = Array.isArray(transactions) ? transactions : [];
       const transactionSlice = transactions.slice(0, 10);
 
       // Calculate stats
@@ -218,7 +223,7 @@ const Dashboard = () => {
       {lowStockItems.length > 0 && (
         <div className="card" style={{ marginBottom: 'var(--spacing-8)' }}>
           <div className="card-header">
-            <h3 className="card-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+            <h3 className="flex card-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
               <AlertCircle size={24} style={{ color: 'var(--color-warning)' }} />
               Critical Stock Alerts ({lowStockItems.length})
             </h3>
@@ -289,7 +294,7 @@ const Dashboard = () => {
       {recentActivity.length > 0 && (
         <div className="card" style={{ marginBottom: 'var(--spacing-8)' }}>
           <div className="card-header">
-            <h3 className="card-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+            <h3 className="flex card-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
               <Clock size={24} style={{ color: 'var(--color-primary)' }} />
               Recent Transactions
             </h3>

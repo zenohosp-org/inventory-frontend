@@ -34,9 +34,15 @@ export default function InventoryItems() {
                 getCategories(),
                 getVendors()
             ]);
-            const itemsData = Array.isArray(itemsRes.data) ? itemsRes.data : (Array.isArray(itemsRes) ? itemsRes : []);
-            const catsData = Array.isArray(catsRes.data) ? catsRes.data : (Array.isArray(catsRes) ? catsRes : []);
-            const vendsData = Array.isArray(vendsRes.data) ? vendsRes.data : (Array.isArray(vendsRes) ? vendsRes : []);
+            let itemsData = itemsRes.data || itemsRes;
+            let catsData = catsRes.data || catsRes;
+            let vendsData = vendsRes.data || vendsRes;
+            if (typeof itemsData === 'string') itemsData = JSON.parse(itemsData);
+            if (typeof catsData === 'string') catsData = JSON.parse(catsData);
+            if (typeof vendsData === 'string') vendsData = JSON.parse(vendsData);
+            itemsData = Array.isArray(itemsData) ? itemsData : [];
+            catsData = Array.isArray(catsData) ? catsData : [];
+            vendsData = Array.isArray(vendsData) ? vendsData : [];
             setItems(itemsData);
             setCategories(catsData);
             setVendors(vendsData);
