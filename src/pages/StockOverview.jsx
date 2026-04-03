@@ -20,20 +20,33 @@ export default function StockOverview() {
     const fetchData = async () => {
         setLoading(true);
         try {
+            console.log('Fetching stock overview...');
             const [stockRes, catRes] = await Promise.all([
                 getStockOverview(),
                 getCategories(),
             ]);
+            console.log('Stock Response:', stockRes);
+            console.log('Categories Response:', catRes);
+            
             let stocksData = stockRes.data || stockRes;
             let categoriesData = catRes.data || catRes;
             if (typeof stocksData === 'string') stocksData = JSON.parse(stocksData);
             if (typeof categoriesData === 'string') categoriesData = JSON.parse(categoriesData);
             stocksData = Array.isArray(stocksData) ? stocksData : [];
             categoriesData = Array.isArray(categoriesData) ? categoriesData : [];
+            
+            console.log('Parsed stocks:', stocksData);
+            console.log('Parsed categories:', categoriesData);
+            
             setStocks(stocksData);
             setCategories(categoriesData);
+            
+            if (stocksData.length === 0) {
+                console.warn('No stock data returned from API');
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
+            console.error('Error details:', error.response?.data || error.message);
             setStocks([]);
             setCategories([]);
         } finally {
@@ -121,8 +134,20 @@ export default function StockOverview() {
                             <div className="spinner" style={{ margin: '0 auto' }}></div>
                         </div>
                     ) : filteredStocks.length === 0 ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
-                            No stock records found.
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
+                            <div style={{ color: 'var(--color-gray-500)', marginBottom: 'var(--spacing-4)' }}>
+                                <p>No stock records found.</p>
+                                <p style={{ fontSize: 'var(--fs-sm)', marginTop: 'var(--spacing-2)' }}>
+                                    Create inventory items and purchase orders to populate stock data.
+                                </p>
+                            </div>
+                            <button 
+                                className="btn btn-primary btn-sm"
+                                onClick={() => window.location.href = '/inventory/purchase-orders'}
+                                style={{ marginTop: 'var(--spacing-4)' }}
+                            >
+                                Go to Purchase Orders
+                            </button>
                         </div>
                     ) : (
                         <table className="table">

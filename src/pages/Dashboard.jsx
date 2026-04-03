@@ -26,10 +26,14 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
+      console.log('Fetching dashboard data...');
       const [stockRes, transRes] = await Promise.all([
         getStockOverview(),
         getStockLogs(),
       ]);
+
+      console.log('Stock Response:', stockRes);
+      console.log('Transactions Response:', transRes);
 
       // Parse JSON strings if necessary
       let stocks = stockRes.data || stockRes;
@@ -39,6 +43,9 @@ const Dashboard = () => {
       stocks = Array.isArray(stocks) ? stocks : [];
       transactions = Array.isArray(transactions) ? transactions : [];
       const transactionSlice = transactions.slice(0, 10);
+
+      console.log('Parsed stocks:', stocks);
+      console.log('Parsed transactions:', transactions);
 
       // Calculate stats
       const lowStock = (stocks || []).filter(s => s.quantityAvail <= s.reorderLevel);
@@ -66,6 +73,7 @@ const Dashboard = () => {
       setRecentActivity(activity);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      console.error('Error details:', error.response?.data || error.message);
     } finally {
       setLoading(false);
     }
@@ -147,12 +155,16 @@ const Dashboard = () => {
       <div className="page-actions">
         <button 
           className="btn btn-primary" 
-          title="Add new stock transaction"
+          title={lowStockItems.length === 0 ? "No low stock items to log" : "Add new stock transaction"}
           disabled={lowStockItems.length === 0}
           onClick={() => {
               if (lowStockItems.length > 0) {
                 handleLogStockClick(lowStockItems[0]);
               }
+          }}
+          style={{
+            opacity: lowStockItems.length === 0 ? 0.5 : 1,
+            cursor: lowStockItems.length === 0 ? 'not-allowed' : 'pointer'
           }}
         >
           <Plus size={18} />
