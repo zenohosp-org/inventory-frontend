@@ -6,6 +6,14 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
     const [transactionType, setTransactionType] = useState('INTERNAL_USE');
     const [quantity, setQuantity] = useState('');
     const [remarks, setRemarks] = useState('');
+    
+    // Type-specific fields
+    const [vendorId, setVendorId] = useState('');
+    const [expiryDate, setExpiryDate] = useState('');
+    const [batchNo, setBatchNo] = useState('');
+    const [reason, setReason] = useState('');
+    const [notes, setNotes] = useState('');
+    
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -36,11 +44,28 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
             const payload = {
                 itemId: stock.itemId,
                 storeId: stock.storeId,
-                transactionType,
+                movementType: transactionType,
                 quantity: Math.abs(parseInt(quantity)),
-                remarks: remarks || `${transactionType.toLowerCase()} transaction`,
+                notes: notes || '',
             };
 
+            // Add type-specific fields
+            if (transactionType === 'PURCHASE_IN') {
+                payload.vendorId = vendorId;
+                payload.expiryDate = expiryDate || null;
+                payload.batchNo = batchNo;
+            } else if (transactionType === 'RETURN') {
+                payload.reason = reason;
+                payload.batchNo = batchNo;
+                payload.notes = notes;
+            } else if (transactionType === 'INTERNAL_USE') {
+                payload.notes = notes;
+            } else if (transactionType === 'EXPIRED_DISPOSED') {
+                payload.batchNo = batchNo;
+                payload.notes = notes;
+            }
+
+            console.log('Submitting payload:', payload);
             await logStock(payload);
             onSuccess();
         } catch (err) {
@@ -156,24 +181,138 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                         </p>
                     </div>
 
-                    {/* Remarks Input */}
-                    <div className="form-group">
-                        <label className="form-label">Remarks (Optional)</label>
-                        <textarea
-                            value={remarks}
-                            onChange={(e) => setRemarks(e.target.value)}
-                            placeholder="Add any notes about this transaction..."
-                            className="form-textarea"
-                            rows="3"
-                            style={{
-                                fontFamily: 'inherit',
-                                padding: 'var(--spacing-3)',
-                                borderRadius: 'var(--radius-md)',
-                                border: '1px solid var(--color-gray-300)',
-                                fontSize: 'var(--fs-sm)'
-                            }}
-                        />
-                    </div>
+                    {/* Type-Specific Fields */}
+                    {transactionType === 'PURCHASE_IN' && (
+                        <>
+                            <div className="form-group">
+                                <label className="form-label">Vendor ID (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={vendorId}
+                                    onChange={(e) => setVendorId(e.target.value)}
+                                    placeholder="Enter vendor ID"
+                                    className="form-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Batch No</label>
+                                <input
+                                    type="text"
+                                    value={batchNo}
+                                    onChange={(e) => setBatchNo(e.target.value)}
+                                    placeholder="Enter batch number"
+                                    className="form-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Expiry Date (Optional)</label>
+                                <input
+                                    type="date"
+                                    value={expiryDate}
+                                    onChange={(e) => setExpiryDate(e.target.value)}
+                                    className="form-input"
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {transactionType === 'RETURN' && (
+                        <>
+                            <div className="form-group">
+                                <label className="form-label">Reason</label>
+                                <input
+                                    type="text"
+                                    value={reason}
+                                    onChange={(e) => setReason(e.target.value)}
+                                    placeholder="Why is this being returned?"
+                                    className="form-input"
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Batch No</label>
+                                <input
+                                    type="text"
+                                    value={batchNo}
+                                    onChange={(e) => setBatchNo(e.target.value)}
+                                    placeholder="Enter batch number"
+                                    className="form-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Notes (Optional)</label>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="Add any additional notes..."
+                                    className="form-textarea"
+                                    rows="2"
+                                    style={{
+                                        fontFamily: 'inherit',
+                                        padding: 'var(--spacing-3)',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid var(--color-gray-300)',
+                                        fontSize: 'var(--fs-sm)',
+                                        width: '100%'
+                                    }}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {transactionType === 'INTERNAL_USE' && (
+                        <div className="form-group">
+                            <label className="form-label">Notes (Optional)</label>
+                            <textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Purpose of use, patient/staff assignment, etc."
+                                className="form-textarea"
+                                rows="2"
+                                style={{
+                                    fontFamily: 'inherit',
+                                    padding: 'var(--spacing-3)',
+                                    borderRadius: 'var(--radius-md)',
+                                    border: '1px solid var(--color-gray-300)',
+                                    fontSize: 'var(--fs-sm)',
+                                    width: '100%'
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {transactionType === 'EXPIRED_DISPOSED' && (
+                        <>
+                            <div className="form-group">
+                                <label className="form-label">Batch No</label>
+                                <input
+                                    type="text"
+                                    value={batchNo}
+                                    onChange={(e) => setBatchNo(e.target.value)}
+                                    placeholder="Enter batch number"
+                                    className="form-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Notes (Optional)</label>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="Reason for disposal, expiry date, etc."
+                                    className="form-textarea"
+                                    rows="2"
+                                    style={{
+                                        fontFamily: 'inherit',
+                                        padding: 'var(--spacing-3)',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid var(--color-gray-300)',
+                                        fontSize: 'var(--fs-sm)',
+                                        width: '100%'
+                                    }}
+                                />
+                            </div>
+                        </>
+                    )}
 
                     {/* Error Message */}
                     {error && (
