@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Package, Search } from 'lucide-react';
-import LogStockModal from '../components/LogStockModal';
+import LogStockModal from './LogStockModal';
 import { getStockOverview, getCategories } from '../api/client';
 
 
@@ -69,7 +69,7 @@ export default function StockOverview() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
                     <Package size={28} style={{ color: 'var(--color-accent)' }} />
                     Stock Overview
                 </h1>

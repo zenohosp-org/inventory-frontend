@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Package, AlertCircle, Clock, Plus, Download } from 'lucide-react';
 import axios from 'axios';
-import LogStockModal from '../components/LogStockModal';
+import LogStockModal from './LogStockModal';
 import { getStockOverview, getStockLogs } from '../api/client';
 
 
@@ -153,7 +153,6 @@ const Dashboard = () => {
               handleLogStockClick(lowStockItems[0]);
             }
           }}
-          disabled={lowStockItems.length === 0}
         >
           <Plus size={18} />
           Log Stock
