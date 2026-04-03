@@ -26,8 +26,11 @@ export default function PurchaseOrders() {
         setLoading(true);
         setError(null);
         try {
-            const [posRes, vendsRes, itemsRes, storesRes] = await Promise.all([
-                getPurchaseOrders(),
+            console.log('=== Fetching PO data ===');
+            const posRes = await getPurchaseOrders();
+            console.log('PO Response:', { full: posRes, data: posRes.data, isArray: Array.isArray(posRes.data) });
+            
+            const [vendsRes, itemsRes, storesRes] = await Promise.all([
                 getVendors(),
                 getItems(),
                 getStores()
@@ -132,7 +135,8 @@ export default function PurchaseOrders() {
             
             console.log('Creating PO with payload:', payload);
             console.log('Using store:', activeStores[0]?.name || 'Default');
-            await createPurchaseOrder(payload);
+            const poResponse = await createPurchaseOrder(payload);
+            console.log('PO Creation Response:', poResponse);
 
             // Success! Close modal and refresh data
             setShowModal(false);
@@ -143,6 +147,7 @@ export default function PurchaseOrders() {
             });
             
             // Refresh the data
+            console.log('Refreshing data after PO creation...');
             await fetchData();
             alert('Purchase Order created successfully!');
         } catch (error) {
