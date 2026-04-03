@@ -149,9 +149,7 @@ const Dashboard = () => {
           className="btn btn-primary" 
           title="Add new stock transaction"
           onClick={() => {
-            if (lowStockItems.length > 0) {
               handleLogStockClick(lowStockItems[0]);
-            }
           }}
         >
           <Plus size={18} />
