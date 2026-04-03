@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Plus, Search, LogIn, LogOut, ArrowRightLeft, Trash2 } from 'lucide-react';
+import { Package, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import LogStockModal from './LogStockModal';
 
@@ -9,22 +9,26 @@ export default function StockOverview() {
     const [stocks, setStocks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-
-    // Modal State
+    const [filterCategory, setFilterCategory] = useState('all');
+    const [categories, setCategories] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStock, setSelectedStock] = useState(null);
 
     useEffect(() => {
-        fetchStockOverview();
+        fetchData();
     }, []);
 
-    const fetchStockOverview = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('/api/inventory/stock-overview', { headers: getAuthHeaders() });
-            setStocks(res.data);
+            const [stockRes, catRes] = await Promise.all([
+                axios.get('/api/inventory/stock-overview', { headers: getAuthHeaders() }),
+                axios.get('/api/inventory/categories', { headers: getAuthHeaders() }),
+            ]);
+            setStocks(stockRes.data || []);
+            setCategories(catRes.data || []);
         } catch (error) {
-            console.error('Error fetching stock overview:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
@@ -38,87 +42,147 @@ export default function StockOverview() {
     const handleModalClose = (refresh) => {
         setIsModalOpen(false);
         setSelectedStock(null);
-        if (refresh) fetchStockOverview();
+        if (refresh) fetchData();
     };
 
-    const filteredStocks = stocks.filter(s =>
-        (s.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-    );
+    const filteredStocks = stocks.filter(s => {
+        const matchesSearch = (s.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                            (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+        const matchesCategory = filterCategory === 'all' || s.categoryId === filterCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    const getStockColor = (quantity, minLevel) => {
+        if (quantity <= minLevel) return 'var(--color-error)';
+        if (quantity <= minLevel * 1.5) return 'var(--color-warning)';
+        return 'var(--color-success)';
+    };
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <Box className="w-6 h-6 text-emerald-600" />
-                        Stock Overview
-                    </h1>
-                    <p className="text-slate-500 mt-1">Manage and track your inventory levels</p>
-                </div>
+        <div className="main-content">
+            {/* Page Header */}
+            <div className="page-header">
+                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                    <Package size={28} style={{ color: 'var(--color-accent)' }} />
+                    Stock Overview
+                </h1>
+                <p className="page-subtitle">
+                    Monitor current inventory levels across all stores and departments.
+                </p>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            {/* Filter Bar */}
+            <div className="filter-bar">
+                <div className="filter-group" style={{ flex: 1 }}>
+                    <div className="flex" style={{ alignItems: 'center', gap: 'var(--spacing-2)', padding: 'var(--spacing-2) var(--spacing-4)', backgroundColor: 'var(--color-gray-100)', borderRadius: 'var(--radius-md)' }}>
+                        <Search size={18} style={{ color: 'var(--color-gray-500)' }} />
                         <input
                             type="text"
                             placeholder="Search by product name or code..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                            className="filter-input"
+                            style={{ backgroundColor: 'transparent', border: 'none', flex: 1 }}
                         />
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50/50 text-slate-500 text-xs uppercase tracking-wider">
-                                <th className="p-4 font-semibold border-b border-slate-100">Code</th>
-                                <th className="p-4 font-semibold border-b border-slate-100">Product</th>
-                                <th className="p-4 font-semibold border-b border-slate-100">Group</th>
-                                <th className="p-4 font-semibold border-b border-slate-100 text-right">Stock</th>
-                                <th className="p-4 font-semibold border-b border-slate-100 text-right">Min Level</th>
-                                <th className="p-4 font-semibold border-b border-slate-100 w-32 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-sm">
-                            {loading ? (
+                <div className="filter-group">
+                    <label className="filter-label">Category</label>
+                    <select
+                        value={filterCategory}
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                        className="filter-select"
+                    >
+                        <option value="all">All Categories</option>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            {/* Stock Table */}
+            <div className="table-container">
+                <div className="table-header">
+                    <h3 className="table-title">Products ({filteredStocks.length})</h3>
+                </div>
+
+                <div className="table-body">
+                    {loading ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
+                            <div className="spinner" style={{ margin: '0 auto' }}></div>
+                        </div>
+                    ) : filteredStocks.length === 0 ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
+                            No stock records found.
+                        </div>
+                    ) : (
+                        <table className="table">
+                            <thead>
                                 <tr>
-                                    <td colSpan="6" className="p-8 text-center text-slate-500">Loading stock data...</td>
+                                    <th style={{ width: '12%' }}>Code</th>
+                                    <th style={{ width: '25%' }}>Product Name</th>
+                                    <th style={{ width: '18%' }}>Category</th>
+                                    <th style={{ width: '12%' }}>Current</th>
+                                    <th style={{ width: '12%' }}>Min Level</th>
+                                    <th style={{ width: '12%' }}>Status</th>
+                                    <th style={{ width: '9%' }}>Actions</th>
                                 </tr>
-                            ) : filteredStocks.length === 0 ? (
-                                <tr>
-                                    <td colSpan="6" className="p-8 text-center text-slate-500">No stock records found</td>
-                                </tr>
-                            ) : (
-                                filteredStocks.map(stock => (
-                                    <tr key={stock.id} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="p-4 font-mono text-slate-600">{stock.itemCode || '-'}</td>
-                                        <td className="p-4 font-medium text-slate-900">{stock.itemName}</td>
-                                        <td className="p-4 text-slate-600">{stock.categoryName || '-'}</td>
-                                        <td className="p-4 text-right">
-                                            <span className={`font-semibold ${stock.quantityAvail <= stock.reorderLevel ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                {stock.quantityAvail}
+                            </thead>
+                            <tbody>
+                                {filteredStocks.map((stock, idx) => (
+                                    <tr key={idx}>
+                                        <td>
+                                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', color: 'var(--color-gray-600)' }}>
+                                                {stock.itemCode || '-'}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-right text-slate-500">{stock.reorderLevel}</td>
-                                        <td className="p-4 text-center">
+                                        <td>
+                                            <strong>{stock.itemName}</strong>
+                                        </td>
+                                        <td>
+                                            {stock.categoryName ? (
+                                                <span className="badge badge-primary">
+                                                    {stock.categoryName}
+                                                </span>
+                                            ) : '-'}
+                                        </td>
+                                        <td>
+                                            <strong style={{ color: getStockColor(stock.quantityAvail, stock.reorderLevel) }}>
+                                                {stock.quantityAvail}
+                                            </strong>
+                                        </td>
+                                        <td>{stock.reorderLevel}</td>
+                                        <td>
+                                            {stock.quantityAvail <= stock.reorderLevel ? (
+                                                <span className="badge badge-error">Low Stock</span>
+                                            ) : stock.quantityAvail <= stock.reorderLevel * 1.5 ? (
+                                                <span className="badge badge-warning">Caution</span>
+                                            ) : (
+                                                <span className="badge badge-success">Optimal</span>
+                                            )}
+                                        </td>
+                                        <td>
                                             <button
                                                 onClick={() => handleLogStockClick(stock)}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors"
+                                                className="btn btn-sm btn-primary"
+                                                title="Log stock transaction"
                                             >
-                                                <Plus className="w-3.5 h-3.5" />
-                                                Log Stock
+                                                Log
                                             </button>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
+                <div className="table-footer">
+                    <span className="table-info">
+                        Showing {filteredStocks.length} of {stocks.length} products
+                    </span>
                 </div>
             </div>
 

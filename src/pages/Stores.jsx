@@ -1,13 +1,269 @@
-import { Store } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Store, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Stores() {
+    const { getAuthHeaders } = useAuth();
+    const [stores, setStores] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        location: '',
+        storeType: 'GENERAL'
+    });
+
+    useEffect(() => {
+        fetchStores();
+    }, []);
+
+    const fetchStores = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('/api/inventory/stores', { headers: getAuthHeaders() });
+            setStores(response.data || []);
+        } catch (error) {
+            console.error('Error fetching stores:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOpenModal = (store = null) => {
+        if (store) {
+            setEditingId(store.id);
+            setFormData({
+                name: store.name,
+                description: store.description || '',
+                location: store.location || '',
+                storeType: store.storeType || 'GENERAL'
+            });
+        } else {
+            setEditingId(null);
+            setFormData({
+                name: '',
+                description: '',
+                location: '',
+                storeType: 'GENERAL'
+            });
+        }
+        setShowModal(true);
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingId) {
+                await axios.put(`/api/inventory/stores/${editingId}`, formData, { headers: getAuthHeaders() });
+            } else {
+                await axios.post('/api/inventory/stores', formData, { headers: getAuthHeaders() });
+            }
+            setShowModal(false);
+            fetchStores();
+        } catch (error) {
+            console.error('Error saving store:', error);
+            alert('Failed to save store');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this store?')) {
+            try {
+                await axios.delete(`/api/inventory/stores/${id}`, { headers: getAuthHeaders() });
+                fetchStores();
+            } catch (error) {
+                console.error('Error deleting store:', error);
+                alert('Failed to delete store');
+            }
+        }
+    };
+
+    const getStoreTypeColor = (type) => {
+        const colors = {
+            'CENTRAL': 'badge-primary',
+            'DEPARTMENT': 'badge-info',
+            'EMERGENCY': 'badge-warning',
+            'GENERAL': 'badge-secondary'
+        };
+        return colors[type] || 'badge-secondary';
+    };
+
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-6">
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <Store className="w-6 h-6 text-emerald-600" />
-                Stores Master
-            </h1>
-            <p className="text-slate-500 mt-1">Manage hospital stores</p>
+        <div className="main-content">
+            {/* Page Header */}
+            <div className="page-header">
+                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                    <Store size={28} style={{ color: 'var(--color-accent)' }} />
+                    Stores Master
+                </h1>
+                <p className="page-subtitle">
+                    Create and manage hospital stores and storage locations.
+                </p>
+            </div>
+
+            {/* Page Actions */}
+            <div className="page-actions">
+                <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                    <Plus size={18} />
+                    Add Store
+                </button>
+            </div>
+
+            {/* Stores Table */}
+            <div className="table-container">
+                <div className="table-header">
+                    <h3 className="table-title">Stores ({stores.length})</h3>
+                </div>
+
+                <div className="table-body">
+                    {loading ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
+                            <div className="spinner" style={{ margin: '0 auto' }}></div>
+                        </div>
+                    ) : stores.length === 0 ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
+                            No stores found. Create your first store to get started.
+                        </div>
+                    ) : (
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '25%' }}>Store Name</th>
+                                    <th style={{ width: '30%' }}>Location</th>
+                                    <th style={{ width: '15%' }}>Type</th>
+                                    <th style={{ width: '20%' }}>Description</th>
+                                    <th style={{ width: '10%' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stores.map((store) => (
+                                    <tr key={store.id}>
+                                        <td>
+                                            <strong>{store.name}</strong>
+                                        </td>
+                                        <td className="text-muted">
+                                            {store.location || '-'}
+                                        </td>
+                                        <td>
+                                            <span className={`badge ${getStoreTypeColor(store.storeType)}`}>
+                                                {store.storeType || 'GENERAL'}
+                                            </span>
+                                        </td>
+                                        <td className="text-muted" style={{ fontSize: 'var(--fs-sm)' }}>
+                                            {store.description || '-'}
+                                        </td>
+                                        <td>
+                                            <div style={{
+                                                display: 'flex',
+                                                gap: 'var(--spacing-2)'
+                                            }}>
+                                                <button
+                                                    className="btn btn-sm btn-secondary"
+                                                    onClick={() => handleOpenModal(store)}
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => handleDelete(store.id)}
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
+                <div className="table-footer">
+                    <span className="table-info">
+                        Total: {stores.length} stores
+                    </span>
+                </div>
+            </div>
+
+            {/* Store Modal */}
+            {showModal && (
+                <div className="modal-overlay active">
+                    <div className="modal">
+                        <div className="modal-header">
+                            <h2 className="modal-title">
+                                {editingId ? 'Edit Store' : 'Add New Store'}
+                            </h2>
+                            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+                        </div>
+
+                        <form onSubmit={handleSave}>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label className="form-label required">Store Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="form-input"
+                                        placeholder="e.g., Central Pharmacy"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Location</label>
+                                    <input
+                                        type="text"
+                                        value={formData.location}
+                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                        className="form-input"
+                                        placeholder="e.g., Building A, Floor 2"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Store Type</label>
+                                    <select
+                                        value={formData.storeType}
+                                        onChange={(e) => setFormData({ ...formData, storeType: e.target.value })}
+                                        className="form-select"
+                                    >
+                                        <option value="GENERAL">General</option>
+                                        <option value="CENTRAL">Central</option>
+                                        <option value="DEPARTMENT">Department</option>
+                                        <option value="EMERGENCY">Emergency</option>
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Description</label>
+                                    <textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        className="form-textarea"
+                                        placeholder="Any additional notes about this store"
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    {editingId ? 'Update Store' : 'Create Store'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

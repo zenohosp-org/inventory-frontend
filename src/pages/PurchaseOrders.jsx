@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ShoppingCart, Plus, Search } from 'lucide-react';
+import { ShoppingCart, Plus, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function PurchaseOrders() {
@@ -9,12 +9,12 @@ export default function PurchaseOrders() {
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Form
-    const [isCreating, setIsCreating] = useState(false);
-    const [vendorId, setVendorId] = useState('');
-    const [expectedDate, setExpectedDate] = useState('');
-    const [poItems, setPoItems] = useState([{ itemId: '', quantity: 1, unitPrice: 0 }]);
+    const [showModal, setShowModal] = useState(false);
+    const [formData, setFormData] = useState({
+        vendorId: '',
+        expectedDate: '',
+        items: [{ itemId: '', quantity: 1, unitPrice: 0 }]
+    });
 
     useEffect(() => {
         fetchData();
@@ -28,9 +28,9 @@ export default function PurchaseOrders() {
                 axios.get('/api/inventory/vendors', { headers: getAuthHeaders() }),
                 axios.get('/api/inventory/items', { headers: getAuthHeaders() })
             ]);
-            setPos(posRes.data);
-            setVendors(vendsRes.data);
-            setItems(itemsRes.data);
+            setPos(posRes.data || []);
+            setVendors(vendsRes.data || []);
+            setItems(itemsRes.data || []);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -39,28 +39,40 @@ export default function PurchaseOrders() {
     };
 
     const handleAddItem = () => {
-        setPoItems([...poItems, { itemId: '', quantity: 1, unitPrice: 0 }]);
+        setFormData({
+            ...formData,
+            items: [...formData.items, { itemId: '', quantity: 1, unitPrice: 0 }]
+        });
+    };
+
+    const handleRemoveItem = (index) => {
+        setFormData({
+            ...formData,
+            items: formData.items.filter((_, i) => i !== index)
+        });
     };
 
     const handleItemChange = (index, field, value) => {
-        const newItems = [...poItems];
+        const newItems = [...formData.items];
         newItems[index][field] = value;
-        setPoItems(newItems);
+        setFormData({ ...formData, items: newItems });
     };
 
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
             await axios.post('/api/inventory/purchase-orders', {
-                vendorId,
-                expectedDate,
-                items: poItems.filter(i => i.itemId && i.quantity > 0)
+                vendorId: formData.vendorId,
+                expectedDate: formData.expectedDate,
+                items: formData.items.filter(i => i.itemId && i.quantity > 0)
             }, { headers: getAuthHeaders() });
 
-            setIsCreating(false);
-            setVendorId('');
-            setExpectedDate('');
-            setPoItems([{ itemId: '', quantity: 1, unitPrice: 0 }]);
+            setShowModal(false);
+            setFormData({
+                vendorId: '',
+                expectedDate: '',
+                items: [{ itemId: '', quantity: 1, unitPrice: 0 }]
+            });
             fetchData();
         } catch (error) {
             console.error('Error creating PO:', error);
@@ -68,113 +80,250 @@ export default function PurchaseOrders() {
         }
     };
 
+    const getPoStatus = (po) => {
+        const now = new Date();
+        const expected = new Date(po.expectedDate);
+        if (expected < now) return { label: 'Overdue', color: 'badge-error' };
+        return { label: po.status || 'Pending', color: 'badge-primary' };
+    };
+
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                    <ShoppingCart className="w-6 h-6 text-emerald-600" />
+        <div className="main-content">
+            {/* Page Header */}
+            <div className="page-header">
+                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                    <ShoppingCart size={28} style={{ color: 'var(--color-accent)' }} />
                     Purchase Orders
                 </h1>
-                {!isCreating && (
-                    <button onClick={() => setIsCreating(true)} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-sm flex items-center gap-2">
-                        <Plus className="w-4 h-4" /> New PO
-                    </button>
-                )}
+                <p className="page-subtitle">
+                    Create and manage purchase orders from suppliers.
+                </p>
             </div>
 
-            {isCreating && (
-                <div className="bg-white border text-sm border-slate-200 rounded-xl shadow-lg overflow-hidden p-6 mb-8">
-                    <h2 className="text-lg font-bold text-slate-800 mb-6 border-b border-slate-100 pb-4">Create Purchase Order</h2>
-                    <form onSubmit={handleCreate} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Supplier <span className="text-rose-500">*</span></label>
-                                <select required value={vendorId} onChange={(e) => setVendorId(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium">
-                                    <option value="">Select Supplier</option>
-                                    {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Expected Delivery Date <span className="text-rose-500">*</span></label>
-                                <input required type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-700" />
-                            </div>
+            {/* Page Actions */}
+            <div className="page-actions">
+                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                    <Plus size={18} />
+                    Create Purchase Order
+                </button>
+            </div>
+
+            {/* Purchase Orders Table */}
+            <div className="table-container">
+                <div className="table-header">
+                    <h3 className="table-title">Purchase Orders ({pos.length})</h3>
+                </div>
+
+                <div className="table-body">
+                    {loading ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
+                            <div className="spinner" style={{ margin: '0 auto' }}></div>
+                        </div>
+                    ) : pos.length === 0 ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
+                            No purchase orders found.
+                        </div>
+                    ) : (
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '15%' }}>PO Number</th>
+                                    <th style={{ width: '20%' }}>Vendor</th>
+                                    <th style={{ width: '15%' }}>Order Date</th>
+                                    <th style={{ width: '15%' }}>Expected Delivery</th>
+                                    <th style={{ width: '12%' }}>Item Count</th>
+                                    <th style={{ width: '12%' }}>Status</th>
+                                    <th style={{ width: '11%' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {pos.map((po, idx) => {
+                                    const status = getPoStatus(po);
+                                    return (
+                                        <tr key={idx}>
+                                            <td>
+                                                <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-primary)' }}>
+                                                    {po.poNumber || `PO-${po.id}`}
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <strong>{po.vendorName || po.vendor?.name || 'N/A'}</strong>
+                                            </td>
+                                            <td className="text-muted">
+                                                {new Date(po.createdAt).toLocaleDateString()}
+                                            </td>
+                                            <td className="text-muted">
+                                                {po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '-'}
+                                            </td>
+                                            <td>
+                                                <span style={{ backgroundColor: 'var(--color-gray-100)', padding: 'var(--spacing-2) var(--spacing-4)', borderRadius: 'var(--radius-md)', fontSize: 'var(--fs-sm)', fontWeight: 'var(--fw-semibold)' }}>
+                                                    {po.items?.length || 0} items
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${status.color}`}>
+                                                    {status.label}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button className="btn btn-sm btn-ghost" title="View details">
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
+                <div className="table-footer">
+                    <span className="table-info">
+                        Total: {pos.length} purchase orders
+                    </span>
+                </div>
+            </div>
+
+            {/* Create PO Modal */}
+            {showModal && (
+                <div className="modal-overlay active">
+                    <div className="modal" style={{ maxWidth: '700px' }}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Create Purchase Order</h2>
+                            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
 
-                        <div className="space-y-3">
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Line Items</label>
-                            {poItems.map((item, index) => (
-                                <div key={index} className="grid grid-cols-12 gap-4 items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                    <div className="col-span-6">
-                                        <select required value={item.itemId} onChange={(e) => handleItemChange(index, 'itemId', e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
-                                            <option value="">Select Product...</option>
-                                            {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
-                                            <span className="px-3 text-slate-400 text-xs font-semibold bg-slate-50 border-r border-slate-200">Qty</span>
-                                            <input required type="number" min="1" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} className="w-full px-3 py-2 focus:outline-none font-medium text-slate-700" />
-                                        </div>
-                                    </div>
-                                    <div className="col-span-3">
-                                        <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
-                                            <span className="px-3 text-slate-400 text-xs font-semibold bg-slate-50 border-r border-slate-200">Price ₹</span>
-                                            <input required type="number" min="0" step="0.01" value={item.unitPrice} onChange={(e) => handleItemChange(index, 'unitPrice', Number(e.target.value))} className="w-full px-3 py-2 focus:outline-none font-medium text-slate-700" />
-                                        </div>
-                                    </div>
+                        <form onSubmit={handleCreate}>
+                            <div className="modal-body">
+                                {/* Vendor Selection */}
+                                <div className="form-group">
+                                    <label className="form-label required">Vendor</label>
+                                    <select
+                                        value={formData.vendorId}
+                                        onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
+                                        className="form-select"
+                                        required
+                                    >
+                                        <option value="">Select Vendor</option>
+                                        {vendors.map(v => (
+                                            <option key={v.id} value={v.id}>{v.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            ))}
-                            <button type="button" onClick={handleAddItem} className="text-emerald-600 font-semibold hover:text-emerald-700 text-sm flex items-center gap-1 mt-2">
-                                <Plus className="w-4 h-4" /> Add another item
-                            </button>
-                        </div>
 
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                            <button type="button" onClick={() => setIsCreating(false)} className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-all">
-                                Cancel
-                            </button>
-                            <button type="submit" disabled={!vendorId || !expectedDate || poItems.length === 0} className="px-8 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-lg transition-all shadow-sm">
-                                Create PO
-                            </button>
-                        </div>
-                    </form>
+                                {/* Expected Date */}
+                                <div className="form-group">
+                                    <label className="form-label required">Expected Delivery Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.expectedDate}
+                                        onChange={(e) => setFormData({ ...formData, expectedDate: e.target.value })}
+                                        className="form-input"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Line Items */}
+                                <div style={{ marginBottom: 'var(--spacing-6)' }}>
+                                    <label className="form-label">Line Items</label>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+                                        {formData.items.map((item, idx) => (
+                                            <div key={idx} style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: '1fr 100px 120px 40px',
+                                                gap: 'var(--spacing-4)',
+                                                alignItems: 'flex-end',
+                                                padding: 'var(--spacing-4)',
+                                                backgroundColor: 'var(--color-gray-50)',
+                                                borderRadius: 'var(--radius-lg)',
+                                                border: '1px solid var(--color-gray-200)'
+                                            }}>
+                                                <div>
+                                                    <label style={{ fontSize: 'var(--fs-xs)', display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'var(--fw-medium)', color: 'var(--color-gray-600)' }}>
+                                                        Product
+                                                    </label>
+                                                    <select
+                                                        value={item.itemId}
+                                                        onChange={(e) => handleItemChange(idx, 'itemId', e.target.value)}
+                                                        className="form-select"
+                                                        required
+                                                    >
+                                                        <option value="">Select</option>
+                                                        {items.map(i => (
+                                                            <option key={i.id} value={i.id}>{i.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div>
+                                                    <label style={{ fontSize: 'var(--fs-xs)', display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'var(--fw-medium)', color: 'var(--color-gray-600)' }}>
+                                                        Qty
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={item.quantity}
+                                                        onChange={(e) => handleItemChange(idx, 'quantity', Number(e.target.value))}
+                                                        className="form-input"
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label style={{ fontSize: 'var(--fs-xs)', display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'var(--fw-medium)', color: 'var(--color-gray-600)' }}>
+                                                        Unit Price
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        value={item.unitPrice}
+                                                        onChange={(e) => handleItemChange(idx, 'unitPrice', Number(e.target.value))}
+                                                        className="form-input"
+                                                    />
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveItem(idx)}
+                                                    className="btn btn-sm btn-danger"
+                                                    style={{ padding: 'var(--spacing-2)' }}
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleAddItem}
+                                        className="btn btn-sm btn-secondary"
+                                        style={{ marginTop: 'var(--spacing-4)' }}
+                                    >
+                                        <Plus size={16} />
+                                        Add Item
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={!formData.vendorId || !formData.expectedDate || formData.items.length === 0}
+                                >
+                                    Create PO
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
-
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden text-sm">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50/50 text-slate-500 text-xs uppercase tracking-wider">
-                            <th className="p-4 font-semibold border-b border-slate-100 w-32">PO Number</th>
-                            <th className="p-4 font-semibold border-b border-slate-100">Supplier</th>
-                            <th className="p-4 font-semibold border-b border-slate-100">Ordered Date</th>
-                            <th className="p-4 font-semibold border-b border-slate-100">Expected Delivery</th>
-                            <th className="p-4 font-semibold border-b border-slate-100 text-center w-32">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {loading ? (
-                            <tr><td colSpan="5" className="p-8 text-center text-slate-500">Loading...</td></tr>
-                        ) : pos.length === 0 ? (
-                            <tr><td colSpan="5" className="p-8 text-center text-slate-500">No purchase orders found.</td></tr>
-                        ) : (
-                            pos.map(po => (
-                                <tr key={po.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="p-4 font-mono text-emerald-700 font-bold">{po.poNumber}</td>
-                                    <td className="p-4 font-medium text-slate-900">{po.vendor?.name || 'Unknown'}</td>
-                                    <td className="p-4 text-slate-600">{new Date(po.createdAt).toLocaleDateString()}</td>
-                                    <td className="p-4 text-slate-600">{po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '-'}</td>
-                                    <td className="p-4 text-center">
-                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${po.status === 'DRAFT' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                            {po.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
         </div>
     );
 }

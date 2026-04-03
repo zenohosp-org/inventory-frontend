@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Layers, Plus, Trash2 } from 'lucide-react';
+import { Layers, Plus, Edit2, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function InventoryCategories() {
     const { getAuthHeaders } = useAuth();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [name, setName] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        isActive: true
+    });
 
     useEffect(() => {
         fetchCategories();
@@ -17,7 +23,7 @@ export default function InventoryCategories() {
         setLoading(true);
         try {
             const res = await axios.get('/api/inventory/categories', { headers: getAuthHeaders() });
-            setCategories(res.data);
+            setCategories(res.data || []);
         } catch (error) {
             console.error('Error fetching categories:', error);
         } finally {
@@ -25,73 +31,216 @@ export default function InventoryCategories() {
         }
     };
 
-    const handleCreate = async (e) => {
+    const handleOpenModal = (category = null) => {
+        if (category) {
+            setEditingId(category.id);
+            setFormData({
+                name: category.name,
+                description: category.description || '',
+                isActive: category.isActive !== false
+            });
+        } else {
+            setEditingId(null);
+            setFormData({
+                name: '',
+                description: '',
+                isActive: true
+            });
+        }
+        setShowModal(true);
+    };
+
+    const handleSave = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/inventory/categories', { name, isActive: true }, { headers: getAuthHeaders() });
-            setName('');
+            if (editingId) {
+                await axios.put(`/api/inventory/categories/${editingId}`, formData, { headers: getAuthHeaders() });
+            } else {
+                await axios.post('/api/inventory/categories', formData, { headers: getAuthHeaders() });
+            }
+            setShowModal(false);
             fetchCategories();
         } catch (error) {
-            console.error('Error creating category:', error);
-            alert('Failed to create category');
+            console.error('Error saving category:', error);
+            alert('Failed to save category');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this category?')) {
+            try {
+                await axios.delete(`/api/inventory/categories/${id}`, { headers: getAuthHeaders() });
+                fetchCategories();
+            } catch (error) {
+                console.error('Error deleting category:', error);
+                alert('Failed to delete category');
+            }
         }
     };
 
     return (
-        <div className="p-8 max-w-5xl mx-auto space-y-6">
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <Layers className="w-6 h-6 text-emerald-600" />
-                Product Groups (Categories)
-            </h1>
+        <div className="main-content">
+            {/* Page Header */}
+            <div className="page-header">
+                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                    <Layers size={28} style={{ color: 'var(--color-accent)' }} />
+                    Product Categories
+                </h1>
+                <p className="page-subtitle">
+                    Organize inventory items by product categories and groups.
+                </p>
+            </div>
 
-            <div className="bg-white border text-sm border-slate-200 rounded-xl shadow-sm overflow-hidden p-6 mb-8 flex gap-4 items-end">
-                <div className="flex-1">
-                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">New Group Name</label>
-                     <input
-                         type="text"
-                         value={name}
-                         onChange={(e) => setName(e.target.value)}
-                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
-                         placeholder="e.g. Surgical Tools"
-                     />
+            {/* Page Actions */}
+            <div className="page-actions">
+                <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                    <Plus size={18} />
+                    Add Category
+                </button>
+            </div>
+
+            {/* Categories Table */}
+            <div className="table-container">
+                <div className="table-header">
+                    <h3 className="table-title">Categories ({categories.length})</h3>
                 </div>
-                <button 
-                     onClick={handleCreate}
-                     disabled={!name.trim()}
-                     className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-lg transition-all shadow-sm flex items-center gap-2"
-                 >
-                     <Plus className="w-4 h-4" /> Add Group
-                 </button>
+
+                <div className="table-body">
+                    {loading ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
+                            <div className="spinner" style={{ margin: '0 auto' }}></div>
+                        </div>
+                    ) : categories.length === 0 ? (
+                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
+                            No categories found. Create your first category to get started.
+                        </div>
+                    ) : (
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '30%' }}>Category Name</th>
+                                    <th style={{ width: '40%' }}>Description</th>
+                                    <th style={{ width: '15%' }}>Status</th>
+                                    <th style={{ width: '15%' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {categories.map((cat) => (
+                                    <tr key={cat.id}>
+                                        <td>
+                                            <strong>{cat.name}</strong>
+                                        </td>
+                                        <td className="text-muted">
+                                            {cat.description || '-'}
+                                        </td>
+                                        <td>
+                                            <span className={`badge ${cat.isActive !== false ? 'badge-success' : 'badge-warning'}`}>
+                                                {cat.isActive !== false ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style={{
+                                                display: 'flex',
+                                                gap: 'var(--spacing-2)'
+                                            }}>
+                                                <button
+                                                    className="btn btn-sm btn-secondary"
+                                                    onClick={() => handleOpenModal(cat)}
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => handleDelete(cat.id)}
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
+                <div className="table-footer">
+                    <span className="table-info">
+                        Total: {categories.length} categories
+                    </span>
+                </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden text-sm">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50/50 text-slate-500 text-xs uppercase tracking-wider">
-                            <th className="p-4 font-semibold border-b border-slate-100">Group Name</th>
-                            <th className="p-4 font-semibold border-b border-slate-100 text-center w-32">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {loading ? (
-                            <tr><td colSpan="2" className="p-8 text-center text-slate-500">Loading...</td></tr>
-                        ) : categories.length === 0 ? (
-                            <tr><td colSpan="2" className="p-8 text-center text-slate-500">No product groups found.</td></tr>
-                        ) : (
-                            categories.map(cat => (
-                                <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="p-4 font-medium text-slate-900">{cat.name}</td>
-                                    <td className="p-4 text-center">
-                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${cat.isActive !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                            {cat.isActive !== false ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            {/* Category Modal */}
+            {showModal && (
+                <div className="modal-overlay active">
+                    <div className="modal">
+                        <div className="modal-header">
+                            <h2 className="modal-title">
+                                {editingId ? 'Edit Category' : 'Add New Category'}
+                            </h2>
+                            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+                        </div>
+
+                        <form onSubmit={handleSave}>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label className="form-label required">Category Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="form-input"
+                                        placeholder="e.g., Surgical Instruments"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Description</label>
+                                    <textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        className="form-textarea"
+                                        placeholder="Details about this category"
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+
+                                <div className="form-group">
+                                    <label style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 'var(--spacing-2)',
+                                        cursor: 'pointer',
+                                        fontWeight: 'var(--fw-medium)',
+                                        color: 'var(--color-gray-700)'
+                                    }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.isActive}
+                                            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                        />
+                                        Mark as Active
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    {editingId ? 'Update Category' : 'Create Category'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

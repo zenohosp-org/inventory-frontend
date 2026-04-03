@@ -1,110 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Package, AlertCircle, Clock, Plus, Download, Filter } from 'lucide-react';
+import { TrendingUp, Package, AlertCircle, Clock, Plus, Download } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const Dashboard = () => {
+  const { getAuthHeaders } = useAuth();
   const [stats, setStats] = useState({
-    totalProducts: 1250,
-    lowStockItems: 34,
-    pendingOrders: 12,
-    transfersInProgress: 5,
+    totalProducts: 0,
+    lowStockItems: 0,
+    pendingOrders: 0,
+    transfersInProgress: 0,
   });
 
-  const [recentActivity, setRecentActivity] = useState([
-    {
-      id: 1,
-      type: 'stock_in',
-      product: 'Cefixime 500mg Tablets',
-      quantity: 500,
-      location: 'Pharmacy Main Store',
-      timestamp: '2024-04-03 14:30',
-      user: 'John Doe',
-      status: 'completed',
-    },
-    {
-      id: 2,
-      type: 'transfer',
-      product: 'Paracetamol 650mg Tablets',
-      quantity: 250,
-      location: 'Ward 3 → Pharmacy',
-      timestamp: '2024-04-03 13:15',
-      user: 'Jane Smith',
-      status: 'completed',
-    },
-    {
-      id: 3,
-      type: 'stock_out',
-      product: 'Amoxicillin 250mg Syrup',
-      quantity: 100,
-      location: 'Pediatric Ward',
-      timestamp: '2024-04-03 11:45',
-      user: 'Dr. Admin',
-      status: 'completed',
-    },
-    {
-      id: 4,
-      type: 'adjustment',
-      product: 'Metformin 500mg Tablets',
-      quantity: -25,
-      location: 'Diabetes Clinic',
-      timestamp: '2024-04-03 10:20',
-      user: 'Mary Johnson',
-      status: 'completed',
-    },
-    {
-      id: 5,
-      type: 'stock_in',
-      product: 'Ciprofloxacin 500mg Tablets',
-      quantity: 300,
-      location: 'Pharmacy Main Store',
-      timestamp: '2024-04-02 16:45',
-      user: 'John Doe',
-      status: 'completed',
-    },
-  ]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [lowStockItems, setLowStockItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [lowStockItems, setLowStockItems] = useState([
-    {
-      id: 1,
-      productName: 'Insulin Glargine 100 IU/mL',
-      sku: 'INS-GLR-100',
-      currentStock: 15,
-      minLevel: 50,
-      unit: 'vials',
-      reorderQty: 200,
-      lastRestocked: '2024-03-28',
-    },
-    {
-      id: 2,
-      productName: 'Nitroglycerin Sublingual Tablets',
-      sku: 'NTG-SBL-0.6',
-      currentStock: 8,
-      minLevel: 30,
-      unit: 'bottles',
-      reorderQty: 100,
-      lastRestocked: '2024-03-25',
-    },
-    {
-      id: 3,
-      productName: 'Epinephrine 0.3mg Auto-Injectors',
-      sku: 'EPI-AUTO-0.3',
-      currentStock: 12,
-      minLevel: 40,
-      unit: 'packs',
-      reorderQty: 150,
-      lastRestocked: '2024-03-20',
-    },
-  ]);
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [stockRes, transRes] = await Promise.all([
+        axios.get('/api/inventory/stock-overview', { headers: getAuthHeaders() }),
+        axios.get('/api/inventory/stock-transactions', { headers: getAuthHeaders() }),
+      ]);
+
+      const stocks = stockRes.data || [];
+      const transactions = (transRes.data || []).slice(0, 10);
+
+      // Calculate stats
+      const lowStock = stocks.filter(s => s.quantityAvail <= s.reorderLevel);
+      setStats({
+        totalProducts: stocks.length,
+        lowStockItems: lowStock.length,
+        pendingOrders: 0,
+        transfersInProgress: 0,
+      });
+
+      // Set low stock items
+      setLowStockItems(lowStock.slice(0, 3));
+
+      // Format recent activity
+      const activity = transactions.map((t, idx) => ({
+        id: idx,
+        type: t.transactionType.toLowerCase().replace(/_/g, '_'),
+        product: t.itemName,
+        quantity: t.quantity,
+        location: t.storeName,
+        timestamp: new Date(t.createdAt).toLocaleString(),
+        user: t.createdBy || 'System',
+        status: 'completed',
+      }));
+      setRecentActivity(activity);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getActivityIcon = (type) => {
     switch (type) {
-      case 'stock_in':
+      case 'purchase_in':
         return '📥';
-      case 'stock_out':
+      case 'internal_use':
         return '📤';
       case 'transfer':
         return '↔️';
-      case 'adjustment':
+      case 'expired_disposed':
         return '⚖️';
+      case 'return':
+        return '↩️';
       default:
         return '📦';
     }
@@ -112,14 +81,16 @@ const Dashboard = () => {
 
   const getActivityLabel = (type) => {
     switch (type) {
-      case 'stock_in':
-        return 'Stock In';
-      case 'stock_out':
-        return 'Stock Out';
+      case 'purchase_in':
+        return 'Purchase In';
+      case 'internal_use':
+        return 'Internal Use';
       case 'transfer':
         return 'Transfer';
-      case 'adjustment':
-        return 'Adjustment';
+      case 'expired_disposed':
+        return 'Disposed';
+      case 'return':
+        return 'Return';
       default:
         return 'Activity';
     }
@@ -132,41 +103,25 @@ const Dashboard = () => {
     return '#27AE60';
   };
 
-  const handleGenerateReport = () => {
-    console.log('Generating report...');
-  };
-
-  const handleExportData = () => {
-    console.log('Exporting data...');
-  };
-
-  const handleAddStock = () => {
-    console.log('Adding stock...');
-  };
-
   return (
     <div className="main-content">
       {/* Page Header */}
       <div className="page-header">
         <h1 className="page-title">Inventory Dashboard</h1>
         <p className="page-subtitle">
-          Welcome back! Here's your pharmaceutical inventory overview.
+          {loading ? 'Loading overview...' : 'Here\'s your pharmaceutical inventory overview.'}
         </p>
       </div>
 
       {/* Page Actions */}
       <div className="page-actions">
-        <button className="btn btn-primary" onClick={handleAddStock}>
+        <button className="btn btn-primary" title="Add new stock transaction">
           <Plus size={18} />
-          Add Stock
+          Log Stock
         </button>
-        <button className="btn btn-secondary" onClick={handleExportData}>
+        <button className="btn btn-secondary" title="Export data to CSV">
           <Download size={18} />
-          Export Data
-        </button>
-        <button className="btn btn-secondary" onClick={handleGenerateReport}>
-          <Filter size={18} />
-          Generate Report
+          Export
         </button>
       </div>
 
@@ -198,27 +153,29 @@ const Dashboard = () => {
 
         <div className="stat-card success">
           <div>
-            <div className="stat-label">Pending Orders</div>
-            <div className="stat-value">{stats.pendingOrders}</div>
+            <div className="stat-label">Total Transactions</div>
+            <div className="stat-value">{recentActivity.length}</div>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)', marginTop: 'var(--spacing-2)' }}>
-              Awaiting delivery
+              Last 24 hours
             </p>
           </div>
           <div className="stat-icon" style={{ backgroundColor: '#E6F7ED' }}>
-            🛒
+            📊
           </div>
         </div>
 
         <div className="stat-card" style={{ borderLeftColor: 'var(--color-info)' }}>
           <div>
-            <div className="stat-label">In Progress</div>
-            <div className="stat-value">{stats.transfersInProgress}</div>
+            <div className="stat-label">System Status</div>
+            <div className="stat-value">
+              <span style={{ color: 'var(--color-success)', fontSize: 'var(--fs-xl)' }}>✓</span>
+            </div>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)', marginTop: 'var(--spacing-2)' }}>
-              Transfers in transit
+              All systems operational
             </p>
           </div>
           <div className="stat-icon" style={{ backgroundColor: '#EBF5FF' }}>
-            🚚
+            ✅
           </div>
         </div>
       </div>
@@ -229,7 +186,7 @@ const Dashboard = () => {
           <div className="card-header">
             <h3 className="card-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
               <AlertCircle size={24} style={{ color: 'var(--color-warning)' }} />
-              Critical Stock Alerts
+              Critical Stock Alerts ({lowStockItems.length})
             </h3>
           </div>
           <div className="card-body" style={{ padding: 0 }}>
@@ -239,26 +196,25 @@ const Dashboard = () => {
                   <th style={{ width: '30%' }}>Product Name</th>
                   <th style={{ width: '15%' }}>Current Stock</th>
                   <th style={{ width: '15%' }}>Min Level</th>
-                  <th style={{ width: '15%' }}>Status</th>
-                  <th style={{ width: '15%' }}>Reorder Qty</th>
-                  <th style={{ width: '10%' }}>Action</th>
+                  <th style={{ width: '20%' }}>Status</th>
+                  <th style={{ width: '20%' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {lowStockItems.map((item) => (
-                  <tr key={item.id}>
+                {lowStockItems.map((item, idx) => (
+                  <tr key={idx}>
                     <td>
                       <div style={{ marginBottom: 'var(--spacing-2)' }}>
-                        <strong>{item.productName}</strong>
+                        <strong>{item.itemName}</strong>
                       </div>
                       <div className="text-muted" style={{ fontSize: 'var(--fs-xs)' }}>
-                        SKU: {item.sku}
+                        Code: {item.itemCode || 'N/A'}
                       </div>
                     </td>
                     <td>
-                      <strong>{item.currentStock}</strong> {item.unit}
+                      <strong>{item.quantityAvail} {item.unit}</strong>
                     </td>
-                    <td>{item.minLevel} {item.unit}</td>
+                    <td>{item.reorderLevel} {item.unit}</td>
                     <td>
                       <div
                         style={{
@@ -272,17 +228,16 @@ const Dashboard = () => {
                         <div
                           style={{
                             height: '100%',
-                            width: `${(item.currentStock / item.minLevel) * 100}%`,
-                            backgroundColor: getStockStatusColor(item.currentStock, item.minLevel),
+                            width: `${Math.min((item.quantityAvail / item.reorderLevel) * 100, 100)}%`,
+                            backgroundColor: getStockStatusColor(item.quantityAvail, item.reorderLevel),
                           }}
                         />
                       </div>
                     </td>
-                    <td>{item.reorderQty} {item.unit}</td>
                     <td>
                       <button className="btn btn-sm btn-accent">
                         <Plus size={16} />
-                        Reorder
+                        Log Stock
                       </button>
                     </td>
                   </tr>
@@ -294,56 +249,57 @@ const Dashboard = () => {
       )}
 
       {/* Recent Activity */}
-      <div className="card" style={{ marginBottom: 'var(--spacing-8)' }}>
-        <div className="card-header">
-          <h3 className="card-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-            <Clock size={24} style={{ color: 'var(--color-primary)' }} />
-            Recent Activity
-          </h3>
-          <button className="btn btn-sm btn-ghost">View All</button>
-        </div>
-        <div className="card-body" style={{ padding: 0 }}>
-          <table className="table table-striped">
-            <thead>
-              <tr>
-                <th style={{ width: '15%' }}>Type</th>
-                <th style={{ width: '30%' }}>Product</th>
-                <th style={{ width: '15%' }}>Quantity</th>
-                <th style={{ width: '20%' }}>Location</th>
-                <th style={{ width: '12%' }}>User</th>
-                <th style={{ width: '18%' }}>Timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentActivity.map((activity) => (
-                <tr key={activity.id}>
-                  <td>
-                    <span style={{ fontSize: '18px', marginRight: 'var(--spacing-2)' }}>
-                      {getActivityIcon(activity.type)}
-                    </span>
-                    <span className="badge" style={{ fontSize: 'var(--fs-xs)' }}>
-                      {getActivityLabel(activity.type)}
-                    </span>
-                  </td>
-                  <td>
-                    <strong>{activity.product}</strong>
-                  </td>
-                  <td>
-                    <span style={{ color: activity.quantity > 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
-                      {activity.quantity > 0 ? '+' : ''}{activity.quantity}
-                    </span>
-                  </td>
-                  <td className="text-muted">{activity.location}</td>
-                  <td>{activity.user}</td>
-                  <td className="text-muted" style={{ fontSize: 'var(--fs-xs)' }}>
-                    {activity.timestamp}
-                  </td>
+      {recentActivity.length > 0 && (
+        <div className="card" style={{ marginBottom: 'var(--spacing-8)' }}>
+          <div className="card-header">
+            <h3 className="card-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+              <Clock size={24} style={{ color: 'var(--color-primary)' }} />
+              Recent Transactions
+            </h3>
+          </div>
+          <div className="card-body" style={{ padding: 0 }}>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th style={{ width: '12%' }}>Type</th>
+                  <th style={{ width: '28%' }}>Product</th>
+                  <th style={{ width: '12%' }}>Qty</th>
+                  <th style={{ width: '18%' }}>Location</th>
+                  <th style={{ width: '12%' }}>User</th>
+                  <th style={{ width: '18%' }}>Timestamp</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {recentActivity.map((activity) => (
+                  <tr key={activity.id}>
+                    <td>
+                      <span style={{ fontSize: '18px', marginRight: 'var(--spacing-2)' }}>
+                        {getActivityIcon(activity.type)}
+                      </span>
+                      <span className="badge badge-primary" style={{ fontSize: 'var(--fs-xs)' }}>
+                        {getActivityLabel(activity.type)}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>{activity.product}</strong>
+                    </td>
+                    <td>
+                      <span style={{ color: activity.quantity > 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
+                        {activity.quantity > 0 ? '+' : ''}{activity.quantity}
+                      </span>
+                    </td>
+                    <td className="text-muted">{activity.location}</td>
+                    <td>{activity.user}</td>
+                    <td className="text-muted" style={{ fontSize: 'var(--fs-xs)' }}>
+                      {activity.timestamp}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
