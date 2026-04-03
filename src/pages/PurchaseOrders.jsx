@@ -60,11 +60,36 @@ export default function PurchaseOrders() {
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
-            await createPurchaseOrder({
-                vendorId: formData.vendorId,
-                expectedDate: formData.expectedDate,
-                items: formData.items.filter(i => i.itemId && i.quantity > 0)
-            });
+            // Filter out empty items and ensure proper data types
+            const validItems = formData.items.filter(i => i.itemId && i.quantity > 0);
+            
+            if (!formData.vendorId) {
+                alert('Please select a vendor');
+                return;
+            }
+            
+            if (!formData.expectedDate) {
+                alert('Please select expected date');
+                return;
+            }
+            
+            if (validItems.length === 0) {
+                alert('Please add at least one item');
+                return;
+            }
+            
+            const payload = {
+                vendorId: formData.vendorId, // Should be a UUID string
+                expectedDate: formData.expectedDate, // Should be ISO date string
+                items: validItems.map(item => ({
+                    itemId: item.itemId, // Should be a UUID string
+                    quantity: Number(item.quantity) || 0,
+                    unitPrice: Number(item.unitPrice) || 0
+                }))
+            };
+            
+            console.log('Creating PO with payload:', payload);
+            await createPurchaseOrder(payload);
 
             setShowModal(false);
             setFormData({
@@ -75,7 +100,8 @@ export default function PurchaseOrders() {
             fetchData();
         } catch (error) {
             console.error('Error creating PO:', error);
-            alert('Failed to create Purchase Order');
+            console.error('Error response:', error.response?.data);
+            alert('Failed to create Purchase Order: ' + (error.response?.data?.message || error.message));
         }
     };
 
