@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Store, Plus, Edit2, Trash2, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getStores, createStore, updateStore, deleteStore } from '../api/client';
 
 export default function Stores() {
-    const { getAuthHeaders } = useAuth();
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -22,7 +20,7 @@ export default function Stores() {
     const fetchStores = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('/api/inventory/stores', { headers: getAuthHeaders() });
+            const response = await getStores();
             setStores(response.data || []);
         } catch (error) {
             console.error('Error fetching stores:', error);
@@ -54,9 +52,9 @@ export default function Stores() {
         e.preventDefault();
         try {
             if (editingId) {
-                await axios.put(`/api/inventory/stores/${editingId}`, formData, { headers: getAuthHeaders() });
+                await updateStore(editingId, formData);
             } else {
-                await axios.post('/api/inventory/stores', formData, { headers: getAuthHeaders() });
+                await createStore(formData);
             }
             setShowModal(false);
             fetchStores();
@@ -69,7 +67,7 @@ export default function Stores() {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this store?')) {
             try {
-                await axios.delete(`/api/inventory/stores/${id}`, { headers: getAuthHeaders() });
+                await deleteStore(id);
                 fetchStores();
             } catch (error) {
                 console.error('Error deleting store:', error);

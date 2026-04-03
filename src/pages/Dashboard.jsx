@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Package, AlertCircle, Clock, Plus, Download } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import LogStockModal from './LogStockModal';
+import { getStockOverview, getStockLogs } from '../api/client';
+
 
 const Dashboard = () => {
-  const { getAuthHeaders } = useAuth();
   const [stats, setStats] = useState({
     totalProducts: 0,
     lowStockItems: 0,
@@ -27,8 +27,8 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const [stockRes, transRes] = await Promise.all([
-        axios.get('/api/inventory/stock-overview', { headers: getAuthHeaders() }),
-        axios.get('/api/inventory/stock-transactions', { headers: getAuthHeaders() }),
+        getStockOverview(),
+        getStockLogs(),
       ]);
 
       const stocks = stockRes.data || [];

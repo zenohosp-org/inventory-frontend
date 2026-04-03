@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { History, Search } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getStockLogs } from '../api/client';
+
 
 export default function StockLog() {
-    const { getAuthHeaders } = useAuth();
     const [transactions, setTransactions] = useState([]);
     const [filteredTransactions, setFilteredTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -39,7 +38,7 @@ export default function StockLog() {
     const fetchTransactions = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('/api/inventory/stock-transactions', { headers: getAuthHeaders() });
+            const res = await getStockLogs();
             setTransactions(res.data || []);
         } catch (error) {
             console.error('Error fetching stock log:', error);

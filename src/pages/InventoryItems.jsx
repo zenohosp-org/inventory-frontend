@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Package, Plus, Edit2, Trash2, Search } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getItems, getCategories, getVendors, createItem, updateItem, deleteItem } from '../api/client';
+
 
 export default function InventoryItems() {
-    const { getAuthHeaders } = useAuth();
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -31,9 +30,9 @@ export default function InventoryItems() {
         setLoading(true);
         try {
             const [itemsRes, catsRes, vendsRes] = await Promise.all([
-                axios.get('/api/inventory/items', { headers: getAuthHeaders() }),
-                axios.get('/api/inventory/categories', { headers: getAuthHeaders() }),
-                axios.get('/api/vendors', { headers: getAuthHeaders() })
+                getItems(),
+                getCategories(),
+                getVendors()
             ]);
             setItems(itemsRes.data);
             setCategories(catsRes.data);
@@ -53,10 +52,10 @@ export default function InventoryItems() {
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/inventory/items', {
+            await createItem({
                 ...formData,
                 isActive: true
-            }, { headers: getAuthHeaders() });
+            });
 
             setFormData({
                 name: '',
@@ -77,7 +76,7 @@ export default function InventoryItems() {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
         try {
-            await axios.delete(`/api/inventory/items/${id}`, { headers: getAuthHeaders() });
+            await deleteItem(id);
             fetchData();
         } catch (error) {
             console.error('Error deleting item:', error);

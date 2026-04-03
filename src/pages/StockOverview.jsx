@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Package, Search } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import LogStockModal from './LogStockModal';
+import { getStockOverview, getCategories } from '../api/client';
+
 
 export default function StockOverview() {
-    const { getAuthHeaders } = useAuth();
     const [stocks, setStocks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -22,8 +21,8 @@ export default function StockOverview() {
         setLoading(true);
         try {
             const [stockRes, catRes] = await Promise.all([
-                axios.get('/api/inventory/stock-overview', { headers: getAuthHeaders() }),
-                axios.get('/api/inventory/categories', { headers: getAuthHeaders() }),
+                getStockOverview(),
+                getCategories(),
             ]);
             setStocks(stockRes.data || []);
             setCategories(catRes.data || []);

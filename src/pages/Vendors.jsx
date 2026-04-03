@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Users, Plus, Edit2, Trash2, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getVendors, createVendor, updateVendor, deleteVendor } from '../api/client';
+
 
 export default function Vendors() {
-    const { getAuthHeaders } = useAuth();
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -26,7 +25,7 @@ export default function Vendors() {
     const fetchVendors = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('/api/vendors', { headers: getAuthHeaders() });
+            const res = await getVendors();
             setVendors(res.data || []);
         } catch (error) {
             console.error('Error fetching vendors:', error);
@@ -66,9 +65,9 @@ export default function Vendors() {
         e.preventDefault();
         try {
             if (editingId) {
-                await axios.put(`/api/vendors/${editingId}`, formData, { headers: getAuthHeaders() });
+                await updateVendor(editingId, formData);
             } else {
-                await axios.post('/api/vendors', formData, { headers: getAuthHeaders() });
+                await createVendor(formData);
             }
             setShowModal(false);
             fetchVendors();
@@ -81,7 +80,7 @@ export default function Vendors() {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this vendor?')) {
             try {
-                await axios.delete(`/api/vendors/${id}`, { headers: getAuthHeaders() });
+                await deleteVendor(id);
                 fetchVendors();
             } catch (error) {
                 console.error('Error deleting vendor:', error);

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { ShoppingCart, Plus, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getPurchaseOrders, createPurchaseOrder, getVendors, getItems } from '../api/client';
+
 
 export default function PurchaseOrders() {
-    const { getAuthHeaders } = useAuth();
     const [pos, setPos] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
@@ -24,9 +23,9 @@ export default function PurchaseOrders() {
         setLoading(true);
         try {
             const [posRes, vendsRes, itemsRes] = await Promise.all([
-                axios.get('/api/inventory/purchase-orders', { headers: getAuthHeaders() }),
-                axios.get('/api/vendors', { headers: getAuthHeaders() }),
-                axios.get('/api/inventory/items', { headers: getAuthHeaders() })
+                getPurchaseOrders(),
+                getVendors(),
+                getItems()
             ]);
             setPos(posRes.data || []);
             setVendors(vendsRes.data || []);
@@ -61,11 +60,11 @@ export default function PurchaseOrders() {
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/inventory/purchase-orders', {
+            await createPurchaseOrder({
                 vendorId: formData.vendorId,
                 expectedDate: formData.expectedDate,
                 items: formData.items.filter(i => i.itemId && i.quantity > 0)
-            }, { headers: getAuthHeaders() });
+            });
 
             setShowModal(false);
             setFormData({

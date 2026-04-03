@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { X, Plus, RotateCcw, ActivitySquare, Trash2 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getVendors, logStock } from '../api/client';
+
 
 export default function LogStockModal({ stock, onClose, onSuccess }) {
-    const { getAuthHeaders } = useAuth();
-
     // Internal use is default
     const [movementType, setMovementType] = useState('INTERNAL_USE');
 
@@ -36,7 +34,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
 
     const fetchVendors = async () => {
         try {
-            const res = await axios.get('/api/vendors', { headers: getAuthHeaders() });
+            const res = await getVendors();
             setVendors(res.data || []);
         } catch (error) {
             console.error('Failed to fetch vendors');
@@ -67,7 +65,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
         };
 
         try {
-            await axios.post('/api/inventory/log-stock', payload, { headers: getAuthHeaders() });
+            await logStock(payload);
             onSuccess();
         } catch (error) {
             alert('Error logging stock');

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Layers, Plus, Edit2, Trash2, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getCategories, createCategory, updateCategory, deleteCategory } from '../api/client';
+
 
 export default function InventoryCategories() {
-    const { getAuthHeaders } = useAuth();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -21,7 +20,7 @@ export default function InventoryCategories() {
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('/api/inventory/categories', { headers: getAuthHeaders() });
+            const res = await getCategories();
             setCategories(res.data || []);
         } catch (error) {
             console.error('Error fetching categories:', error);
@@ -51,9 +50,9 @@ export default function InventoryCategories() {
         e.preventDefault();
         try {
             if (editingId) {
-                await axios.put(`/api/inventory/categories/${editingId}`, formData, { headers: getAuthHeaders() });
+                await updateCategory(editingId, formData);
             } else {
-                await axios.post('/api/inventory/categories', formData, { headers: getAuthHeaders() });
+                await createCategory(formData);
             }
             setShowModal(false);
             fetchCategories();
@@ -66,7 +65,7 @@ export default function InventoryCategories() {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this category?')) {
             try {
-                await axios.delete(`/api/inventory/categories/${id}`, { headers: getAuthHeaders() });
+                await deleteCategory(id);
                 fetchCategories();
             } catch (error) {
                 console.error('Error deleting category:', error);
