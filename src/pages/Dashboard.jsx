@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, Package, AlertCircle, Clock, Plus, Download } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import LogStockModal from './LogStockModal';
 
 const Dashboard = () => {
   const { getAuthHeaders } = useAuth();
@@ -15,6 +16,8 @@ const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showLogModal, setShowLogModal] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -60,6 +63,27 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogStockClick = (stock) => {
+    // Prepare stock data for modal - ensure all required fields
+    const stockData = {
+      itemId: stock.itemId,
+      storeId: stock.storeId,
+      itemName: stock.itemName,
+      itemCode: stock.itemCode,
+      quantityAvail: stock.quantityAvail,
+      unit: stock.unit
+    };
+    setSelectedStock(stockData);
+    setShowLogModal(true);
+  };
+
+  const handleLogStockSuccess = () => {
+    setShowLogModal(false);
+    setSelectedStock(null);
+    // Refresh dashboard data
+    fetchDashboardData();
   };
 
   const getActivityIcon = (type) => {
@@ -115,7 +139,16 @@ const Dashboard = () => {
 
       {/* Page Actions */}
       <div className="page-actions">
-        <button className="btn btn-primary" title="Add new stock transaction">
+        <button 
+          className="btn btn-primary" 
+          title="Add new stock transaction"
+          onClick={() => {
+            if (lowStockItems.length > 0) {
+              handleLogStockClick(lowStockItems[0]);
+            }
+          }}
+          disabled={lowStockItems.length === 0}
+        >
           <Plus size={18} />
           Log Stock
         </button>
@@ -235,7 +268,10 @@ const Dashboard = () => {
                       </div>
                     </td>
                     <td>
-                      <button className="btn btn-sm btn-accent">
+                      <button 
+                        className="btn btn-sm btn-accent"
+                        onClick={() => handleLogStockClick(item)}
+                      >
                         <Plus size={16} />
                         Log Stock
                       </button>
@@ -299,6 +335,15 @@ const Dashboard = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Log Stock Modal */}
+      {showLogModal && selectedStock && (
+        <LogStockModal 
+          stock={selectedStock} 
+          onClose={() => setShowLogModal(false)}
+          onSuccess={handleLogStockSuccess}
+        />
       )}
     </div>
   );

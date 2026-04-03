@@ -107,6 +107,13 @@ export function AuthProvider({ children }) {
     const isDoctor = user?.role?.toLowerCase() === 'doctor';
     const isStaff = user?.role?.toLowerCase() === 'staff';
 
+    // Get auth headers for API calls (cookie-based auth uses withCredentials)
+    const getAuthHeaders = useCallback(() => {
+        return {
+            'Content-Type': 'application/json',
+        };
+    }, []);
+
     return (
         <AuthContext.Provider
             value={{
@@ -117,6 +124,7 @@ export function AuthProvider({ children }) {
                 isDoctor,
                 isStaff,
                 doLogout,
+                getAuthHeaders,
             }}
         >
             {children}

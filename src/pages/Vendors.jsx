@@ -16,7 +16,7 @@ export default function Vendors() {
         email: '',
         address: '',
         city: '',
-        complianceStatus: 'ACTIVE'
+        isActive: true
     });
 
     useEffect(() => {
@@ -45,7 +45,7 @@ export default function Vendors() {
                 email: vendor.email || '',
                 address: vendor.address || '',
                 city: vendor.city || '',
-                complianceStatus: vendor.complianceStatus || 'ACTIVE'
+                isActive: vendor.isActive !== false
             });
         } else {
             setEditingId(null);
@@ -56,7 +56,7 @@ export default function Vendors() {
                 email: '',
                 address: '',
                 city: '',
-                complianceStatus: 'ACTIVE'
+                isActive: true
             });
         }
         setShowModal(true);
@@ -90,13 +90,8 @@ export default function Vendors() {
         }
     };
 
-    const getComplianceColor = (status) => {
-        const colors = {
-            'ACTIVE': 'badge-success',
-            'INACTIVE': 'badge-warning',
-            'SUSPENDED': 'badge-error'
-        };
-        return colors[status] || 'badge-secondary';
+    const getStatusColor = (isActive) => {
+        return isActive ? 'badge-success' : 'badge-warning';
     };
 
     return (
@@ -166,8 +161,8 @@ export default function Vendors() {
                                             {vendor.city || '-'}
                                         </td>
                                         <td>
-                                            <span className={`badge ${getComplianceColor(vendor.complianceStatus)}`}>
-                                                {vendor.complianceStatus || 'ACTIVE'}
+                                            <span className={`badge ${getStatusColor(vendor.isActive)}`}>
+                                                {vendor.isActive !== false ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td>
@@ -297,16 +292,22 @@ export default function Vendors() {
                                     </div>
 
                                     <div className="form-group">
-                                        <label className="form-label">Compliance Status</label>
-                                        <select
-                                            value={formData.complianceStatus}
-                                            onChange={(e) => setFormData({ ...formData, complianceStatus: e.target.value })}
-                                            className="form-select"
-                                        >
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="INACTIVE">Inactive</option>
-                                            <option value="SUSPENDED">Suspended</option>
-                                        </select>
+                                        <label style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 'var(--spacing-2)',
+                                            cursor: 'pointer',
+                                            fontWeight: 'var(--fw-medium)',
+                                            color: 'var(--color-gray-700)'
+                                        }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.isActive}
+                                                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                            />
+                                            Mark as Active
+                                        </label>
                                     </div>
                                 </div>
                             </div>
