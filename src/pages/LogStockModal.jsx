@@ -47,14 +47,30 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!quantity || quantity <= 0) return alert('Enter a valid quantity');
+        
+        // Validation
+        if (!quantity || quantity <= 0) {
+            alert('Enter a valid quantity');
+            return;
+        }
+        
+        if (movementType === 'PURCHASE_IN' && !vendorId) {
+            alert('Please select a vendor for Purchase In transactions');
+            return;
+        }
+        
+        if (movementType === 'RETURN' && !reason) {
+            alert('Please enter a reason for returns');
+            return;
+        }
+        
         setLoading(true);
 
         const payload = {
             movementType,
             storeId: stock.storeId,
             itemId: stock.itemId,
-            quantity: quantity,
+            quantity: Number(quantity),
 
             // conditional
             vendorId: movementType === 'PURCHASE_IN' ? vendorId : null,
@@ -62,7 +78,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
             batchNo: ['PURCHASE_IN', 'RETURN', 'EXPIRED_DISPOSED'].includes(movementType) ? batchNo : null,
 
             reason: movementType === 'RETURN' ? reason : null,
-            notes: notes,
+            notes: notes || null,
 
             assignPatientId: assignPatientId || null,
             assignStaffId: assignStaffId || null
@@ -70,10 +86,11 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
 
         try {
             await logStock(payload);
+            alert('Stock transaction recorded successfully!');
             onSuccess();
         } catch (error) {
-            alert('Error logging stock');
-            console.error(error);
+            console.error('Error logging stock:', error);
+            alert('Error logging stock: ' + (error.response?.data?.message || error.message || 'Unknown error'));
         } finally {
             setLoading(false);
         }
@@ -240,17 +257,18 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 font-semibold text-slate-600 hover:text-slate-800 transition-colors"
+                        className="btn btn-secondary"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         form="log-stock-form"
-                        disabled={loading}
-                        className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-sm shadow-emerald-600/20 disabled:opacity-50"
+                        disabled={loading || !quantity}
+                        className="btn btn-success"
+                        title={loading ? "Processing..." : "Confirm and log this transaction"}
                     >
-                        {loading ? 'Logging...' : 'Confirm Transaction'}
+                        {loading ? 'Processing...' : 'Confirm Transaction'}
                     </button>
                 </div>
             </div>
