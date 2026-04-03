@@ -11,7 +11,6 @@ export default function InventoryCategories() {
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
-        description: '',
         isActive: true
     });
 
@@ -36,14 +35,12 @@ export default function InventoryCategories() {
             setEditingId(category.id);
             setFormData({
                 name: category.name,
-                description: category.description || '',
                 isActive: category.isActive !== false
             });
         } else {
             setEditingId(null);
             setFormData({
                 name: '',
-                description: '',
                 isActive: true
             });
         }
@@ -82,7 +79,7 @@ export default function InventoryCategories() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
                     <Layers size={28} style={{ color: 'var(--color-accent)' }} />
                     Product Categories
                 </h1>
@@ -196,17 +193,6 @@ export default function InventoryCategories() {
                                         placeholder="e.g., Surgical Instruments"
                                         required
                                     />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Description</label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="form-textarea"
-                                        placeholder="Details about this category"
-                                        rows="3"
-                                    ></textarea>
                                 </div>
 
                                 <div className="form-group">

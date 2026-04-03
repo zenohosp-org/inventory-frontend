@@ -33,7 +33,7 @@ export default function InventoryItems() {
             const [itemsRes, catsRes, vendsRes] = await Promise.all([
                 axios.get('/api/inventory/items', { headers: getAuthHeaders() }),
                 axios.get('/api/inventory/categories', { headers: getAuthHeaders() }),
-                axios.get('/api/inventory/vendors', { headers: getAuthHeaders() })
+                axios.get('/api/vendors', { headers: getAuthHeaders() })
             ]);
             setItems(itemsRes.data);
             setCategories(catsRes.data);

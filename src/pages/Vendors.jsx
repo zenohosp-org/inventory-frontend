@@ -26,7 +26,7 @@ export default function Vendors() {
     const fetchVendors = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('/api/inventory/vendors', { headers: getAuthHeaders() });
+            const res = await axios.get('/api/vendors', { headers: getAuthHeaders() });
             setVendors(res.data || []);
         } catch (error) {
             console.error('Error fetching vendors:', error);
@@ -66,9 +66,9 @@ export default function Vendors() {
         e.preventDefault();
         try {
             if (editingId) {
-                await axios.put(`/api/inventory/vendors/${editingId}`, formData, { headers: getAuthHeaders() });
+                await axios.put(`/api/vendors/${editingId}`, formData, { headers: getAuthHeaders() });
             } else {
-                await axios.post('/api/inventory/vendors', formData, { headers: getAuthHeaders() });
+                await axios.post('/api/vendors', formData, { headers: getAuthHeaders() });
             }
             setShowModal(false);
             fetchVendors();
@@ -81,7 +81,7 @@ export default function Vendors() {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this vendor?')) {
             try {
-                await axios.delete(`/api/inventory/vendors/${id}`, { headers: getAuthHeaders() });
+                await axios.delete(`/api/vendors/${id}`, { headers: getAuthHeaders() });
                 fetchVendors();
             } catch (error) {
                 console.error('Error deleting vendor:', error);

@@ -25,7 +25,7 @@ export default function PurchaseOrders() {
         try {
             const [posRes, vendsRes, itemsRes] = await Promise.all([
                 axios.get('/api/inventory/purchase-orders', { headers: getAuthHeaders() }),
-                axios.get('/api/inventory/vendors', { headers: getAuthHeaders() }),
+                axios.get('/api/vendors', { headers: getAuthHeaders() }),
                 axios.get('/api/inventory/items', { headers: getAuthHeaders() })
             ]);
             setPos(posRes.data || []);

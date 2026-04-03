@@ -12,8 +12,7 @@ export default function Stores() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        location: '',
-        storeType: 'GENERAL'
+        type: 'CENTRAL'
     });
 
     useEffect(() => {
@@ -38,16 +37,14 @@ export default function Stores() {
             setFormData({
                 name: store.name,
                 description: store.description || '',
-                location: store.location || '',
-                storeType: store.storeType || 'GENERAL'
+                type: store.type || 'CENTRAL'
             });
         } else {
             setEditingId(null);
             setFormData({
                 name: '',
                 description: '',
-                location: '',
-                storeType: 'GENERAL'
+                type: 'CENTRAL'
             });
         }
         setShowModal(true);
@@ -85,8 +82,7 @@ export default function Stores() {
         const colors = {
             'CENTRAL': 'badge-primary',
             'DEPARTMENT': 'badge-info',
-            'EMERGENCY': 'badge-warning',
-            'GENERAL': 'badge-secondary'
+            'EMERGENCY': 'badge-warning'
         };
         return colors[type] || 'badge-secondary';
     };
@@ -148,8 +144,8 @@ export default function Stores() {
                                             {store.location || '-'}
                                         </td>
                                         <td>
-                                            <span className={`badge ${getStoreTypeColor(store.storeType)}`}>
-                                                {store.storeType || 'GENERAL'}
+                                            <span className={`badge ${getStoreTypeColor(store.type)}`}>
+                                                {store.type || 'CENTRAL'}
                                             </span>
                                         </td>
                                         <td className="text-muted" style={{ fontSize: 'var(--fs-sm)' }}>
@@ -216,21 +212,10 @@ export default function Stores() {
                                 </div>
 
                                 <div className="form-group">
-                                    <label className="form-label">Location</label>
-                                    <input
-                                        type="text"
-                                        value={formData.location}
-                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        className="form-input"
-                                        placeholder="e.g., Building A, Floor 2"
-                                    />
-                                </div>
-
-                                <div className="form-group">
                                     <label className="form-label">Store Type</label>
                                     <select
-                                        value={formData.storeType}
-                                        onChange={(e) => setFormData({ ...formData, storeType: e.target.value })}
+                                        value={formData.type}
+                                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                         className="form-select"
                                     >
                                         <option value="GENERAL">General</option>

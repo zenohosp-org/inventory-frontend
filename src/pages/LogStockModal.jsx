@@ -36,8 +36,8 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
 
     const fetchVendors = async () => {
         try {
-            const res = await axios.get('/api/inventory/vendors', { headers: getAuthHeaders() });
-            setVendors(res.data);
+            const res = await axios.get('/api/vendors', { headers: getAuthHeaders() });
+            setVendors(res.data || []);
         } catch (error) {
             console.error('Failed to fetch vendors');
         }
