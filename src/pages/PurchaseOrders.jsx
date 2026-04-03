@@ -36,15 +36,18 @@ export default function PurchaseOrders() {
                 getStores()
             ]);
             
-            // Helper function to safely extract and parse array data
+            // Helper function to safely extract array data (should already be parsed by axios transformer)
             const extractArray = (res) => {
                 let data = res.data || res;
-                // If data is a string, try to parse it as JSON
+                if (Array.isArray(data)) {
+                    return data;
+                }
                 if (typeof data === 'string') {
                     try {
                         data = JSON.parse(data);
+                        return Array.isArray(data) ? data : [];
                     } catch (e) {
-                        console.error('Failed to parse JSON string:', data);
+                        console.error('Failed to parse JSON string:', e.message);
                         return [];
                     }
                 }

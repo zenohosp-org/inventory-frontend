@@ -27,7 +27,6 @@ export default function Vendors() {
         try {
             const res = await getVendors();
             let vendorsData = res.data || res;
-            // If data is a JSON string, parse it
             if (typeof vendorsData === 'string') {
                 vendorsData = JSON.parse(vendorsData);
             }

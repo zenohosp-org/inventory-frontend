@@ -23,7 +23,6 @@ export default function Stores() {
         try {
             const response = await getStores();
             let storesData = response.data || response;
-            // If data is a JSON string, parse it
             if (typeof storesData === 'string') {
                 storesData = JSON.parse(storesData);
             }

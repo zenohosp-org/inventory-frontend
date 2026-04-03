@@ -9,6 +9,22 @@ const api = axios.create({
     withCredentials: true,  // Automatically send/receive HTTPOnly cookies
 });
 
+// Response transformer to handle stringified JSON responses
+api.defaults.transformResponse = [
+    function(data) {
+        // Try to parse JSON if data is a string
+        if (typeof data === 'string') {
+            try {
+                return JSON.parse(data);
+            } catch (e) {
+                console.warn('Could not parse response as JSON, returning as-is');
+                return data;
+            }
+        }
+        return data;
+    }
+];
+
 // Response interceptor to handle 401/403 (session expired)
 api.interceptors.response.use(
     (response) => response,
