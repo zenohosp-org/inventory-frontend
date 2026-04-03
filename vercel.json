@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://api-inventory.zenohosp.com/api/$1"
+    },
+    {
+      "source": "/oauth2/(.*)",
+      "destination": "https://api-inventory.zenohosp.com/oauth2/$1"  
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
