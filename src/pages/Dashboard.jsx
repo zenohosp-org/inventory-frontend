@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Package, AlertCircle, Clock, Plus, Download } from 'lucide-react';
 import axios from 'axios';
-import LogStockModal from './LogStockModal';
+import LogStockModal from '../components/LogStockModal';
 import { getStockOverview, getStockLogs } from '../api/client';
 
 

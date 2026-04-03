@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Package, Search } from 'lucide-react';
-import LogStockModal from './LogStockModal';
+import LogStockModal from '../components/LogStockModal';
 import { getStockOverview, getCategories } from '../api/client';
 
 
