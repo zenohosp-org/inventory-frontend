@@ -35,9 +35,11 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
     const fetchVendors = async () => {
         try {
             const res = await getVendors();
-            setVendors(res.data || []);
+            const vendorsData = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+            setVendors(vendorsData);
         } catch (error) {
             console.error('Failed to fetch vendors');
+            setVendors([]);
         }
     };
 

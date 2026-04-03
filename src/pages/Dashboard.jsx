@@ -31,11 +31,12 @@ const Dashboard = () => {
         getStockLogs(),
       ]);
 
-      const stocks = stockRes.data || [];
-      const transactions = (transRes.data || []).slice(0, 10);
+      const stocks = Array.isArray(stockRes.data) ? stockRes.data : (Array.isArray(stockRes) ? stockRes : []);
+      const transactions = Array.isArray(transRes.data) ? transRes.data : (Array.isArray(transRes) ? transRes : []);
+      const transactionSlice = transactions.slice(0, 10);
 
       // Calculate stats
-      const lowStock = stocks.filter(s => s.quantityAvail <= s.reorderLevel);
+      const lowStock = (stocks || []).filter(s => s.quantityAvail <= s.reorderLevel);
       setStats({
         totalProducts: stocks.length,
         lowStockItems: lowStock.length,
@@ -47,7 +48,7 @@ const Dashboard = () => {
       setLowStockItems(lowStock.slice(0, 3));
 
       // Format recent activity
-      const activity = transactions.map((t, idx) => ({
+      const activity = (transactionSlice || []).map((t, idx) => ({
         id: idx,
         type: t.transactionType.toLowerCase().replace(/_/g, '_'),
         product: t.itemName,

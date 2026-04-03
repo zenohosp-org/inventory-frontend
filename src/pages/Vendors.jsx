@@ -26,9 +26,11 @@ export default function Vendors() {
         setLoading(true);
         try {
             const res = await getVendors();
-            setVendors(res.data || []);
+            const vendorsData = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+            setVendors(vendorsData);
         } catch (error) {
             console.error('Error fetching vendors:', error);
+            setVendors([]);
         } finally {
             setLoading(false);
         }
@@ -97,7 +99,7 @@ export default function Vendors() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
                     <Users size={28} style={{ color: 'var(--color-accent)' }} />
                     Vendors Master
                 </h1>

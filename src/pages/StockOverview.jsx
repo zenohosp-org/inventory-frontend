@@ -24,10 +24,14 @@ export default function StockOverview() {
                 getStockOverview(),
                 getCategories(),
             ]);
-            setStocks(stockRes.data || []);
-            setCategories(catRes.data || []);
+            const stocksData = Array.isArray(stockRes.data) ? stockRes.data : (Array.isArray(stockRes) ? stockRes : []);
+            const categoriesData = Array.isArray(catRes.data) ? catRes.data : (Array.isArray(catRes) ? catRes : []);
+            setStocks(stocksData);
+            setCategories(categoriesData);
         } catch (error) {
             console.error('Error fetching data:', error);
+            setStocks([]);
+            setCategories([]);
         } finally {
             setLoading(false);
         }

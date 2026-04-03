@@ -32,12 +32,26 @@ export default function PurchaseOrders() {
                 getItems(),
                 getStores()
             ]);
-            setPos(posRes.data || []);
-            setVendors(vendsRes.data || []);
-            setItems(itemsRes.data || []);
-            const allStores = storesRes.data || [];
-            setStores(allStores);
-            const active = allStores.filter(s => s.isActive);
+            
+            // Safely extract arrays from responses
+            const posData = Array.isArray(posRes.data) ? posRes.data : (Array.isArray(posRes) ? posRes : []);
+            const vendorsData = Array.isArray(vendsRes.data) ? vendsRes.data : (Array.isArray(vendsRes) ? vendsRes : []);
+            const itemsData = Array.isArray(itemsRes.data) ? itemsRes.data : (Array.isArray(itemsRes) ? itemsRes : []);
+            const storesData = Array.isArray(storesRes.data) ? storesRes.data : (Array.isArray(storesRes) ? storesRes : []);
+            
+            console.log('Loaded data:', {
+                pos: posData,
+                vendors: vendorsData,
+                items: itemsData,
+                stores: storesData
+            });
+            
+            setPos(posData);
+            setVendors(vendorsData);
+            setItems(itemsData);
+            setStores(storesData);
+            
+            const active = storesData.filter(s => s && s.isActive);
             setActiveStores(active);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -47,6 +61,13 @@ export default function PurchaseOrders() {
                 data: error.response?.data
             });
             setError('Failed to load purchase orders. ' + (error.response?.data?.message || error.message));
+            
+            // Set safe defaults on error
+            setPos([]);
+            setVendors([]);
+            setItems([]);
+            setStores([]);
+            setActiveStores([]);
         } finally {
             setLoading(false);
         }

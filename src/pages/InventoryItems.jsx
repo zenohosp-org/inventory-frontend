@@ -34,11 +34,17 @@ export default function InventoryItems() {
                 getCategories(),
                 getVendors()
             ]);
-            setItems(itemsRes.data);
-            setCategories(catsRes.data);
-            setVendors(vendsRes.data);
+            const itemsData = Array.isArray(itemsRes.data) ? itemsRes.data : (Array.isArray(itemsRes) ? itemsRes : []);
+            const catsData = Array.isArray(catsRes.data) ? catsRes.data : (Array.isArray(catsRes) ? catsRes : []);
+            const vendsData = Array.isArray(vendsRes.data) ? vendsRes.data : (Array.isArray(vendsRes) ? vendsRes : []);
+            setItems(itemsData);
+            setCategories(catsData);
+            setVendors(vendsData);
         } catch (error) {
             console.error('Error fetching data:', error);
+            setItems([]);
+            setCategories([]);
+            setVendors([]);
         } finally {
             setLoading(false);
         }

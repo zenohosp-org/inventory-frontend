@@ -39,9 +39,11 @@ export default function StockLog() {
         setLoading(true);
         try {
             const res = await getStockLogs();
-            setTransactions(res.data || []);
+            const transData = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+            setTransactions(transData);
         } catch (error) {
             console.error('Error fetching stock log:', error);
+            setTransactions([]);
         } finally {
             setLoading(false);
         }

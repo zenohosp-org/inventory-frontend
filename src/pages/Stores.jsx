@@ -22,9 +22,11 @@ export default function Stores() {
         setLoading(true);
         try {
             const response = await getStores();
-            setStores(response.data || []);
+            const storesData = Array.isArray(response.data) ? response.data : (Array.isArray(response) ? response : []);
+            setStores(storesData);
         } catch (error) {
             console.error('Error fetching stores:', error);
+            setStores([]);
         } finally {
             setLoading(false);
         }

@@ -21,9 +21,11 @@ export default function InventoryCategories() {
         setLoading(true);
         try {
             const res = await getCategories();
-            setCategories(res.data || []);
+            const catsData = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+            setCategories(catsData);
         } catch (error) {
             console.error('Error fetching categories:', error);
+            setCategories([]);
         } finally {
             setLoading(false);
         }
