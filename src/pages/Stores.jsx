@@ -10,7 +10,8 @@ export default function Stores() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        type: 'CENTRAL'
+        type: 'CENTRAL',
+        isActive: true
     });
 
     useEffect(() => {
@@ -35,14 +36,16 @@ export default function Stores() {
             setFormData({
                 name: store.name,
                 description: store.description || '',
-                type: store.type || 'CENTRAL'
+                type: store.type || 'CENTRAL',
+                isActive: store.isActive !== false
             });
         } else {
             setEditingId(null);
             setFormData({
                 name: '',
                 description: '',
-                type: 'CENTRAL'
+                type: 'CENTRAL',
+                isActive: true
             });
         }
         setShowModal(true);
@@ -127,9 +130,10 @@ export default function Stores() {
                                 <tr>
                                     <th style={{ width: '25%' }}>Store Name</th>
                                     <th style={{ width: '30%' }}>Location</th>
-                                    <th style={{ width: '15%' }}>Type</th>
-                                    <th style={{ width: '20%' }}>Description</th>
-                                    <th style={{ width: '10%' }}>Actions</th>
+                                    <th style={{ width: '12%' }}>Type</th>
+                                    <th style={{ width: '13%' }}>Status</th>
+                                    <th style={{ width: '15%' }}>Description</th>
+                                    <th style={{ width: '5%' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -144,6 +148,11 @@ export default function Stores() {
                                         <td>
                                             <span className={`badge ${getStoreTypeColor(store.type)}`}>
                                                 {store.type || 'CENTRAL'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`badge ${store.isActive ? 'badge-success' : 'badge-gray'}`}>
+                                                {store.isActive ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td className="text-muted" style={{ fontSize: 'var(--fs-sm)' }}>
@@ -232,6 +241,19 @@ export default function Stores() {
                                         placeholder="Any additional notes about this store"
                                         rows="3"
                                     ></textarea>
+                                </div>
+
+                                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
+                                    <input
+                                        type="checkbox"
+                                        id="isActive"
+                                        checked={formData.isActive}
+                                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                        className="form-checkbox"
+                                    />
+                                    <label htmlFor="isActive" className="form-label" style={{ margin: 0 }}>
+                                        Active Store (Available for purchase orders)
+                                    </label>
                                 </div>
                             </div>
 

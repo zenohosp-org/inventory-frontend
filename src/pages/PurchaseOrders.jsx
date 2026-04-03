@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, X } from 'lucide-react';
-import { getPurchaseOrders, createPurchaseOrder, getVendors, getItems } from '../api/client';
+import { ShoppingCart, Plus, X, AlertCircle } from 'lucide-react';
+import { getPurchaseOrders, createPurchaseOrder, getVendors, getItems, getStores } from '../api/client';
 
 
 export default function PurchaseOrders() {
     const [pos, setPos] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
+    const [stores, setStores] = useState([]);
+    const [activeStores, setActiveStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
@@ -22,14 +24,19 @@ export default function PurchaseOrders() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [posRes, vendsRes, itemsRes] = await Promise.all([
+            const [posRes, vendsRes, itemsRes, storesRes] = await Promise.all([
                 getPurchaseOrders(),
                 getVendors(),
-                getItems()
+                getItems(),
+                getStores()
             ]);
             setPos(posRes.data || []);
             setVendors(vendsRes.data || []);
             setItems(itemsRes.data || []);
+            const allStores = storesRes.data || [];
+            setStores(allStores);
+            const active = allStores.filter(s => s.isActive);
+            setActiveStores(active);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -60,6 +67,12 @@ export default function PurchaseOrders() {
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
+            // Check if there are active stores
+            if (activeStores.length === 0) {
+                alert('Error: No active stores available. Please create and activate a store first before creating a purchase order.');
+                return;
+            }
+
             // Filter out empty items and ensure proper data types
             const validItems = formData.items.filter(i => i.itemId && i.quantity > 0);
             
@@ -79,16 +92,17 @@ export default function PurchaseOrders() {
             }
             
             const payload = {
-                vendorId: formData.vendorId, // Should be a UUID string
-                expectedDate: formData.expectedDate, // Should be ISO date string
+                vendorId: formData.vendorId,
+                expectedDate: formData.expectedDate,
                 items: validItems.map(item => ({
-                    itemId: item.itemId, // Should be a UUID string
+                    itemId: item.itemId,
                     quantity: Number(item.quantity) || 0,
                     unitPrice: Number(item.unitPrice) || 0
                 }))
             };
             
             console.log('Creating PO with payload:', payload);
+            console.log('Using store:', activeStores[0]?.name || 'Default');
             await createPurchaseOrder(payload);
 
             setShowModal(false);
@@ -98,6 +112,7 @@ export default function PurchaseOrders() {
                 items: [{ itemId: '', quantity: 1, unitPrice: 0 }]
             });
             fetchData();
+            alert('Purchase Order created successfully!');
         } catch (error) {
             console.error('Error creating PO:', error);
             console.error('Error response:', error.response?.data);
@@ -116,7 +131,7 @@ export default function PurchaseOrders() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
                     <ShoppingCart size={28} style={{ color: 'var(--color-accent)' }} />
                     Purchase Orders
                 </h1>
@@ -127,10 +142,31 @@ export default function PurchaseOrders() {
 
             {/* Page Actions */}
             <div className="page-actions">
-                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                <button 
+                    className="btn btn-primary" 
+                    onClick={() => setShowModal(true)}
+                    disabled={activeStores.length === 0}
+                    title={activeStores.length === 0 ? 'Create an active store first' : 'Create new purchase order'}
+                >
                     <Plus size={18} />
                     Create Purchase Order
                 </button>
+                {activeStores.length === 0 && (
+                    <div style={{
+                        display: 'flex',
+                        gap: 'var(--spacing-3)',
+                        padding: 'var(--spacing-3) var(--spacing-4)',
+                        backgroundColor: '#fef3c7',
+                        border: '1px solid #fcd34d',
+                        borderRadius: 'var(--radius-md)',
+                        color: '#92400e',
+                        fontSize: 'var(--fs-sm)',
+                        flex: 1
+                    }}>
+                        <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>No active stores found. <strong>Create a store first</strong> before creating purchase orders.</span>
+                    </div>
+                )}
             </div>
 
             {/* Purchase Orders Table */}
@@ -221,6 +257,46 @@ export default function PurchaseOrders() {
 
                         <form onSubmit={handleCreate}>
                             <div className="modal-body">
+                                {/* Store Information Alert */}
+                                {activeStores.length === 0 ? (
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: 'var(--spacing-3)',
+                                        padding: 'var(--spacing-4)',
+                                        backgroundColor: '#fee2e2',
+                                        border: '1px solid #fca5a5',
+                                        borderRadius: 'var(--radius-md)',
+                                        marginBottom: 'var(--spacing-4)',
+                                        color: '#991b1b'
+                                    }}>
+                                        <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+                                        <div>
+                                            <strong>No Active Store Found</strong>
+                                            <p style={{ margin: '4px 0 0 0', fontSize: 'var(--fs-sm)' }}>
+                                                Please create and activate a store in the <strong>Stores Master</strong> page before creating a purchase order.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: 'var(--spacing-3)',
+                                        padding: 'var(--spacing-4)',
+                                        backgroundColor: '#f0fdf4',
+                                        border: '1px solid #86efac',
+                                        borderRadius: 'var(--radius-md)',
+                                        marginBottom: 'var(--spacing-4)',
+                                        color: '#166534'
+                                    }}>
+                                        <div style={{ flex: 1 }}>
+                                            <strong style={{ fontSize: 'var(--fs-sm)' }}>Store for this PO:</strong>
+                                            <p style={{ margin: '4px 0 0 0', fontSize: 'var(--fs-sm)' }}>
+                                                {activeStores[0]?.name} ({activeStores[0]?.type})
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Vendor Selection */}
                                 <div className="form-group">
                                     <label className="form-label required">Vendor</label>
