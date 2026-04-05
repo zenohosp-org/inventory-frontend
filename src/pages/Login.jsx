@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Shield, Globe, Box, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../api/client';
 
@@ -16,7 +15,6 @@ export default function Login() {
     }, [user, loading, navigate]);
 
     const handleLoginClick = () => {
-        // Redirect via Vite proxy → Inventory Backend → Directory Backend
         window.location.href = `${API_BASE_URL}/oauth2/authorization/directory`;
     };
 
@@ -24,81 +22,245 @@ export default function Login() {
 
     if (searchParams.get('code')) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-white font-bold tracking-widest uppercase text-xs animate-pulse">Completing SSO Login...</p>
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0f172a',
+            }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                        width: '50px',
+                        height: '50px',
+                        border: '4px solid #3b82f6',
+                        borderTop: 'transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        margin: '0 auto 20px',
+                    }}></div>
+                    <p style={{
+                        color: 'white',
+                        fontWeight: 'bold',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        fontSize: '12px',
+                    }}>Completing SSO Login...</p>
                 </div>
+                <style>{`
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                `}</style>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row relative overflow-hidden text-slate-300">
-            {/* Background Decor */}
-            <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'row',
+            backgroundColor: '#0f172a',
+            color: '#cbd5e1',
+            overflow: 'hidden',
+            position: 'relative',
+        }}>
             {/* Left Col - Hero Information */}
-            <div className="flex-1 flex flex-col justify-center px-10 md:px-20 z-10 relative">
-                <div className="inline-flex items-center gap-3 w-max bg-blue-600/10 border border-blue-600/20 px-4 py-2 rounded-full mb-8">
-                    <Shield className="w-4 h-4 text-blue-400" />
-                    <span className="text-sm font-bold text-blue-400 tracking-wider uppercase">ZenoHosp Enterprise OS</span>
+            <div style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                padding: '40px 80px',
+                zIndex: 10,
+                position: 'relative',
+            }}>
+                <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    width: 'fit-content',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    padding: '8px 16px',
+                    borderRadius: '9999px',
+                    marginBottom: '32px',
+                }}>
+                    <span style={{
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        color: '#60a5fa',
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                    }}>ZenoHosp Enterprise OS</span>
                 </div>
 
-                <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent mb-6 tracking-tight leading-tight">
-                    Institutional Level <br />Asset Management
+                <h1 style={{
+                    fontSize: '56px',
+                    fontWeight: 'bold',
+                    marginBottom: '24px',
+                    background: 'linear-gradient(to right, #ffffff, #cbd5e1)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    lineHeight: 1.2,
+                }}>
+                    Institutional Level<br />Asset Management
                 </h1>
 
-                <p className="text-xl text-slate-400 max-w-xl mb-12">
+                <p style={{
+                    fontSize: '18px',
+                    color: '#94a3b8',
+                    maxWidth: '500px',
+                    marginBottom: '48px',
+                }}>
                     Gain full visibility over hospital equipment, transfer flows, and maintenance statuses powered by ZenoHosp's integrated security directory.
                 </p>
 
-                <div className="space-y-4 font-medium text-slate-300">
-                    <div className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <div style={{ marginBottom: '20px' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        fontWeight: '500',
+                        color: '#cbd5e1',
+                        marginBottom: '16px',
+                    }}>
+                        <span style={{ color: '#10b981' }}>✓</span>
                         <span>Centralized hardware and equipment logs</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        fontWeight: '500',
+                        color: '#cbd5e1',
+                        marginBottom: '16px',
+                    }}>
+                        <span style={{ color: '#10b981' }}>✓</span>
                         <span>Automated asset transfer tracking and sign-offs</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        fontWeight: '500',
+                        color: '#cbd5e1',
+                    }}>
+                        <span style={{ color: '#10b981' }}>✓</span>
                         <span>Seamless global SSO authentication</span>
                     </div>
                 </div>
             </div>
 
             {/* Right Col - Login Box */}
-            <div className="flex-1 flex items-center justify-center p-8 z-10">
-                <div className="w-full max-w-md bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl p-10 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <div style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '32px',
+                zIndex: 10,
+            }}>
+                <div style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    backdropFilter: 'blur(30px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '24px',
+                    padding: '40px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                    position: 'relative',
+                }}>
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '4px',
+                        background: 'linear-gradient(to right, #3b82f6, #a855f7)',
+                        borderRadius: '24px 24px 0 0',
+                    }}></div>
 
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600/10 rounded-2xl mb-6 shadow-inner border border-blue-500/20">
-                            <Box className="w-10 h-10 text-blue-500" />
+                    <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                        <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '80px',
+                            height: '80px',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderRadius: '16px',
+                            marginBottom: '24px',
+                            border: '1px solid rgba(59, 130, 246, 0.2)',
+                        }}>
+                            <span style={{ fontSize: '40px' }}>📦</span>
                         </div>
-                        <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-                        <p className="text-slate-400">Please sign in to your dashboard</p>
+                        <h2 style={{
+                            fontSize: '24px',
+                            fontWeight: 'bold',
+                            color: 'white',
+                            marginBottom: '8px',
+                        }}>Welcome Back</h2>
+                        <p style={{ color: '#94a3b8' }}>Please sign in to your dashboard</p>
                     </div>
 
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg mb-6 flex justify-center text-center">
+                        <div style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            color: '#f87171',
+                            fontSize: '14px',
+                            padding: '12px 16px',
+                            borderRadius: '8px',
+                            marginBottom: '24px',
+                            textAlign: 'center',
+                        }}>
                             {error}
                         </div>
                     )}
 
-                    <div className="space-y-6 pt-2">
+                    <div>
                         <button
                             onClick={handleLoginClick}
-                            className="w-full flex items-center justify-center gap-4 bg-white hover:bg-slate-50 text-slate-900 font-bold py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-[0.98] group"
+                            style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '16px',
+                                backgroundColor: 'white',
+                                color: '#1f2937',
+                                fontWeight: 'bold',
+                                padding: '16px',
+                                borderRadius: '12px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                                fontSize: '16px',
+                                marginBottom: '24px',
+                                transition: 'all 0.2s',
+                            }}
+                            onMouseOver={(e) => {
+                                e.target.style.backgroundColor = '#f3f4f6';
+                                e.target.style.boxShadow = '0 25px 30px -5px rgba(0, 0, 0, 0.15)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.target.style.backgroundColor = 'white';
+                                e.target.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
+                            }}
                         >
-                            <Globe className="w-6 h-6 text-blue-600 group-hover:rotate-12 transition-transform" />
+                            <span style={{ fontSize: '20px' }}>🌐</span>
                             Continue with ZenoHosp SSO
                         </button>
 
-                        <p className="text-center text-xs text-slate-500">
+                        <p style={{
+                            textAlign: 'center',
+                            fontSize: '12px',
+                            color: '#64748b',
+                        }}>
                             By logging in, you agree to our Terms of Service and Privacy Policy. Auth tokens are fully encrypted via Identity Directory.
                         </p>
                     </div>
