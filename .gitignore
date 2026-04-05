@@ -1,34 +1,51 @@
-```ignore
-# dependencies
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.production.local
+.env.development.local
+
+# Dependencies
 /node_modules
 /.pnp
 .pnp.js
 
-# testing
+# Testing
 /coverage
 
-# production
+# Build output
 /build
 /dist
+dist-ssr
 /.next/
 /out/
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# local env files
-.env*.local
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
 
-# vercel
-.vercel
+# OS
+.DS_Store
+Thumbs.db
+*.pem
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
-```
+
+# Vercel
+.vercel
