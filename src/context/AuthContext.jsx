@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect } from 'rea
 import { getMe, logout as apiLogout, logoutFromDirectory, SSOCookieManager } from '../api/client';
 
 const AuthContext = createContext(null);
+const LOGOUT_FLAG_KEY = 'inventory_logout_in_progress';
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(() => {
@@ -17,6 +18,16 @@ export function AuthProvider({ children }) {
     // Restore session from backend on mount (cookie-based auth)
     useEffect(() => {
         if (!user && loading) {
+            // Don't restore session if we just logged out
+            const logoutInProgress = localStorage.getItem(LOGOUT_FLAG_KEY);
+            if (logoutInProgress) {
+                sessionStorage.removeItem('inventory_user');
+                setUser(null);
+                setLoading(false);
+                localStorage.removeItem(LOGOUT_FLAG_KEY);
+                return;
+            }
+
             getMe()
                 .then((res) => {
                     const userData = res.data.data || res.data;
@@ -87,6 +98,9 @@ export function AuthProvider({ children }) {
     const logout = useCallback(async () => {
         console.log('🔴 Logout initiated');
         
+        // Set logout flag FIRST
+        localStorage.setItem(LOGOUT_FLAG_KEY, '1');
+        
         // Clear local state immediately
         sessionStorage.removeItem('inventory_user');
         setUser(null);
@@ -101,16 +115,18 @@ export function AuthProvider({ children }) {
             console.warn('Failed to broadcast logout:', e);
         }
         
-        // Fire logout API calls in background WITHOUT waiting
-        // When we navigate away, these requests may get aborted, which is fine
-        // The key is that we've already cleared local state
-        apiLogout().catch(() => {}); // Ignore network errors
-        logoutFromDirectory().catch(() => {}); // Ignore network errors
-        
-        console.log('✅ Logout requests sent (fire-and-forget)');
+        // Wait for logout API calls to ACTUALLY complete
+        try {
+            await Promise.all([
+                apiLogout(),
+                logoutFromDirectory()
+            ]);
+            console.log('✅ Backend logout completed');
+        } catch (e) {
+            console.warn('Logout API failed (expected if page unloads):', e.message);
+        }
         
         // Force full page reload (NOT React Router navigation)
-        // This will happen immediately, possibly before API calls complete
         console.log('🔄 Full page reload to login');
         window.location.href = '/login?logged_out=1';
     }, []);
