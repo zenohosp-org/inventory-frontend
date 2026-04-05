@@ -85,30 +85,36 @@ export function AuthProvider({ children }) {
     }, []);
 
     const logout = useCallback(async () => {
-        try {
-            // Call both backends to clear HttpOnly cookies
-            await Promise.allSettled([
-                apiLogout(),
-                logoutFromDirectory(),
-            ]);
-        } catch (error) {
-            // Continue logout even if API call fails
-            console.error('Logout API failed:', error);
-        }
+        console.log('🔴 Logout triggered');
+        
+        // Call both backends to clear HttpOnly cookies
+        Promise.allSettled([
+            apiLogout(),
+            logoutFromDirectory(),
+        ]).catch(err => {
+            console.error('Logout API failed:', err);
+        });
+        
+        // Clear local state immediately
         sessionStorage.removeItem('inventory_user');
         setUser(null);
+        console.log('✅ User state cleared');
         
         // Signal logout across all tabs/windows and apps
         try {
             const signal = `logout-${Date.now()}`;
             localStorage.setItem('sso-logout', signal);
+            console.log('✅ Logout signal broadcast');
         } catch (e) {
             console.warn('Failed to signal logout', e);
         }
         window.dispatchEvent(new Event('sso-logout'));
         
         // Redirect to login
-        window.location.href = '/login?logged_out=1';
+        console.log('🔄 Redirecting to /login');
+        setTimeout(() => {
+            window.location.href = '/login?logged_out=1';
+        }, 100);
     }, []);
 
     const isSuperAdmin = user?.role?.toLowerCase() === 'super_admin';
