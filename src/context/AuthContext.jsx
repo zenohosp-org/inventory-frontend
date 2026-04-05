@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
         };
     }, []);
 
-    const logout = useCallback(() => {
+    const logout = useCallback(async () => {
         console.log('🔴 Logout initiated');
         
         // Clear local state immediately
@@ -92,11 +92,20 @@ export function AuthProvider({ children }) {
         setUser(null);
         console.log('✅ Local state cleared');
         
-        // Call API endpoints in background (don't wait)
-        apiLogout().catch(err => console.warn('Inventory logout failed:', err));
-        logoutFromDirectory().catch(err => console.warn('Directory logout failed:', err));
+        // WAIT for logout API calls to complete before redirecting
+        const logoutPromises = [
+            apiLogout().catch(err => console.warn('Inventory logout failed:', err)),
+            logoutFromDirectory().catch(err => console.warn('Directory logout failed:', err))
+        ];
         
-        // Signal to other tabs
+        try {
+            await Promise.all(logoutPromises);
+            console.log('✅ Backend logout completed');
+        } catch (e) {
+            console.warn('One or more logout endpoints failed:', e);
+        }
+        
+        // Signal to other tabs/windows
         try {
             localStorage.setItem('sso-logout', `${Date.now()}`);
             window.dispatchEvent(new Event('sso-logout'));
@@ -105,8 +114,8 @@ export function AuthProvider({ children }) {
             console.warn('Failed to broadcast logout:', e);
         }
         
-        // Redirect immediately
-        console.log('🔄 Redirecting to login');
+        // Force full page reload (NOT React Router navigation) to clear any cached state
+        console.log('🔄 Full page reload to login');
         window.location.href = '/login?logged_out=1';
     }, []);
 
