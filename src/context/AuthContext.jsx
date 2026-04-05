@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { getMe, logout as apiLogout, SSOCookieManager } from '../api/client';
+import { getMe, logout as apiLogout, logoutFromDirectory, SSOCookieManager } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -84,9 +84,13 @@ export function AuthProvider({ children }) {
         };
     }, []);
 
-    const doLogout = useCallback(async () => {
+    const logout = useCallback(async () => {
         try {
-            await apiLogout();
+            // Call both backends to clear HttpOnly cookies
+            await Promise.allSettled([
+                apiLogout(),
+                logoutFromDirectory(),
+            ]);
         } catch (error) {
             // Continue logout even if API call fails
             console.error('Logout API failed:', error);
@@ -94,9 +98,8 @@ export function AuthProvider({ children }) {
         sessionStorage.removeItem('inventory_user');
         setUser(null);
         
-        // Clear SSO cookie and signal logout across all apps
-        SSOCookieManager.clearToken();
-        SSOCookieManager.signalLogoutAcrossApps();
+        // Signal logout across all tabs/windows
+        window.dispatchEvent(new Event('sso-logout'));
         
         // Redirect to login
         window.location.href = '/login?logged_out=1';
@@ -123,7 +126,7 @@ export function AuthProvider({ children }) {
                 isHospitalAdmin,
                 isDoctor,
                 isStaff,
-                doLogout,
+                logout,
                 getAuthHeaders,
             }}
         >

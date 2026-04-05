@@ -45,6 +45,9 @@ api.interceptors.response.use(
 // ── Auth (Cookie-based) ──
 export const getMe = () => api.get('/api/user/me');
 export const logout = () => api.post('/api/auth/logout');
+export const logoutFromDirectory = () => axios.post(`${DIRECTORY_API_URL}/api/auth/logout`, {}, {
+    withCredentials: true,
+});
 
 // ── Inventory  ──
 export const getInventory = () => api.get('/api/inventory');

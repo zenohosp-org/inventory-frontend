@@ -57,7 +57,7 @@ export default function Layout({ children }) {
                         <div className="user-avatar">
                             {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </div>
-                        <button className="btn btn-sm btn-ghost" onClick={logout} title="Sign Out">
+                        <button className="btn btn-sm btn-ghost" onClick={(e) => { e.preventDefault(); logout(); }} title="Sign Out">
                             <LogOut size={18} />
                         </button>
                     </div>
@@ -132,7 +132,7 @@ export default function Layout({ children }) {
                         </a>
                     )}
                     <button
-                        onClick={logout}
+                        onClick={(e) => { e.preventDefault(); logout(); }}
                         className="btn btn-sm btn-danger"
                         style={{ justifyContent: 'center' }}
                     >
