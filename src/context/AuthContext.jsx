@@ -98,7 +98,13 @@ export function AuthProvider({ children }) {
         sessionStorage.removeItem('inventory_user');
         setUser(null);
         
-        // Signal logout across all tabs/windows
+        // Signal logout across all tabs/windows and apps
+        try {
+            const signal = `logout-${Date.now()}`;
+            localStorage.setItem('sso-logout', signal);
+        } catch (e) {
+            console.warn('Failed to signal logout', e);
+        }
         window.dispatchEvent(new Event('sso-logout'));
         
         // Redirect to login
