@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Store, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Store, Plus, Edit2, Trash2, X, Eye } from 'lucide-react';
 import { getStores, createStore, updateStore, deleteStore } from '../api/client';
 
 export default function Stores() {
@@ -169,6 +170,13 @@ export default function Stores() {
                                                 display: 'flex',
                                                 gap: 'var(--spacing-2)'
                                             }}>
+                                                <Link
+                                                    to={`/stores/${store.id}`}
+                                                    className="btn btn-sm btn-primary"
+                                                    title="View Details"
+                                                >
+                                                    <Eye size={16} />
+                                                </Link>
                                                 <button
                                                     className="btn btn-sm btn-secondary"
                                                     onClick={() => handleOpenModal(store)}

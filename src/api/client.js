@@ -42,6 +42,14 @@ api.interceptors.response.use(
     }
 );
 
+// Inject real JWT on all requests when mock auth is enabled (local dev only)
+if (import.meta.env.VITE_DEV_MOCK_AUTH === 'true' && import.meta.env.VITE_MOCK_JWT) {
+    api.interceptors.request.use((config) => {
+        config.headers.Authorization = `Bearer ${import.meta.env.VITE_MOCK_JWT}`;
+        return config;
+    });
+}
+
 // ── Auth (Cookie-based) ──
 export const getMe = () => api.get('/api/user/me');
 export const logout = () => api.post('/api/auth/logout');
@@ -97,6 +105,26 @@ export const getPurchaseOrderById = (id) => api.get(`/api/inventory/purchase-ord
 export const createPurchaseOrder = (data) => api.post('/api/inventory/purchase-orders', data);
 export const updatePurchaseOrder = (id, data) => api.put(`/api/inventory/purchase-orders/${id}`, data);
 export const deletePurchaseOrder = (id) => api.delete(`/api/inventory/purchase-orders/${id}`);
+
+// ── PO Receipt Workflow ──
+export const recordPOReceipt = (poId, items) =>
+    api.post(`/api/inventory/po/${poId}/record-receipt`, { items });
+
+export const convertPOToBill = (poId) =>
+    api.post(`/api/inventory/po/${poId}/convert-to-bill`);
+
+export const updatePOBillPaymentStatus = (billId, paymentStatus, paidAmount) =>
+    api.put(`/api/po-bills/${billId}/payment-status`, { paymentStatus, paidAmount });
+
+export const getPOsByStore = (storeId, onlyOpen) =>
+    api.get(`/api/inventory/stores/${storeId}/po`, { params: { onlyOpen } });
+
+export const getStockOverviewWithPOs = () =>
+    api.get('/api/inventory/stock-overview-with-po');
+
+// ── PO Bills ──
+export const getPOBills = (params) => api.get('/api/po-bills', { params });
+export const getPOBillById = (billId) => api.get(`/api/po-bills/${billId}`);
 
 
 // ── Directory API (for fetching directory data) ──

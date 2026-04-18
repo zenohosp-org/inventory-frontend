@@ -14,6 +14,10 @@ import InventoryItems from './pages/InventoryItems';
 import PurchaseOrders from './pages/PurchaseOrders';
 import StockLog from './pages/StockLog';
 
+// New pages
+import POBill from './pages/POBill';
+import StoreDetail from './pages/StoreDetail';
+
 export default function App() {
     return (
         <Router>
@@ -28,6 +32,7 @@ export default function App() {
 
                 {/* Masters */}
                 <Route path="/stores" element={<ProtectedRoute><Layout><Stores /></Layout></ProtectedRoute>} />
+                <Route path="/stores/:storeId" element={<ProtectedRoute><Layout><StoreDetail /></Layout></ProtectedRoute>} />
                 <Route path="/vendors" element={<ProtectedRoute><Layout><Vendors /></Layout></ProtectedRoute>} />
                 <Route path="/inventory-categories" element={<ProtectedRoute><Layout><InventoryCategories /></Layout></ProtectedRoute>} />
                 <Route path="/inventory-items" element={<ProtectedRoute><Layout><InventoryItems /></Layout></ProtectedRoute>} />
@@ -35,6 +40,7 @@ export default function App() {
                 {/* Operations */}
                 <Route path="/purchase-orders" element={<ProtectedRoute><Layout><PurchaseOrders /></Layout></ProtectedRoute>} />
                 <Route path="/stock-log" element={<ProtectedRoute><Layout><StockLog /></Layout></ProtectedRoute>} />
+                <Route path="/po-bill" element={<ProtectedRoute><Layout><POBill /></Layout></ProtectedRoute>} />
 
                 <Route path="/" element={<Navigate to="/dashboard" />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />

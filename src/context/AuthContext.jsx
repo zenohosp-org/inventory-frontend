@@ -17,6 +17,17 @@ export function AuthProvider({ children }) {
 
     // Restore session from backend on mount (cookie-based auth)
     useEffect(() => {
+        if (import.meta.env.VITE_DEV_MOCK_AUTH === 'true') {
+            setUser({
+                userId: import.meta.env.VITE_MOCK_USER_ID || '1',
+                email: import.meta.env.VITE_MOCK_USER_EMAIL || 'dev@zenohosp.com',
+                role: import.meta.env.VITE_MOCK_USER_ROLE || 'super_admin',
+                hospitalId: import.meta.env.VITE_MOCK_HOSPITAL_ID || '1',
+                modules: [],
+            });
+            setLoading(false);
+            return;
+        }
         if (!user && loading) {
             // Don't restore session if we just logged out
             const logoutInProgress = localStorage.getItem(LOGOUT_FLAG_KEY);
@@ -51,6 +62,7 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const verifyOnFocus = async () => {
             if (!user) return;
+            if (import.meta.env.VITE_DEV_MOCK_AUTH === 'true') return;
             try {
                 await getMe();
                 // still valid — nothing to do

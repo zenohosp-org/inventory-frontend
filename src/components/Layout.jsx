@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, Package, ShoppingCart, History, Settings, 
-  LogOut, ChevronDown, ChevronRight, Layers, Users, Store as StoreIcon, 
-  Menu as MenuIcon, X as XIcon, Globe
+import {
+  LayoutDashboard, Package, ShoppingCart, History,
+  LogOut, ChevronDown, ChevronRight, Layers, Store as StoreIcon,
+  Menu as MenuIcon, X as XIcon, Globe, Inbox, FileText, Truck, Receipt
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,144 +11,165 @@ export default function Layout({ children }) {
     const location = useLocation();
     const { user, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [mastersOpen, setMastersOpen] = useState(
-        location.pathname.startsWith('/vendors') ||
-        location.pathname.startsWith('/inventory-items') ||
-        location.pathname.startsWith('/inventory-categories') ||
-        location.pathname.startsWith('/stores')
+
+    const [invOpen, setInvOpen] = useState(
+        location.pathname === '/stock-overview' || location.pathname === '/stock-log'
+    );
+    const [purchaseOpen, setPurchaseOpen] = useState(
+        ['/vendors', '/purchase-orders', '/po-bill'].includes(location.pathname)
+    );
+    const [productsOpen, setProductsOpen] = useState(
+        ['/inventory-items', '/inventory-categories'].includes(location.pathname)
     );
 
     const isAdmin = user?.role === 'hospital_admin' || user?.role === 'super_admin' || user?.role?.toLowerCase() === 'admin';
 
-    const navItems = [
-        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Stock Overview', path: '/stock-overview', icon: Package },
-        { label: 'Purchase Orders', path: '/purchase-orders', icon: ShoppingCart },
-        { label: 'Stock Log', path: '/stock-log', icon: History },
-    ];
+    const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
-    const masterItems = [
-        { label: 'Stores', path: '/stores', icon: StoreIcon },
-        { label: 'Vendors', path: '/vendors', icon: Users },
-        { label: 'Inventory Categories', path: '/inventory-categories', icon: Layers },
-        { label: 'Inventory Items', path: '/inventory-items', icon: Package },
-    ];
+    const NavLink = ({ to, icon: Icon, label }) => (
+        <Link
+            to={to}
+            className={`sidebar-link sidebar-submenu-link ${isActive(to) ? 'active' : ''}`}
+            onClick={() => setSidebarOpen(false)}
+        >
+            <Icon className="sidebar-icon" size={15} />
+            {label}
+        </Link>
+    );
 
-    const isActive = (path) => location.pathname === path;
+    const CollapseToggle = ({ open, onToggle, icon: Icon, label }) => (
+        <button onClick={onToggle} className="sidebar-link sidebar-submenu-toggle">
+            <div className="sidebar-submenu-inner">
+                <Icon className="sidebar-icon" size={18} />
+                {label}
+            </div>
+            {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+        </button>
+    );
 
     return (
         <div className="app-layout">
-            {/* Header */}
+            {/* Mobile Header */}
             <header className="app-header">
                 <div className="app-logo">
-                    <Package size={28} style={{ color: 'var(--color-primary)' }} />
+                    <Package size={22} />
                     <span>ZenoInventory</span>
                 </div>
-
                 <div className="header-right">
-                    <button className="btn btn-icon btn-ghost" onClick={() => setSidebarOpen(!sidebarOpen)}>
-                        {sidebarOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
-                    </button>
-
                     <div className="user-menu">
-                        <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--color-gray-600)' }}>
-                            Welcome, {user?.name || 'User'}
-                        </span>
+                        <span className="header-welcome">{user?.name || 'User'}</span>
                         <div className="user-avatar">
                             {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </div>
-                        <button className="btn btn-sm btn-ghost" onClick={logout} title="Sign Out">
-                            <LogOut size={18} />
-                        </button>
                     </div>
+                    <button className="btn btn-icon btn-ghost" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                        {sidebarOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
+                    </button>
                 </div>
             </header>
 
             {/* Sidebar */}
             <aside className={`sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
-                <ul className="sidebar-menu">
-                    {navItems.map((item) => (
-                        <li key={item.path}>
+                <div className="sidebar-brand">
+                    <Package size={20} className="sidebar-brand-icon" />
+                    <span className="sidebar-brand-text">ZenoInventory</span>
+                </div>
+
+                <nav className="sidebar-nav">
+                    <ul className="sidebar-menu">
+                        {/* Dashboard */}
+                        <li>
                             <Link
-                                to={item.path}
-                                className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+                                to="/dashboard"
+                                className={`sidebar-link ${isActive('/dashboard') ? 'active' : ''}`}
                                 onClick={() => setSidebarOpen(false)}
                             >
-                                <item.icon className="sidebar-icon" size={20} />
-                                {item.label}
+                                <LayoutDashboard className="sidebar-icon" size={18} />
+                                Dashboard
                             </Link>
                         </li>
-                    ))}
 
-                    {/* Masters Section */}
-                    <li style={{ marginTop: 'var(--spacing-6)' }}>
-                        <div className="sidebar-section-title">Settings & Masters</div>
-                        <button
-                            onClick={() => setMastersOpen(!mastersOpen)}
-                            className="sidebar-link"
-                            style={{ cursor: 'pointer', justifyContent: 'space-between' }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                                <Settings className="sidebar-icon" size={20} />
-                                Masters
+                        {/* Inventory Section */}
+                        <li className="sidebar-section">
+                            <div className="sidebar-section-title">Inventory</div>
+
+                            {/* Products collapsible */}
+                            <div className="sidebar-subsection">
+                                <CollapseToggle
+                                    open={productsOpen}
+                                    onToggle={() => setProductsOpen(o => !o)}
+                                    icon={Package}
+                                    label="Products"
+                                />
+                                {productsOpen && (
+                                    <div className="sidebar-submenu">
+                                        <NavLink to="/inventory-items" icon={Package} label="Items" />
+                                        <NavLink to="/inventory-categories" icon={Layers} label="Categories" />
+                                    </div>
+                                )}
                             </div>
-                            {mastersOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                        </button>
 
-                        {mastersOpen && (
-                            <div style={{ marginLeft: 'var(--spacing-6)', borderLeft: '2px solid var(--color-gray-200)', paddingLeft: 'var(--spacing-2)' }}>
-                                {masterItems.map((item) => (
-                                    <Link
-                                        key={item.path}
-                                        to={item.path}
-                                        className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-                                        style={{ fontSize: 'var(--fs-sm)', paddingLeft: 'var(--spacing-4)' }}
-                                        onClick={() => setSidebarOpen(false)}
-                                    >
-                                        <item.icon className="sidebar-icon" size={18} />
-                                        {item.label}
-                                    </Link>
-                                ))}
+                            {/* Inv collapsible */}
+                            <div className="sidebar-subsection">
+                                <CollapseToggle
+                                    open={invOpen}
+                                    onToggle={() => setInvOpen(o => !o)}
+                                    icon={Inbox}
+                                    label="Inv"
+                                />
+                                {invOpen && (
+                                    <div className="sidebar-submenu">
+                                        <NavLink to="/stock-overview" icon={Inbox} label="Stock Overview" />
+                                        <NavLink to="/stock-log" icon={History} label="Stock Log" />
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </li>
-                </ul>
 
-                {/* Sidebar Footer */}
-                <div style={{ marginTop: 'auto', padding: 'var(--spacing-4)', borderTop: '1px solid var(--color-gray-200)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+                            {/* Purchase collapsible */}
+                            <div className="sidebar-subsection">
+                                <CollapseToggle
+                                    open={purchaseOpen}
+                                    onToggle={() => setPurchaseOpen(o => !o)}
+                                    icon={ShoppingCart}
+                                    label="Purchase"
+                                />
+                                {purchaseOpen && (
+                                    <div className="sidebar-submenu">
+                                        <NavLink to="/vendors" icon={Truck} label="Vendors" />
+                                        <NavLink to="/purchase-orders" icon={FileText} label="Purchase Orders" />
+                                        <NavLink to="/po-bill" icon={Receipt} label="PO Bills" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Stores — direct link */}
+                            <Link
+                                to="/stores"
+                                className={`sidebar-link ${isActive('/stores') ? 'active' : ''}`}
+                                onClick={() => setSidebarOpen(false)}
+                            >
+                                <StoreIcon className="sidebar-icon" size={18} />
+                                Stores
+                            </Link>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div className="sidebar-footer">
                     {isAdmin && (
                         <a
                             href="http://localhost:5173/dashboard"
-                            className="btn btn-sm"
-                            style={{
-                                backgroundColor: '#EBF4FF',
-                                color: 'var(--color-primary)',
-                                border: '1px solid #BFD9F6',
-                                justifyContent: 'center'
-                            }}
+                            className="btn btn-sm sidebar-footer-dir-btn"
                         >
-                            <Globe size={16} />
+                            <Globe size={14} />
                             Directory Admin
                         </a>
                     )}
-                    <button
-                        onClick={logout}
-                        className="btn btn-sm btn-danger"
-                        style={{ justifyContent: 'center' }}
-                    >
-                        <LogOut size={16} />
+                    <button onClick={logout} className="btn btn-sm sidebar-footer-signout">
+                        <LogOut size={14} />
                         Sign Out
                     </button>
-                    <div style={{
-                        fontSize: 'var(--fs-xs)',
-                        color: 'var(--color-gray-400)',
-                        textAlign: 'center',
-                        fontWeight: 'var(--fw-semibold)',
-                        letterSpacing: '0.5px',
-                        marginTop: 'var(--spacing-4)'
-                    }}>
-                        © 2026 Inventory Manager
-                    </div>
+                    <div className="sidebar-copyright">© 2026 Inventory Manager</div>
                 </div>
             </aside>
 

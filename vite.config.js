@@ -8,22 +8,22 @@ export default defineConfig({
         port: 3000,
         proxy: {
             '/api/auth': {
-                target: 'http://localhost:9000',
+                target: process.env.VITE_DIRECTORY_BACKEND_URL || 'http://localhost:9000',
                 changeOrigin: true,
                 secure: false,
             },
             '/api': {
-                target: 'http://localhost:8082',
+                target: process.env.VITE_INVENTORY_BACKEND_URL || 'http://localhost:8082',
                 changeOrigin: true,
                 secure: false,
             },
             '/oauth2': {
-                target: 'http://localhost:8082',
+                target: process.env.VITE_INVENTORY_BACKEND_URL || 'http://localhost:8082',
                 changeOrigin: true,
                 secure: false,
             },
             '/login/oauth2': {
-                target: 'http://localhost:8082',
+                target: process.env.VITE_INVENTORY_BACKEND_URL || 'http://localhost:8082',
                 changeOrigin: true,
                 secure: false,
             }

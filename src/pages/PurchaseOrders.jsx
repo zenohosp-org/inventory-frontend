@@ -175,10 +175,13 @@ export default function PurchaseOrders() {
     };
 
     const getPoStatus = (po) => {
-        const now = new Date();
-        const expected = new Date(po.expectedDate);
-        if (expected < now) return { label: 'Overdue', color: 'badge-error' };
-        return { label: po.status || 'Pending', color: 'badge-primary' };
+        const statusMap = {
+            ORDERED: { label: 'Ordered', color: 'badge-primary' },
+            PARTIALLY_RECEIVED: { label: 'Partial', color: 'badge-warning' },
+            RECEIVED: { label: 'Received', color: 'badge-success' },
+            BILLED: { label: 'Billed', color: 'badge-secondary' },
+        };
+        return statusMap[po.status] || { label: po.status || 'Pending', color: 'badge-secondary' };
     };
 
     return (
