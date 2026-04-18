@@ -1,0 +1,126 @@
+/* ── Error / Warning banners ── */
+.po-error-banner {
+    display: flex;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4);
+    background-color: var(--color-error-subtle);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-4);
+    color: var(--color-error-dark);
+    align-items: flex-start;
+}
+
+.po-error-banner-icon { flex-shrink: 0; margin-top: 2px; }
+.po-error-banner-body { flex: 1; font-size: var(--fs-sm); }
+.po-error-banner-body strong { display: block; font-weight: var(--fw-semibold); margin-bottom: var(--spacing-1); }
+
+.po-error-retry {
+    background: none;
+    border: none;
+    color: var(--color-error-dark);
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    text-decoration: underline;
+    font-family: var(--font-primary);
+    padding: 0;
+    align-self: flex-start;
+}
+
+.po-no-store-warn {
+    display: flex;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
+    background-color: var(--color-warning-subtle);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: var(--radius-lg);
+    color: var(--color-warning-dark);
+    font-size: var(--fs-sm);
+    flex: 1;
+    align-items: flex-start;
+}
+
+.po-no-store-warn svg { flex-shrink: 0; margin-top: 2px; }
+
+/* ── Table action group ── */
+.po-action-group {
+    display: flex;
+    gap: var(--spacing-2);
+    align-items: center;
+}
+
+/* ── Count chip ── */
+.po-count-chip {
+    display: inline-block;
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-700);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+}
+
+/* ── Create PO modal ── */
+.po-modal { max-width: 680px; }
+
+.po-store-info {
+    display: flex;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4);
+    background-color: var(--color-success-subtle);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-5);
+    color: var(--color-success-dark);
+    font-size: var(--fs-sm);
+}
+
+.po-store-info-no-store {
+    background-color: var(--color-error-subtle);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: var(--color-error-dark);
+}
+
+.po-store-info strong { display: block; font-weight: var(--fw-semibold); margin-bottom: var(--spacing-1); }
+.po-store-info p { margin: 0; }
+
+/* ── Line items ── */
+.po-line-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-3);
+}
+
+.po-line-item {
+    display: grid;
+    grid-template-columns: 1fr 90px 120px 36px;
+    gap: var(--spacing-3);
+    align-items: flex-end;
+    padding: var(--spacing-4);
+    background-color: var(--color-gray-50);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-gray-200);
+}
+
+.po-line-item-label {
+    display: block;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    color: var(--color-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: var(--spacing-2);
+}
+
+.po-remove-btn {
+    padding: var(--spacing-2);
+}
+
+.po-add-item {
+    margin-top: var(--spacing-3);
+}
+
+/* ── Store selector (PO table column) ── */
+.po-store-col { color: var(--color-gray-500); font-size: var(--fs-xs); }

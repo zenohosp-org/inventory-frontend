@@ -134,12 +134,6 @@ const Dashboard = () => {
     }
   };
 
-  const getStockStatusColor = (current, min) => {
-    const percentage = (current / min) * 100;
-    if (percentage < 25) return '#E74C3C';
-    if (percentage < 50) return '#F39C12';
-    return '#27AE60';
-  };
 
   return (
     <div className="main-content">
@@ -153,18 +147,14 @@ const Dashboard = () => {
 
       {/* Page Actions */}
       <div className="page-actions">
-        <button 
-          className="btn btn-primary" 
+        <button
+          className="btn btn-primary"
           title={lowStockItems.length === 0 ? "No low stock items to log" : "Add new stock transaction"}
           disabled={lowStockItems.length === 0}
           onClick={() => {
               if (lowStockItems.length > 0) {
                 handleLogStockClick(lowStockItems[0]);
               }
-          }}
-          style={{
-            opacity: lowStockItems.length === 0 ? 0.5 : 1,
-            cursor: lowStockItems.length === 0 ? 'not-allowed' : 'pointer'
           }}
         >
           <Plus size={18} />
@@ -182,9 +172,7 @@ const Dashboard = () => {
           <div>
             <div className="stat-label">Total Products</div>
             <div className="stat-value">{stats.totalProducts}</div>
-            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)', marginTop: 'var(--spacing-2)' }}>
-              Active items in system
-            </p>
+            <p>Active items in system</p>
           </div>
           <div className="stat-icon">📦</div>
         </div>
@@ -193,109 +181,76 @@ const Dashboard = () => {
           <div>
             <div className="stat-label">Low Stock Items</div>
             <div className="stat-value">{stats.lowStockItems}</div>
-            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)', marginTop: 'var(--spacing-2)' }}>
-              Require reordering
-            </p>
+            <p>Require reordering</p>
           </div>
-          <div className="stat-icon" style={{ backgroundColor: '#FEF3C7' }}>
-            ⚠️
-          </div>
+          <div className="stat-icon">⚠️</div>
         </div>
 
         <div className="stat-card success">
           <div>
             <div className="stat-label">Total Transactions</div>
             <div className="stat-value">{recentActivity.length}</div>
-            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)', marginTop: 'var(--spacing-2)' }}>
-              Last 24 hours
-            </p>
+            <p>Last 24 hours</p>
           </div>
-          <div className="stat-icon" style={{ backgroundColor: '#E6F7ED' }}>
-            📊
-          </div>
+          <div className="stat-icon">📊</div>
         </div>
 
-        <div className="stat-card" style={{ borderLeftColor: 'var(--color-info)' }}>
+        <div className="stat-card info">
           <div>
             <div className="stat-label">System Status</div>
-            <div className="stat-value">
-              <span style={{ color: 'var(--color-success)', fontSize: 'var(--fs-xl)' }}>✓</span>
-            </div>
-            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)', marginTop: 'var(--spacing-2)' }}>
-              All systems operational
-            </p>
+            <div className="stat-value text-success">✓</div>
+            <p>All systems operational</p>
           </div>
-          <div className="stat-icon" style={{ backgroundColor: '#EBF5FF' }}>
-            ✅
-          </div>
+          <div className="stat-icon">✅</div>
         </div>
       </div>
 
       {/* Low Stock Alerts */}
       {lowStockItems.length > 0 && (
-        <div className="card" style={{ marginBottom: 'var(--spacing-8)' }}>
+        <div className="card mb-8">
           <div className="card-header">
-            <h3 className="flex card-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-              <AlertCircle size={24} style={{ color: 'var(--color-warning)' }} />
+            <h3 className="card-title">
+              <AlertCircle size={22} />
               Critical Stock Alerts ({lowStockItems.length})
             </h3>
           </div>
-          <div className="card-body" style={{ padding: 0 }}>
+          <div className="card-body-flush">
             <table className="table">
               <thead>
                 <tr>
-                  <th style={{ width: '30%' }}>Product Name</th>
-                  <th style={{ width: '15%' }}>Current Stock</th>
-                  <th style={{ width: '15%' }}>Min Level</th>
-                  <th style={{ width: '20%' }}>Status</th>
-                  <th style={{ width: '20%' }}>Action</th>
+                  <th>Product Name</th>
+                  <th>Current Stock</th>
+                  <th>Min Level</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {lowStockItems.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>
-                      <div style={{ marginBottom: 'var(--spacing-2)' }}>
+                {lowStockItems.map((item, idx) => {
+                  const pct = Math.min((item.quantityAvail / item.reorderLevel) * 100, 100);
+                  const fillClass = pct < 25 ? 'stock-bar-fill-critical' : pct < 50 ? 'stock-bar-fill-warn' : 'stock-bar-fill-ok';
+                  return (
+                    <tr key={idx}>
+                      <td>
                         <strong>{item.itemName}</strong>
-                      </div>
-                      <div className="text-muted" style={{ fontSize: 'var(--fs-xs)' }}>
-                        Code: {item.itemCode || 'N/A'}
-                      </div>
-                    </td>
-                    <td>
-                      <strong>{item.quantityAvail} {item.unit}</strong>
-                    </td>
-                    <td>{item.reorderLevel} {item.unit}</td>
-                    <td>
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '8px',
-                          backgroundColor: 'var(--color-gray-200)',
-                          borderRadius: 'var(--radius-full)',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: '100%',
-                            width: `${Math.min((item.quantityAvail / item.reorderLevel) * 100, 100)}%`,
-                            backgroundColor: getStockStatusColor(item.quantityAvail, item.reorderLevel),
-                          }}
-                        />
-                      </div>
-                    </td>
-                    <td>
-                      <button 
-                        className="btn btn-sm btn-accent"
-                        onClick={() => handleLogStockClick(item)}
-                      >
-                        <Plus size={16} />
-                        Log Stock
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        <span className="subtext">Code: {item.itemCode || 'N/A'}</span>
+                      </td>
+                      <td><strong>{item.quantityAvail} {item.unit}</strong></td>
+                      <td>{item.reorderLevel} {item.unit}</td>
+                      <td>
+                        <div className="stock-bar-track">
+                          <div className={`stock-bar-fill ${fillClass}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </td>
+                      <td>
+                        <button className="btn btn-sm btn-accent" onClick={() => handleLogStockClick(item)}>
+                          <Plus size={16} />
+                          Log Stock
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -304,49 +259,41 @@ const Dashboard = () => {
 
       {/* Recent Activity */}
       {recentActivity.length > 0 && (
-        <div className="card" style={{ marginBottom: 'var(--spacing-8)' }}>
+        <div className="card mb-8">
           <div className="card-header">
-            <h3 className="flex card-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-              <Clock size={24} style={{ color: 'var(--color-primary)' }} />
+            <h3 className="card-title">
+              <Clock size={22} />
               Recent Transactions
             </h3>
           </div>
-          <div className="card-body" style={{ padding: 0 }}>
+          <div className="card-body-flush">
             <table className="table table-striped">
               <thead>
                 <tr>
-                  <th style={{ width: '12%' }}>Type</th>
-                  <th style={{ width: '28%' }}>Product</th>
-                  <th style={{ width: '12%' }}>Qty</th>
-                  <th style={{ width: '18%' }}>Location</th>
-                  <th style={{ width: '12%' }}>User</th>
-                  <th style={{ width: '18%' }}>Timestamp</th>
+                  <th>Type</th>
+                  <th>Product</th>
+                  <th>Qty</th>
+                  <th>Location</th>
+                  <th>User</th>
+                  <th>Timestamp</th>
                 </tr>
               </thead>
               <tbody>
                 {recentActivity.map((activity) => (
                   <tr key={activity.id}>
                     <td>
-                      <span style={{ fontSize: '18px', marginRight: 'var(--spacing-2)' }}>
-                        {getActivityIcon(activity.type)}
-                      </span>
-                      <span className="badge badge-primary" style={{ fontSize: 'var(--fs-xs)' }}>
-                        {getActivityLabel(activity.type)}
-                      </span>
+                      <span className="activity-icon">{getActivityIcon(activity.type)}</span>
+                      <span className="badge badge-primary">{getActivityLabel(activity.type)}</span>
                     </td>
+                    <td><strong>{activity.product}</strong></td>
                     <td>
-                      <strong>{activity.product}</strong>
-                    </td>
-                    <td>
-                      <span style={{ color: activity.quantity > 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
+                      <span className={activity.quantity > 0 ? 'text-success' : 'text-danger'}>
                         {activity.quantity > 0 ? '+' : ''}{activity.quantity}
                       </span>
                     </td>
                     <td className="text-muted">{activity.location}</td>
                     <td>{activity.user}</td>
-                    <td className="text-muted" style={{ fontSize: 'var(--fs-xs)' }}>
-                      {activity.timestamp}
-                    </td>
+                    <td className="text-muted text-xs">{activity.timestamp}</td>
                   </tr>
                 ))}
               </tbody>

@@ -103,8 +103,8 @@ export default function Vendors() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                    <Users size={28} style={{ color: 'var(--color-accent)' }} />
+                <h1 className="page-title">
+                    <Users size={26} />
                     Vendors Master
                 </h1>
                 <p className="page-subtitle">
@@ -128,23 +128,19 @@ export default function Vendors() {
 
                 <div className="table-body">
                     {loading ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
-                            <div className="spinner" style={{ margin: '0 auto' }}></div>
-                        </div>
+                        <div className="table-empty"><div className="spinner"></div></div>
                     ) : vendors.length === 0 ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
-                            No vendors found. Add your first vendor to get started.
-                        </div>
+                        <div className="table-empty">No vendors found. Add your first vendor to get started.</div>
                     ) : (
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '25%' }}>Vendor Name</th>
-                                    <th style={{ width: '20%' }}>Contact Person</th>
-                                    <th style={{ width: '20%' }}>Phone / Email</th>
-                                    <th style={{ width: '20%' }}>Location</th>
-                                    <th style={{ width: '10%' }}>Status</th>
-                                    <th style={{ width: '5%' }}>Actions</th>
+                                    <th>Vendor Name</th>
+                                    <th>Contact Person</th>
+                                    <th>Phone / Email</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -156,11 +152,9 @@ export default function Vendors() {
                                         <td className="text-muted">
                                             {vendor.contactName || '-'}
                                         </td>
-                                        <td className="text-muted" style={{ fontSize: 'var(--fs-sm)' }}>
+                                        <td className="text-muted">
                                             <div>{vendor.phone || '-'}</div>
-                                            <div style={{ color: 'var(--color-gray-400)', fontSize: 'var(--fs-xs)' }}>
-                                                {vendor.email || '-'}
-                                            </div>
+                                            <span className="subtext">{vendor.email || '-'}</span>
                                         </td>
                                         <td className="text-muted">
                                             {vendor.city || '-'}
@@ -171,10 +165,7 @@ export default function Vendors() {
                                             </span>
                                         </td>
                                         <td>
-                                            <div style={{
-                                                display: 'flex',
-                                                gap: 'var(--spacing-2)'
-                                            }}>
+                                            <div className="action-group">
                                                 <button
                                                     className="btn btn-sm btn-secondary"
                                                     onClick={() => handleOpenModal(vendor)}
@@ -208,7 +199,7 @@ export default function Vendors() {
             {/* Vendor Modal */}
             {showModal && (
                 <div className="modal-overlay active">
-                    <div className="modal" style={{ maxWidth: '600px' }}>
+                    <div className="modal modal-md">
                         <div className="modal-header">
                             <h2 className="modal-title">
                                 {editingId ? 'Edit Vendor' : 'Add New Vendor'}
@@ -230,11 +221,7 @@ export default function Vendors() {
                                     />
                                 </div>
 
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1fr 1fr',
-                                    gap: 'var(--spacing-4)'
-                                }}>
+                                <div className="form-2col">
                                     <div className="form-group">
                                         <label className="form-label">Contact Person</label>
                                         <input
@@ -280,11 +267,7 @@ export default function Vendors() {
                                     ></textarea>
                                 </div>
 
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1fr 1fr',
-                                    gap: 'var(--spacing-4)'
-                                }}>
+                                <div className="form-2col">
                                     <div className="form-group">
                                         <label className="form-label">City</label>
                                         <input
@@ -297,19 +280,11 @@ export default function Vendors() {
                                     </div>
 
                                     <div className="form-group">
-                                        <label style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 'var(--spacing-2)',
-                                            cursor: 'pointer',
-                                            fontWeight: 'var(--fw-medium)',
-                                            color: 'var(--color-gray-700)'
-                                        }}>
+                                        <label className="checkbox-label">
                                             <input
                                                 type="checkbox"
                                                 checked={formData.isActive}
                                                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                             />
                                             Mark as Active
                                         </label>

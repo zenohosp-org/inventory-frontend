@@ -99,8 +99,8 @@ export default function Stores() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                    <Store size={28} style={{ color: 'var(--color-accent)' }} />
+                <h1 className="page-title">
+                    <Store size={26} />
                     Stores Master
                 </h1>
                 <p className="page-subtitle">
@@ -124,23 +124,19 @@ export default function Stores() {
 
                 <div className="table-body">
                     {loading ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
-                            <div className="spinner" style={{ margin: '0 auto' }}></div>
-                        </div>
+                        <div className="table-empty"><div className="spinner"></div></div>
                     ) : stores.length === 0 ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
-                            No stores found. Create your first store to get started.
-                        </div>
+                        <div className="table-empty">No stores found. Create your first store to get started.</div>
                     ) : (
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '25%' }}>Store Name</th>
-                                    <th style={{ width: '30%' }}>Location</th>
-                                    <th style={{ width: '12%' }}>Type</th>
-                                    <th style={{ width: '13%' }}>Status</th>
-                                    <th style={{ width: '15%' }}>Description</th>
-                                    <th style={{ width: '5%' }}>Actions</th>
+                                    <th>Store Name</th>
+                                    <th>Location</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -162,14 +158,11 @@ export default function Stores() {
                                                 {store.isActive ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
-                                        <td className="text-muted" style={{ fontSize: 'var(--fs-sm)' }}>
+                                        <td className="text-muted">
                                             {store.description || '-'}
                                         </td>
                                         <td>
-                                            <div style={{
-                                                display: 'flex',
-                                                gap: 'var(--spacing-2)'
-                                            }}>
+                                            <div className="action-group">
                                                 <Link
                                                     to={`/stores/${store.id}`}
                                                     className="btn btn-sm btn-primary"
@@ -257,15 +250,13 @@ export default function Stores() {
                                     ></textarea>
                                 </div>
 
-                                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
-                                    <input
-                                        type="checkbox"
-                                        id="isActive"
-                                        checked={formData.isActive}
-                                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                        className="form-checkbox"
-                                    />
-                                    <label htmlFor="isActive" className="form-label" style={{ margin: 0 }}>
+                                <div className="form-group">
+                                    <label className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.isActive}
+                                            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                        />
                                         Active Store (Available for purchase orders)
                                     </label>
                                 </div>

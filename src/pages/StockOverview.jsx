@@ -112,18 +112,12 @@ export default function StockOverview() {
         return matchesSearch && matchesCategory;
     });
 
-    const getStockColor = (quantity, minLevel) => {
-        if (quantity <= minLevel) return 'var(--color-error)';
-        if (quantity <= minLevel * 1.5) return 'var(--color-warning)';
-        return 'var(--color-success)';
-    };
-
     return (
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                    <Package size={28} style={{ color: 'var(--color-accent)' }} />
+                <h1 className="page-title">
+                    <Package size={26} />
                     Stock Overview
                 </h1>
                 <p className="page-subtitle">
@@ -133,16 +127,15 @@ export default function StockOverview() {
 
             {/* Filter Bar */}
             <div className="filter-bar">
-                <div className="filter-group" style={{ flex: 1 }}>
-                    <div className="flex" style={{ alignItems: 'center', gap: 'var(--spacing-2)', padding: 'var(--spacing-2) var(--spacing-4)', backgroundColor: 'var(--color-gray-100)', borderRadius: 'var(--radius-md)' }}>
-                        <Search size={18} style={{ color: 'var(--color-gray-500)' }} />
+                <div className="filter-group flex-1">
+                    <div className="search-bar">
+                        <Search size={16} />
                         <input
                             type="text"
                             placeholder="Search by product name or code..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="filter-input"
-                            style={{ backgroundColor: 'transparent', border: 'none', flex: 1 }}
+                            className="search-bar-input"
                         />
                     </div>
                 </div>
@@ -170,37 +163,29 @@ export default function StockOverview() {
 
                 <div className="table-body">
                     {loading ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
-                            <div className="spinner" style={{ margin: '0 auto' }}></div>
-                        </div>
+                        <div className="table-empty"><div className="spinner"></div></div>
                     ) : filteredStocks.length === 0 ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
-                            <div style={{ color: 'var(--color-gray-500)', marginBottom: 'var(--spacing-4)' }}>
+                        <div className="table-empty">
+                            <div>
                                 <p>No stock records found.</p>
-                                <p style={{ fontSize: 'var(--fs-sm)', marginTop: 'var(--spacing-2)' }}>
-                                    Create inventory items and purchase orders to populate stock data.
-                                </p>
+                                <p className="text-xs">Create inventory items and purchase orders to populate stock data.</p>
+                                <button className="btn btn-primary btn-sm" onClick={() => window.location.href = '/purchase-orders'}>
+                                    Go to Purchase Orders
+                                </button>
                             </div>
-                            <button 
-                                className="btn btn-primary btn-sm"
-                                onClick={() => window.location.href = '/purchase-orders'}
-                                style={{ marginTop: 'var(--spacing-4)' }}
-                            >
-                                Go to Purchase Orders
-                            </button>
                         </div>
                     ) : (
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '10%' }}>Code</th>
-                                    <th style={{ width: '22%' }}>Product Name</th>
-                                    <th style={{ width: '15%' }}>Category</th>
-                                    <th style={{ width: '10%' }}>Current</th>
-                                    <th style={{ width: '10%' }}>Incoming</th>
-                                    <th style={{ width: '10%' }}>Min Level</th>
-                                    <th style={{ width: '10%' }}>Status</th>
-                                    <th style={{ width: '13%' }}>Actions</th>
+                                    <th>Code</th>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Current</th>
+                                    <th>Incoming</th>
+                                    <th>Min Level</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -210,9 +195,7 @@ export default function StockOverview() {
                                     return (
                                         <tr key={idx}>
                                             <td>
-                                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', color: 'var(--color-gray-600)' }}>
-                                                    {stock.itemCode || '-'}
-                                                </span>
+                                                <span className="mono-sm">{stock.itemCode || '-'}</span>
                                             </td>
                                             <td>
                                                 <strong>{stock.itemName}</strong>
@@ -225,17 +208,19 @@ export default function StockOverview() {
                                                 ) : '-'}
                                             </td>
                                             <td>
-                                                <strong style={{ color: getStockColor(stock.quantityAvail, stock.reorderLevel) }}>
+                                                <strong className={
+                                                    stock.quantityAvail <= stock.reorderLevel ? 'text-danger' :
+                                                    stock.quantityAvail <= stock.reorderLevel * 1.5 ? 'text-warning' :
+                                                    'text-success'
+                                                }>
                                                     {stock.quantityAvail}
                                                 </strong>
                                             </td>
                                             <td>
                                                 {incomingQty > 0 ? (
-                                                    <span style={{ color: 'var(--color-primary-600)', fontWeight: '600' }}>
-                                                        +{incomingQty.toFixed(2)}
-                                                    </span>
+                                                    <span className="text-primary fw-semibold">+{incomingQty.toFixed(2)}</span>
                                                 ) : (
-                                                    <span style={{ color: 'var(--color-gray-400)' }}>-</span>
+                                                    <span className="text-muted">-</span>
                                                 )}
                                             </td>
                                             <td>{stock.reorderLevel}</td>
@@ -249,7 +234,7 @@ export default function StockOverview() {
                                                 )}
                                             </td>
                                             <td>
-                                                <div style={{ display: 'flex', gap: 'var(--spacing-2)', flexWrap: 'wrap' }}>
+                                                <div className="action-group">
                                                     {pos.length > 0 && (
                                                         <button
                                                             onClick={() => handleReleaseClick(pos[0])}

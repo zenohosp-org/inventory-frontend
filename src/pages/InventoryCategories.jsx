@@ -82,8 +82,8 @@ export default function InventoryCategories() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="flex page-title" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                    <Layers size={28} style={{ color: 'var(--color-accent)' }} />
+                <h1 className="page-title">
+                    <Layers size={26} />
                     Product Categories
                 </h1>
                 <p className="page-subtitle">
@@ -107,21 +107,17 @@ export default function InventoryCategories() {
 
                 <div className="table-body">
                     {loading ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
-                            <div className="spinner" style={{ margin: '0 auto' }}></div>
-                        </div>
+                        <div className="table-empty"><div className="spinner"></div></div>
                     ) : categories.length === 0 ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
-                            No categories found. Create your first category to get started.
-                        </div>
+                        <div className="table-empty">No categories found. Create your first category to get started.</div>
                     ) : (
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '30%' }}>Category Name</th>
-                                    <th style={{ width: '40%' }}>Description</th>
-                                    <th style={{ width: '15%' }}>Status</th>
-                                    <th style={{ width: '15%' }}>Actions</th>
+                                    <th>Category Name</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -139,10 +135,7 @@ export default function InventoryCategories() {
                                             </span>
                                         </td>
                                         <td>
-                                            <div style={{
-                                                display: 'flex',
-                                                gap: 'var(--spacing-2)'
-                                            }}>
+                                            <div className="action-group">
                                                 <button
                                                     className="btn btn-sm btn-secondary"
                                                     onClick={() => handleOpenModal(cat)}
@@ -199,19 +192,11 @@ export default function InventoryCategories() {
                                 </div>
 
                                 <div className="form-group">
-                                    <label style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 'var(--spacing-2)',
-                                        cursor: 'pointer',
-                                        fontWeight: 'var(--fw-medium)',
-                                        color: 'var(--color-gray-700)'
-                                    }}>
+                                    <label className="checkbox-label">
                                         <input
                                             type="checkbox"
                                             checked={formData.isActive}
                                             onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                         />
                                         Mark as Active
                                     </label>

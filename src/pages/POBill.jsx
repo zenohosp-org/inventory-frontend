@@ -121,7 +121,7 @@ export default function POBill() {
 
             {editingBill && (
                 <div className="modal-overlay active">
-                    <div className="modal" style={{ maxWidth: '420px' }}>
+                    <div className="modal modal-sm">
                         <div className="modal-header">
                             <h2 className="modal-title">Update Payment — {editingBill.billNumber}</h2>
                             <button className="modal-close" onClick={() => setEditingBill(null)}><X size={18} /></button>

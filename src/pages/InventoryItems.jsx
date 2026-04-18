@@ -107,8 +107,8 @@ export default function InventoryItems() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                    <Package size={28} style={{ color: 'var(--color-accent)' }} />
+                <h1 className="page-title">
+                    <Package size={26} />
                     Product Master
                 </h1>
                 <p className="page-subtitle">
@@ -118,16 +118,15 @@ export default function InventoryItems() {
 
             {/* Filter Bar */}
             <div className="filter-bar">
-                <div className="filter-group" style={{ flex: 1 }}>
-                    <div className="flex" style={{ alignItems: 'center', gap: 'var(--spacing-2)', padding: 'var(--spacing-2) var(--spacing-4)', backgroundColor: 'var(--color-gray-100)', borderRadius: 'var(--radius-md)' }}>
-                        <Search size={18} style={{ color: 'var(--color-gray-500)' }} />
+                <div className="filter-group flex-1">
+                    <div className="search-bar">
+                        <Search size={16} />
                         <input
                             type="text"
                             placeholder="Search products..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="filter-input"
-                            style={{ backgroundColor: 'transparent', border: 'none', flex: 1 }}
+                            className="search-bar-input"
                         />
                     </div>
                 </div>
@@ -164,33 +163,27 @@ export default function InventoryItems() {
 
                 <div className="table-body">
                     {loading ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
-                            <div className="spinner" style={{ margin: '0 auto' }}></div>
-                        </div>
+                        <div className="table-empty"><div className="spinner"></div></div>
                     ) : filteredItems.length === 0 ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
-                            No products found.
-                        </div>
+                        <div className="table-empty">No products found.</div>
                     ) : (
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '10%' }}>Code</th>
-                                    <th style={{ width: '25%' }}>Product Name</th>
-                                    <th style={{ width: '15%' }}>Category</th>
-                                    <th style={{ width: '10%' }}>UoM</th>
-                                    <th style={{ width: '12%' }}>Min Stock Level</th>
-                                    <th style={{ width: '15%' }}>Vendor</th>
-                                    <th style={{ width: '13%' }}>Actions</th>
+                                    <th>Code</th>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>UoM</th>
+                                    <th>Min Stock Level</th>
+                                    <th>Vendor</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredItems.map(item => (
                                     <tr key={item.id}>
                                         <td>
-                                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', color: 'var(--color-gray-600)' }}>
-                                                {item.code || '-'}
-                                            </span>
+                                            <span className="mono-sm">{item.code || '-'}</span>
                                         </td>
                                         <td>
                                             <strong>{item.name}</strong>
@@ -208,7 +201,7 @@ export default function InventoryItems() {
                                             {vendors.find(v => v.id === item.preferredVendorId)?.name || '-'}
                                         </td>
                                         <td>
-                                            <div className="flex" style={{ gap: 'var(--spacing-2)' }}>
+                                            <div className="action-group">
                                                 <button className="btn btn-sm btn-ghost">
                                                     <Edit2 size={16} />
                                                 </button>
@@ -240,7 +233,7 @@ export default function InventoryItems() {
             {/* Add Product Modal */}
             {showModal && (
                 <div className="modal-overlay active">
-                    <div className="modal" style={{ maxWidth: '600px' }}>
+                    <div className="modal modal-md">
                         <div className="modal-header">
                             <h2 className="modal-title">Add New Product</h2>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>

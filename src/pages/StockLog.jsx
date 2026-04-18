@@ -92,8 +92,8 @@ export default function StockLog() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title flex" style={{ alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                    <History size={28} style={{ color: 'var(--color-primary)' }} />
+                <h1 className="page-title">
+                    <History size={26} />
                     Stock Transaction Log
                 </h1>
                 <p className="page-subtitle">
@@ -103,16 +103,15 @@ export default function StockLog() {
 
             {/* Filter Bar */}
             <div className="filter-bar">
-                <div className="filter-group" style={{ flex: 1 }}>
-                    <div className="flex" style={{ alignItems: 'center', gap: 'var(--spacing-2)', padding: 'var(--spacing-2) var(--spacing-4)', backgroundColor: 'var(--color-gray-100)', borderRadius: 'var(--radius-md)' }}>
-                        <Search size={18} style={{ color: 'var(--color-gray-500)' }} />
+                <div className="filter-group flex-1">
+                    <div className="search-bar">
+                        <Search size={16} />
                         <input
                             type="text"
                             placeholder="Search by product name or code..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="filter-input"
-                            style={{ backgroundColor: 'transparent', border: 'none', flex: 1 }}
+                            className="search-bar-input"
                         />
                     </div>
                 </div>
@@ -141,63 +140,47 @@ export default function StockLog() {
 
                 <div className="table-body">
                     {loading ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center' }}>
-                            <div className="spinner" style={{ margin: '0 auto' }}></div>
-                        </div>
+                        <div className="table-empty"><div className="spinner"></div></div>
                     ) : filteredTransactions.length === 0 ? (
-                        <div style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-gray-500)' }}>
-                            No transactions found.
-                        </div>
+                        <div className="table-empty">No transactions found.</div>
                     ) : (
                         <table className="table table-striped">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '18%' }}>Timestamp</th>
-                                    <th style={{ width: '25%' }}>Product</th>
-                                    <th style={{ width: '15%' }}>Type</th>
-                                    <th style={{ width: '10%', textAlign: 'right' }}>Quantity</th>
-                                    <th style={{ width: '10%', textAlign: 'right' }}>Balance</th>
-                                    <th style={{ width: '15%' }}>Store</th>
-                                    <th style={{ width: '7%' }}>User</th>
+                                    <th>Timestamp</th>
+                                    <th>Product</th>
+                                    <th>Type</th>
+                                    <th className="text-right">Quantity</th>
+                                    <th className="text-right">Balance</th>
+                                    <th>Store</th>
+                                    <th>User</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {paginatedTransactions.map((txn, idx) => (
                                     <tr key={txn.id || idx}>
                                         <td>
-                                            <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)' }}>
+                                            <span className="text-xs text-muted">
                                                 {new Date(txn.createdAt).toLocaleString()}
                                             </span>
                                         </td>
                                         <td>
-                                            <div>
-                                                <strong>{txn.itemName}</strong>
-                                            </div>
-                                            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-500)' }}>
-                                                {txn.itemCode ? `Code: ${txn.itemCode}` : '-'}
-                                            </div>
+                                            <strong>{txn.itemName}</strong>
+                                            <span className="subtext">{txn.itemCode ? `Code: ${txn.itemCode}` : '-'}</span>
                                         </td>
                                         <td>
                                             <span className={`badge ${getTransactionTypeColor(txn.transactionType)}`}>
                                                 {getTransactionTypeLabel(txn.transactionType)}
                                             </span>
                                         </td>
-                                        <td style={{textAlign:'right'}}>
-                                            <strong style={{
-                                                color: txn.quantity > 0 ? 'var(--color-success)' : 'var(--color-error)'
-                                            }}>
+                                        <td className="text-right">
+                                            <strong className={txn.quantity > 0 ? 'text-success' : 'text-danger'}>
                                                 {txn.quantity > 0 ? '+' : ''}{txn.quantity}
                                             </strong>
                                         </td>
-                                        <td style={{textAlign:'right'}}>
-                                            <span style={{ color: 'var(--color-gray-700)' }}>
-                                                {txn.balanceAfter || '-'}
-                                            </span>
-                                        </td>
+                                        <td className="text-right text-muted">{txn.balanceAfter || '-'}</td>
                                         <td className="text-muted">{txn.storeName || 'N/A'}</td>
-                                        <td style={{ fontSize: 'var(--fs-xs)' }}>
-                                            {txn.createdBy || 'System'}
-                                        </td>
+                                        <td className="text-xs text-muted">{txn.createdBy || 'System'}</td>
                                     </tr>
                                 ))}
                             </tbody>
