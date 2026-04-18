@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { client } from '../api/client';
+import api from '../api/client';
 import { AlertCircle, Check } from 'lucide-react';
 
 export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
@@ -32,8 +32,8 @@ export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
 
             // Record receipt for each item that has been updated
             for (const item of items) {
-                if (parseFloat(item.receivedQty) > 0 || item.receivedQty !== item.receivedQty) {
-                    await client.post(`/api/inventory/po/${po.id}/record-receipt`, {
+                if (parseFloat(item.receivedQty) > 0) {
+                    await api.post(`/api/inventory/po/${po.id}/record-receipt`, {
                         poItemId: item.id,
                         receivedQty: item.receivedQty
                     });
