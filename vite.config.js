@@ -8,7 +8,7 @@ export default defineConfig({
         port: 3000,
         proxy: {
             '/api/auth': {
-                target: process.env.VITE_DIRECTORY_BACKEND_URL || 'http://localhost:9000',
+                target: process.env.VITE_DIRECTORY_BACKEND_URL || 'https://api-directory.zenohosp.com',
                 changeOrigin: true,
                 secure: false,
             },
