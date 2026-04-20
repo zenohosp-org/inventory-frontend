@@ -88,9 +88,12 @@ export default function StoreDetail() {
         setSubmitting(true);
         try {
             await recordPOReceipt(receiptModal.id, items);
+            console.log('Receipt recorded for PO:', receiptModal.id);
             setReceiptModal(null);
             await loadPOs();
+            alert('✓ Receipt recorded! Check the PO status below. If fully received, click "Convert to Bill".');
         } catch (e) {
+            console.error('Record receipt error:', e);
             alert('Failed to record receipt: ' + (e.response?.data?.message || e.message));
         } finally {
             setSubmitting(false);
@@ -98,11 +101,15 @@ export default function StoreDetail() {
     };
 
     const handleConvertToBill = async (poId) => {
-        if (!window.confirm('Convert this PO to a bill?')) return;
+        if (!window.confirm('Convert this fully received PO to a bill?')) return;
+        console.log('Converting PO to bill:', poId);
         try {
             await convertPOToBill(poId);
+            console.log('Bill created successfully');
             await loadPOs();
+            alert('✓ Bill created! Check the PO Bills page (/po-bill) to see and manage the invoice.');
         } catch (e) {
+            console.error('Convert to bill error:', e);
             alert('Failed to convert: ' + (e.response?.data?.message || e.message));
         }
     };

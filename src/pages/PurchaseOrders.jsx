@@ -3,7 +3,8 @@ import { ShoppingCart, Plus, X, AlertCircle } from 'lucide-react';
 import {
     getPurchaseOrders, createPurchaseOrder,
     getVendors, getItems, getStores,
-    recordPOReceipt, convertPOToBill,
+    recordPOReceipt,
+    payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
 } from '../api/client';
 import './PurchaseOrders.css';
 
@@ -15,12 +16,14 @@ const STATUS_MAP = {
 };
 
 const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0 }] };
+const EMPTY_PAY = { paymentStatus: 'PENDING', paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
     const [pos, setPos] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
     const [activeStores, setActiveStores] = useState([]);
+    const [bankAccounts, setBankAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -29,6 +32,11 @@ export default function PurchaseOrders() {
 
     const [receiptModal, setReceiptModal] = useState(null);
     const [receiptQtys, setReceiptQtys] = useState({});
+
+    const [payModal, setPayModal] = useState(null);
+    const [payForm, setPayForm] = useState(EMPTY_PAY);
+    const [bankLoading, setBankLoading] = useState(false);
+
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => { fetchData(); }, []);
@@ -72,7 +80,6 @@ export default function PurchaseOrders() {
         if (!formData.vendorId) { alert('Please select a vendor'); return; }
         if (!formData.expectedDate) { alert('Please select expected date'); return; }
         if (validItems.length === 0) { alert('Please add at least one item'); return; }
-
         try {
             await createPurchaseOrder({
                 storeId: formData.storeId,
@@ -117,14 +124,57 @@ export default function PurchaseOrders() {
         }
     };
 
-    // ── Convert to Bill ──
-    const handleConvertToBill = async (poId) => {
-        if (!window.confirm('Convert this PO to a bill?')) return;
+    // ── Pay Advance ──
+    const openPayModal = async (po) => {
+        setPayModal(po);
+        setPayForm(EMPTY_PAY);
+        setBankLoading(true);
         try {
-            await convertPOToBill(poId);
+            const res = await getFinanceBankAccounts();
+            setBankAccounts(Array.isArray(res.data) ? res.data : []);
+        } catch {
+            setBankAccounts([]);
+        } finally {
+            setBankLoading(false);
+        }
+    };
+
+    const handlePaySubmit = async () => {
+        if (!payForm.paidAmount || Number(payForm.paidAmount) <= 0) {
+            alert('Enter a valid amount'); return;
+        }
+        setSubmitting(true);
+        const selectedAccount = bankAccounts.find(a => a.id === payForm.bankAccountId);
+        try {
+            // 1. Record DEBIT in finance (best-effort — don't abort on failure)
+            if (payForm.bankAccountId) {
+                try {
+                    await createFinanceBankTransaction(payForm.bankAccountId, {
+                        type: 'DEBIT',
+                        amount: Number(payForm.paidAmount),
+                        referenceNo: payForm.referenceNo || null,
+                        description: `Advance – ${payModal.poNumber} | ${payModal.vendor?.name || ''}`,
+                        relatedEntityType: 'PO',
+                        relatedEntityId: payModal.id,
+                        relatedEntityName: `${payModal.poNumber} | ${payModal.vendor?.name || ''}`,
+                    });
+                } catch (finErr) {
+                    console.warn('Finance debit failed (non-blocking):', finErr.message);
+                }
+            }
+            // 2. Record in inventory (auto-creates bill if absent)
+            await payAdvancePO(payModal.id, {
+                paymentStatus: payForm.paymentStatus,
+                paidAmount: Number(payForm.paidAmount),
+                bankAccountId: payForm.bankAccountId || null,
+                bankAccountName: selectedAccount?.accountName || '',
+            });
+            setPayModal(null);
             await fetchData();
         } catch (e) {
             alert('Failed: ' + (e.response?.data?.message || e.message));
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -194,6 +244,8 @@ export default function PurchaseOrders() {
                             <tbody>
                                 {pos.map(po => {
                                     const s = STATUS_MAP[po.status] || { label: po.status || '-', color: 'badge-secondary' };
+                                    const canReceive = po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED' || po.status === 'RECEIVED';
+                                    const canPay = po.status !== 'BILLED';
                                     return (
                                         <tr key={po.id}>
                                             <td><strong className="mono">{po.poNumber || po.id}</strong></td>
@@ -212,12 +264,12 @@ export default function PurchaseOrders() {
                                                 <div className="po-action-group">
                                                     {(po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED') && (
                                                         <button className="btn btn-sm btn-primary" onClick={() => openReceiptModal(po)}>
-                                                            Record Receipt
+                                                            Receive
                                                         </button>
                                                     )}
-                                                    {po.status === 'RECEIVED' && (
-                                                        <button className="btn btn-sm btn-success" onClick={() => handleConvertToBill(po.id)}>
-                                                            Convert to Bill
+                                                    {canPay && (
+                                                        <button className="btn btn-sm btn-accent" onClick={() => openPayModal(po)}>
+                                                            Pay Advance
                                                         </button>
                                                     )}
                                                     {po.status === 'BILLED' && (
@@ -358,12 +410,12 @@ export default function PurchaseOrders() {
                 </div>
             )}
 
-            {/* Record Receipt Modal */}
+            {/* Receive Modal */}
             {receiptModal && (
                 <div className="modal-overlay active">
                     <div className="modal">
                         <div className="modal-header">
-                            <h2 className="modal-title">Record Receipt — {receiptModal.poNumber}</h2>
+                            <h2 className="modal-title">Receive Items — {receiptModal.poNumber}</h2>
                             <button className="modal-close" onClick={() => setReceiptModal(null)}><X size={18} /></button>
                         </div>
                         <div className="modal-body">
@@ -402,6 +454,83 @@ export default function PurchaseOrders() {
                             <button className="btn btn-secondary" onClick={() => setReceiptModal(null)}>Cancel</button>
                             <button className="btn btn-primary" onClick={handleReceiptSubmit} disabled={submitting}>
                                 {submitting ? 'Saving...' : 'Confirm Receipt'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Pay Advance Modal */}
+            {payModal && (
+                <div className="modal-overlay active">
+                    <div className="modal modal-sm">
+                        <div className="modal-header">
+                            <h2 className="modal-title">Pay Advance — {payModal.poNumber}</h2>
+                            <button className="modal-close" onClick={() => setPayModal(null)}><X size={18} /></button>
+                        </div>
+                        <div className="modal-body">
+                            <p className="modal-subtitle">
+                                {payModal.vendor?.name || ''} · Total: ₹{Number(payModal.totalAmount || 0).toLocaleString()}
+                            </p>
+                            <div className="form-group">
+                                <label className="form-label">Payment Status</label>
+                                <select
+                                    className="form-select"
+                                    value={payForm.paymentStatus}
+                                    onChange={e => setPayForm(f => ({ ...f, paymentStatus: e.target.value }))}
+                                >
+                                    <option value="PENDING">Pending</option>
+                                    <option value="PARTIAL">Partial</option>
+                                    <option value="PAID">Paid</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Amount Paid (₹) *</label>
+                                <input
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    className="form-input"
+                                    value={payForm.paidAmount}
+                                    onChange={e => setPayForm(f => ({ ...f, paidAmount: e.target.value }))}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Bank Account</label>
+                                {bankLoading ? (
+                                    <p className="form-help">Loading bank accounts...</p>
+                                ) : bankAccounts.length === 0 ? (
+                                    <p className="form-help">No bank accounts found. Add one in the Finance app.</p>
+                                ) : (
+                                    <select
+                                        className="form-select"
+                                        value={payForm.bankAccountId}
+                                        onChange={e => setPayForm(f => ({ ...f, bankAccountId: e.target.value }))}
+                                    >
+                                        <option value="">Select Bank Account (optional)</option>
+                                        {bankAccounts.map(acc => (
+                                            <option key={acc.id} value={acc.id}>
+                                                {acc.accountName} — {acc.accountType}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Reference No</label>
+                                <input
+                                    className="form-input"
+                                    value={payForm.referenceNo}
+                                    onChange={e => setPayForm(f => ({ ...f, referenceNo: e.target.value }))}
+                                    placeholder="Cheque/NEFT/UPI reference"
+                                />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setPayModal(null)}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handlePaySubmit} disabled={submitting}>
+                                {submitting ? 'Saving...' : 'Record Payment'}
                             </button>
                         </div>
                     </div>

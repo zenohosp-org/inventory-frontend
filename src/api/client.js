@@ -126,6 +126,17 @@ export const getStockOverviewWithPOs = () =>
 export const getPOBills = (params) => api.get('/api/po-bills', { params });
 export const getPOBillById = (billId) => api.get(`/api/po-bills/${billId}`);
 
+// ── Pay Advance ──
+export const payAdvancePO = (poId, data) =>
+    api.post(`/api/inventory/po/${poId}/pay-advance`, data);
+
+// ── Finance API (bank accounts for Pay Advance modal) ──
+export const FINANCE_API_URL = import.meta.env?.VITE_FINANCE_API_URL || 'https://api-finance.zenohosp.com';
+const financeApi = axios.create({ baseURL: FINANCE_API_URL, withCredentials: true });
+export const getFinanceBankAccounts = () => financeApi.get('/api/finance/bank-accounts');
+export const createFinanceBankTransaction = (bankAccountId, data) =>
+    financeApi.post(`/api/finance/bank-accounts/${bankAccountId}/transactions`, data);
+
 
 // ── Directory API (for fetching directory data) ──
 export const getHospitals = () => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals`, { withCredentials: true });
