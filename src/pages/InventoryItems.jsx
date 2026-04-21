@@ -11,6 +11,7 @@ export default function InventoryItems() {
     const [showModal, setShowModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [editingItem, setEditingItem] = useState(null);
 
     // Form
     const [formData, setFormData] = useState({
@@ -96,6 +97,70 @@ export default function InventoryItems() {
         }
     };
 
+    const handleEdit = (item) => {
+        setEditingItem(item);
+        setFormData({
+            name: item.name,
+            code: item.code,
+            categoryId: item.categoryId,
+            unit: item.unit,
+            reorderLevel: item.reorderLevel,
+            preferredVendorId: item.preferredVendorId || '',
+        });
+        setShowModal(true);
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            await updateItem(editingItem.id, formData);
+            setFormData({
+                name: '',
+                code: '',
+                categoryId: '',
+                unit: 'Piece',
+                reorderLevel: 5,
+                preferredVendorId: '',
+            });
+            setEditingItem(null);
+            setShowModal(false);
+            fetchData();
+        } catch (error) {
+            console.error('Error updating item:', error);
+            alert('Failed to update product');
+        }
+    };
+
+    const handleSubmit = (e) => {
+        editingItem ? handleUpdate(e) : handleCreate(e);
+    };
+
+    const openCreateModal = () => {
+        setEditingItem(null);
+        setFormData({
+            name: '',
+            code: '',
+            categoryId: '',
+            unit: 'Piece',
+            reorderLevel: 5,
+            preferredVendorId: '',
+        });
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setEditingItem(null);
+        setFormData({
+            name: '',
+            code: '',
+            categoryId: '',
+            unit: 'Piece',
+            reorderLevel: 5,
+            preferredVendorId: '',
+        });
+    };
+
     const filteredItems = items.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             item.code?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -145,7 +210,7 @@ export default function InventoryItems() {
                     </select>
                 </div>
 
-                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                <button className="btn btn-primary" onClick={() => openCreateModal()}>
                     <Plus size={18} />
                     Add Product
                 </button>
@@ -202,7 +267,7 @@ export default function InventoryItems() {
                                         </td>
                                         <td>
                                             <div className="action-group">
-                                                <button className="btn btn-sm btn-ghost">
+                                                <button className="btn btn-sm btn-ghost" onClick={() => handleEdit(item)}>
                                                     <Edit2 size={16} />
                                                 </button>
                                                 <button className="btn btn-sm btn-danger" onClick={() => handleDelete(item.id)}>
@@ -235,11 +300,11 @@ export default function InventoryItems() {
                 <div className="modal-overlay active">
                     <div className="modal modal-md">
                         <div className="modal-header">
-                            <h2 className="modal-title">Add New Product</h2>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+                            <h2 className="modal-title">{editingItem ? 'Edit Product' : 'Add New Product'}</h2>
+                            <button className="modal-close" onClick={() => closeModal()}>✕</button>
                         </div>
 
-                        <form onSubmit={handleCreate}>
+                        <form onSubmit={handleSubmit}>
                             <div className="modal-body">
                                 <div className="form-group">
                                     <label className="form-label required">Product Name</label>
@@ -332,11 +397,11 @@ export default function InventoryItems() {
                             </div>
 
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                <button type="button" className="btn btn-secondary" onClick={() => closeModal()}>
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn btn-primary" disabled={!formData.name.trim() || !formData.categoryId}>
-                                    Add Product
+                                    {editingItem ? 'Update Product' : 'Add Product'}
                                 </button>
                             </div>
                         </form>
