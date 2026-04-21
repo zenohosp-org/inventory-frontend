@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Package, AlertCircle, Clock, Plus, Download } from 'lucide-react';
+import { TrendingUp, Package, AlertCircle, Clock, Plus } from 'lucide-react';
 import axios from 'axios';
 import LogStockModal from '../components/LogStockModal';
 import { getStockOverview, getStockLogs } from '../api/client';
@@ -159,10 +159,6 @@ const Dashboard = () => {
         >
           <Plus size={18} />
           Log Stock
-        </button>
-        <button className="btn btn-secondary" title="Export data to CSV">
-          <Download size={18} />
-          Export
         </button>
       </div>
 

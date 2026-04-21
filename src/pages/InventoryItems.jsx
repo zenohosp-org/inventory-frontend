@@ -220,10 +220,6 @@ export default function InventoryItems() {
             <div className="table-container">
                 <div className="table-header">
                     <h3 className="table-title">Products ({filteredItems.length})</h3>
-                    <div className="table-actions">
-                        <button className="btn btn-sm btn-secondary">Download</button>
-                        <button className="btn btn-sm btn-secondary">Print</button>
-                    </div>
                 </div>
 
                 <div className="table-body">
