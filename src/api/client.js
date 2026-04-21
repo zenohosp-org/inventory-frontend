@@ -140,6 +140,14 @@ export const getFinanceBankAccounts = () => financeApi.get('/api/finance/bank-ac
 export const createFinanceBankTransaction = (bankAccountId, data) =>
     financeApi.post(`/api/finance/bank-accounts/${bankAccountId}/transactions`, data);
 
+// ── Asset Manager API ──
+export const ASSET_API_URL = import.meta.env?.VITE_ASSET_API_URL || 'https://api-asset.zenohosp.com';
+export const createAsset = (data, token) =>
+    axios.post(`${ASSET_API_URL}/api/assets`, data, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
 
 // ── Directory API (for fetching directory data) ──
 export const getHospitals = () => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals`, { withCredentials: true });
