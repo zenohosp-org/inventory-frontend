@@ -56,6 +56,9 @@ export const logout = () => api.post('/api/auth/logout');
 export const logoutFromDirectory = () => axios.post(`${DIRECTORY_API_URL}/api/auth/logout`, {}, {
     withCredentials: true,
 });
+export const logoutFromFinance = () => axios.post(`${FINANCE_API_URL}/api/auth/logout`, {}, {
+    withCredentials: true,
+});
 
 // ── Inventory  ──
 export const getInventory = () => api.get('/api/inventory');

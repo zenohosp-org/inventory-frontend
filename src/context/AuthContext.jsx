@@ -1,21 +1,13 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { getMe, logout as apiLogout, logoutFromDirectory, SSOCookieManager } from '../api/client';
+import { getMe, logout as apiLogout, logoutFromDirectory, logoutFromFinance, SSOCookieManager } from '../api/client';
 
 const AuthContext = createContext(null);
 const LOGOUT_FLAG_KEY = 'inventory_logout_in_progress';
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        try {
-            const stored = sessionStorage.getItem('inventory_user');
-            return stored ? JSON.parse(stored) : null;
-        } catch {
-            return null;
-        }
-    });
-    const [loading, setLoading] = useState(!user); // if user exists, don't need to load
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Restore session from backend on mount (cookie-based auth)
     useEffect(() => {
         if (import.meta.env.VITE_DEV_MOCK_AUTH === 'true') {
             setUser({
@@ -28,32 +20,25 @@ export function AuthProvider({ children }) {
             setLoading(false);
             return;
         }
-        if (!user && loading) {
-            // Don't restore session if we just logged out
-            const logoutInProgress = localStorage.getItem(LOGOUT_FLAG_KEY);
-            if (logoutInProgress) {
+        const logoutInProgress = localStorage.getItem(LOGOUT_FLAG_KEY);
+        if (logoutInProgress) {
+            sessionStorage.removeItem('inventory_user');
+            setUser(null);
+            setLoading(false);
+            localStorage.removeItem(LOGOUT_FLAG_KEY);
+            return;
+        }
+        getMe()
+            .then((res) => {
+                const userData = res.data.data || res.data;
+                sessionStorage.setItem('inventory_user', JSON.stringify(userData));
+                setUser(userData);
+            })
+            .catch(() => {
                 sessionStorage.removeItem('inventory_user');
                 setUser(null);
-                setLoading(false);
-                localStorage.removeItem(LOGOUT_FLAG_KEY);
-                return;
-            }
-
-            getMe()
-                .then((res) => {
-                    const userData = res.data.data || res.data;
-                    sessionStorage.setItem('inventory_user', JSON.stringify(userData));
-                    setUser(userData);
-                })
-                .catch(() => {
-                    // No valid session/cookie
-                    sessionStorage.removeItem('inventory_user');
-                    setUser(null);
-                })
-                .finally(() => setLoading(false));
-        } else {
-            setLoading(false);
-        }
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     // When the window/tab regains focus, verify session with backend.
@@ -131,7 +116,8 @@ export function AuthProvider({ children }) {
         try {
             await Promise.all([
                 apiLogout(),
-                logoutFromDirectory()
+                logoutFromDirectory(),
+                logoutFromFinance()
             ]);
             console.log('✅ Backend logout completed');
         } catch (e) {
