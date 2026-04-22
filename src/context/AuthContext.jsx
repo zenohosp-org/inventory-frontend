@@ -100,29 +100,24 @@ export function AuthProvider({ children }) {
         
         // Clear local state immediately
         sessionStorage.removeItem('inventory_user');
+        SSOCookieManager.clearToken();
         setUser(null);
         console.log('✅ Local state cleared');
         
-        // Signal to other tabs/windows
+        // Signal other tabs via localStorage (storage event only fires in other tabs, not this one)
         try {
             localStorage.setItem('sso-logout', `${Date.now()}`);
-            window.dispatchEvent(new Event('sso-logout'));
-            console.log('✅ Logout signal broadcast');
         } catch (e) {
             console.warn('Failed to broadcast logout:', e);
         }
         
-        // Wait for logout API calls to ACTUALLY complete
-        try {
-            await Promise.all([
-                apiLogout(),
-                logoutFromDirectory(),
-                logoutFromFinance()
-            ]);
-            console.log('✅ Backend logout completed');
-        } catch (e) {
-            console.warn('Logout API failed (expected if page unloads):', e.message);
-        }
+        // Wait for all logout calls to settle — allSettled never short-circuits,
+        // so the primary apiLogout() always completes even if finance/directory fail.
+        await Promise.allSettled([
+            apiLogout(),
+            logoutFromDirectory(),
+            logoutFromFinance()
+        ]);
         
         // Force full page reload (NOT React Router navigation)
         console.log('🔄 Full page reload to login');

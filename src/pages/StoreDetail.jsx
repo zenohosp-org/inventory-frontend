@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Store as StoreIcon, Package, ShoppingCart, X } from 'lucide-react';
+import { ArrowLeft, Store as StoreIcon, Package, ShoppingCart, X, ArrowLeftRight } from 'lucide-react';
 import { getStores, getStockOverview, getPOsByStore, recordPOReceipt, convertPOToBill } from '../api/client';
+import TransferStockModal from '../components/TransferStockModal';
 
 const STATUS_BADGE = {
     ORDERED: 'badge-primary',
@@ -21,6 +22,7 @@ function StatusBadge({ status }) {
 export default function StoreDetail() {
     const { storeId } = useParams();
     const [store, setStore] = useState(null);
+    const [allStores, setAllStores] = useState([]);
     const [stock, setStock] = useState([]);
     const [pos, setPos] = useState([]);
     const [activeTab, setActiveTab] = useState('pos');
@@ -29,6 +31,7 @@ export default function StoreDetail() {
     const [receiptModal, setReceiptModal] = useState(null);
     const [receiptQtys, setReceiptQtys] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [transferModal, setTransferModal] = useState(null);
 
     useEffect(() => {
         loadStore();
@@ -43,6 +46,7 @@ export default function StoreDetail() {
         try {
             const res = await getStores();
             const stores = Array.isArray(res.data) ? res.data : [];
+            setAllStores(stores);
             setStore(stores.find(s => s.id === storeId) || null);
         } catch (_) {}
     };
@@ -222,6 +226,7 @@ export default function StoreDetail() {
                                         <th>Available Qty</th>
                                         <th>Reorder Level</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -239,6 +244,15 @@ export default function StoreDetail() {
                                                         ? <span className="badge badge-error">Low Stock</span>
                                                         : <span className="badge badge-success">OK</span>}
                                                 </td>
+                                                <td>
+                                                    <button
+                                                        className="btn btn-sm btn-secondary"
+                                                        onClick={() => setTransferModal(s)}
+                                                        disabled={Number(s.quantityAvail) <= 0}
+                                                    >
+                                                        <ArrowLeftRight size={13} /> Transfer
+                                                    </button>
+                                                </td>
                                             </tr>
                                         );
                                     })}
@@ -247,6 +261,16 @@ export default function StoreDetail() {
                         )}
                     </div>
                 </div>
+            )}
+
+            {transferModal && (
+                <TransferStockModal
+                    stock={transferModal}
+                    fromStoreId={storeId}
+                    stores={allStores}
+                    onClose={() => setTransferModal(null)}
+                    onSuccess={() => { setTransferModal(null); loadStock(); }}
+                />
             )}
 
             {receiptModal && (
