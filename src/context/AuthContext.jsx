@@ -100,6 +100,7 @@ export function AuthProvider({ children }) {
         
         // Clear local state immediately
         sessionStorage.removeItem('inventory_user');
+        SSOCookieManager.clearToken();
         setUser(null);
         console.log('✅ Local state cleared');
         
