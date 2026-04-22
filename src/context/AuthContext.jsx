@@ -112,17 +112,13 @@ export function AuthProvider({ children }) {
             console.warn('Failed to broadcast logout:', e);
         }
         
-        // Wait for logout API calls to ACTUALLY complete
-        try {
-            await Promise.all([
-                apiLogout(),
-                logoutFromDirectory(),
-                logoutFromFinance()
-            ]);
-            console.log('✅ Backend logout completed');
-        } catch (e) {
-            console.warn('Logout API failed (expected if page unloads):', e.message);
-        }
+        // Wait for all logout calls to settle — allSettled never short-circuits,
+        // so the primary apiLogout() always completes even if finance/directory fail.
+        await Promise.allSettled([
+            apiLogout(),
+            logoutFromDirectory(),
+            logoutFromFinance()
+        ]);
         
         // Force full page reload (NOT React Router navigation)
         console.log('🔄 Full page reload to login');
