@@ -103,21 +103,21 @@ export default function Vendors() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title">
-                    <Users size={26} />
-                    Vendors Master
-                </h1>
-                <p className="page-subtitle">
-                    Manage suppliers and vendor information for purchase orders.
-                </p>
-            </div>
-
-            {/* Page Actions */}
-            <div className="page-actions">
-                <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-                    <Plus size={18} />
-                    Add Vendor
-                </button>
+                <div className="page-header-left">
+                    <h1 className="page-title">
+                        <Users size={26} />
+                        Vendors Master
+                    </h1>
+                    <p className="page-subtitle">
+                        Manage suppliers and vendor information for purchase orders.
+                    </p>
+                </div>
+                <div className="page-actions">
+                    <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                        <Plus size={18} />
+                        Add Vendor
+                    </button>
+                </div>
             </div>
 
             {/* Vendors Table */}

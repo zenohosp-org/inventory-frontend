@@ -292,7 +292,17 @@
 }
 
 .page-header {
-  margin-bottom: var(--spacing-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: var(--spacing-4);
+}
+
+.page-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
 }
 
 .page-title {
@@ -307,9 +317,8 @@
 }
 
 .page-subtitle {
-  font-size: var(--fs-sm);
   color: var(--color-gray-500);
-  margin-bottom: 0;
+  font-size: var(--fs-sm);
 }
 
 /* Page Actions */
@@ -324,11 +333,26 @@
 /* ════════════════════════════════════════
    GRID LAYOUTS
    ════════════════════════════════════════ */
-.grid { display: grid; gap: var(--spacing-5); }
-.grid-cols-1 { grid-template-columns: 1fr; }
-.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.grid-cols-1 {
+  grid-template-columns: 1fr;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
 
 /* ── Stat Cards Grid ── */
 .card-grid {
@@ -469,8 +493,7 @@
 }
 
 .table-header {
-  padding: var(--spacing-5) var(--spacing-6);
-  border-bottom: 1px solid var(--color-gray-100);
+  padding: var(--spacing-5) var(--spacing-6) var(--spacing-1);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -489,6 +512,7 @@
 
 .table-body {
   overflow-x: auto;
+  padding: var(--spacing-4);
 }
 
 .table-footer {
@@ -526,9 +550,13 @@
   transition: color var(--transition-fast);
 }
 
-.breadcrumb-item a:hover { color: var(--color-primary-dark); }
+.breadcrumb-item a:hover {
+  color: var(--color-primary-dark);
+}
 
-.breadcrumb-separator { color: var(--color-gray-300); }
+.breadcrumb-separator {
+  color: var(--color-gray-300);
+}
 
 .breadcrumb-item.active {
   color: var(--color-gray-800);
@@ -545,7 +573,9 @@
 }
 
 @media (max-width: 1100px) {
-  :root { --sidebar-width: 220px; }
+  :root {
+    --sidebar-width: 220px;
+  }
 }
 
 /* ════════════════════════════════════════
@@ -578,11 +608,23 @@
     gap: var(--spacing-2);
   }
 
-  .app-logo svg { color: var(--color-primary-light); }
+  .app-logo svg {
+    color: var(--color-primary-light);
+  }
 
-  .header-right { gap: var(--spacing-3); }
-  .header-welcome { display: none; }
-  .user-avatar { width: 32px; height: 32px; font-size: var(--fs-xs); }
+  .header-right {
+    gap: var(--spacing-3);
+  }
+
+  .header-welcome {
+    display: none;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: var(--fs-xs);
+  }
 
   /* Sidebar becomes a slide-over drawer */
   .sidebar {
@@ -613,7 +655,9 @@
     padding: var(--spacing-5) var(--spacing-4);
   }
 
-  .page-title { font-size: var(--fs-2xl); }
+  .page-title {
+    font-size: var(--fs-2xl);
+  }
 
   .card-grid {
     grid-template-columns: 1fr;
@@ -625,18 +669,49 @@
     grid-template-columns: 1fr;
   }
 
-  .filter-bar { flex-direction: column; }
-  .filter-group { width: 100%; }
-  .filter-input, .filter-select { width: 100%; }
-  .page-actions { flex-direction: column; }
+  .filter-bar {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-input,
+  .filter-select {
+    width: 100%;
+  }
+
+  .page-actions {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 480px) {
-  .main-content { padding: var(--spacing-4) var(--spacing-3); }
-  .page-title { font-size: var(--fs-xl); }
-  .stat-card { flex-direction: column; gap: var(--spacing-3); }
-  .stat-icon { align-self: flex-start; }
+  .main-content {
+    padding: var(--spacing-4) var(--spacing-3);
+  }
 
-  .card-header, .card-body, .card-footer { padding: var(--spacing-4); }
-  .table-container { border-radius: var(--radius-lg); }
+  .page-title {
+    font-size: var(--fs-xl);
+  }
+
+  .stat-card {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .stat-icon {
+    align-self: flex-start;
+  }
+
+  .card-header,
+  .card-body,
+  .card-footer {
+    padding: var(--spacing-4);
+  }
+
+  .table-container {
+    border-radius: var(--radius-lg);
+  }
 }

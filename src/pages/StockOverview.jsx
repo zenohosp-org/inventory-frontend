@@ -142,7 +142,7 @@ export default function StockOverview() {
 
     const filteredStocks = stocks.filter(s => {
         const matchesSearch = (s.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-                              (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+            (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
         const matchesCategory = filterCategory === 'all' || s.categoryId === filterCategory;
         return matchesSearch && matchesCategory;
     });
@@ -154,8 +154,10 @@ export default function StockOverview() {
     return (
         <div className="main-content">
             <div className="page-header">
-                <h1 className="page-title"><Package size={26} /> Stock Overview</h1>
-                <p className="page-subtitle">Monitor inventory levels and label items as assets.</p>
+                <div className="page-header-left">
+                    <h1 className="page-title"><Package size={26} /> Stock Overview</h1>
+                    <p className="page-subtitle">Monitor inventory levels and label items as assets.</p>
+                </div>
             </div>
 
             {/* View toggle */}
@@ -244,8 +246,8 @@ export default function StockOverview() {
                                                 <td>
                                                     <strong className={
                                                         stock.quantityAvail <= stock.reorderLevel ? 'text-danger' :
-                                                        stock.quantityAvail <= stock.reorderLevel * 1.5 ? 'text-warning' :
-                                                        'text-success'
+                                                            stock.quantityAvail <= stock.reorderLevel * 1.5 ? 'text-warning' :
+                                                                'text-success'
                                                     }>{stock.quantityAvail}</strong>
                                                 </td>
                                                 <td>
@@ -258,8 +260,8 @@ export default function StockOverview() {
                                                     {stock.quantityAvail <= stock.reorderLevel
                                                         ? <span className="badge badge-error">Low Stock</span>
                                                         : stock.quantityAvail <= stock.reorderLevel * 1.5
-                                                        ? <span className="badge badge-warning">Caution</span>
-                                                        : <span className="badge badge-success">Optimal</span>}
+                                                            ? <span className="badge badge-warning">Caution</span>
+                                                            : <span className="badge badge-success">Optimal</span>}
                                                 </td>
                                                 <td>
                                                     <div className="action-group">

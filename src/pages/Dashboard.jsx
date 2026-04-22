@@ -139,27 +139,27 @@ const Dashboard = () => {
     <div className="main-content">
       {/* Page Header */}
       <div className="page-header">
-        <h1 className="page-title">Inventory Dashboard</h1>
-        <p className="page-subtitle">
-          {loading ? 'Loading overview...' : 'Here\'s your pharmaceutical inventory overview.'}
-        </p>
-      </div>
-
-      {/* Page Actions */}
-      <div className="page-actions">
-        <button
-          className="btn btn-primary"
-          title={lowStockItems.length === 0 ? "No low stock items to log" : "Add new stock transaction"}
-          disabled={lowStockItems.length === 0}
-          onClick={() => {
+        <div className="page-header-left">
+          <h1 className="page-title">Inventory Dashboard</h1>
+          <p className="page-subtitle">
+            {loading ? 'Loading overview...' : 'Here\'s your pharmaceutical inventory overview.'}
+          </p>
+        </div>
+        <div className="page-actions">
+          <button
+            className="btn btn-primary"
+            title={lowStockItems.length === 0 ? "No low stock items to log" : "Add new stock transaction"}
+            disabled={lowStockItems.length === 0}
+            onClick={() => {
               if (lowStockItems.length > 0) {
                 handleLogStockClick(lowStockItems[0]);
               }
-          }}
-        >
-          <Plus size={18} />
-          Log Stock
-        </button>
+            }}
+          >
+            <Plus size={18} />
+            Log Stock
+          </button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -300,8 +300,8 @@ const Dashboard = () => {
 
       {/* Log Stock Modal */}
       {showLogModal && selectedStock && (
-        <LogStockModal 
-          stock={selectedStock} 
+        <LogStockModal
+          stock={selectedStock}
           onClose={() => setShowLogModal(false)}
           onSuccess={handleLogStockSuccess}
         />

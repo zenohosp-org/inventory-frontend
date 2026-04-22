@@ -82,21 +82,22 @@ export default function InventoryCategories() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title">
-                    <Layers size={26} />
-                    Product Categories
-                </h1>
-                <p className="page-subtitle">
-                    Organize inventory items by product categories and groups.
-                </p>
-            </div>
+                <div className="page-header-left">
+                    <h1 className="page-title">
+                        <Layers size={26} />
+                        Product Categories
+                    </h1>
+                    <p className="page-subtitle">
+                        Organize inventory items by product categories and groups.
+                    </p>
+                </div>
 
-            {/* Page Actions */}
-            <div className="page-actions">
-                <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-                    <Plus size={18} />
-                    Add Category
-                </button>
+                <div className="page-actions">
+                    <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                        <Plus size={18} />
+                        Add Category
+                    </button>
+                </div>
             </div>
 
             {/* Categories Table */}

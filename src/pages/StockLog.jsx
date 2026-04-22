@@ -19,7 +19,7 @@ export default function StockLog() {
     useEffect(() => {
         // Apply filters
         let filtered = transactions;
-        
+
         if (searchQuery) {
             filtered = filtered.filter(t =>
                 t.itemName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -92,13 +92,15 @@ export default function StockLog() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title">
-                    <History size={26} />
-                    Stock Transaction Log
-                </h1>
-                <p className="page-subtitle">
-                    Complete audit trail of all inventory movements and adjustments.
-                </p>
+                <div className="page-header-left">
+                    <h1 className="page-title">
+                        <History size={26} />
+                        Stock Transaction Log
+                    </h1>
+                    <p className="page-subtitle">
+                        Complete audit trail of all inventory movements and adjustments.
+                    </p>
+                </div>
             </div>
 
             {/* Filter Bar */}

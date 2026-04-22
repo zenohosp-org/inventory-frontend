@@ -163,7 +163,7 @@ export default function InventoryItems() {
 
     const filteredItems = items.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            item.code?.toLowerCase().includes(searchTerm.toLowerCase());
+            item.code?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
         return matchesSearch && matchesCategory;
     });
@@ -172,30 +172,24 @@ export default function InventoryItems() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title">
-                    <Package size={26} />
-                    Product Master
-                </h1>
-                <p className="page-subtitle">
-                    Manage pharmaceutical products, categories, and inventory settings.
-                </p>
+                <div className="page-header-left">
+                    <h1 className="page-title">
+                        <Package size={26} />
+                        Product Master
+                    </h1>
+                    <p className="page-subtitle">
+                        Manage pharmaceutical products, categories, and inventory settings.
+                    </p>
+                </div>
+
+                <button className="btn btn-primary" onClick={() => openCreateModal()}>
+                    <Plus size={18} />
+                    Add Product
+                </button>
             </div>
 
             {/* Filter Bar */}
             <div className="filter-bar">
-                <div className="filter-group flex-1">
-                    <div className="search-bar">
-                        <Search size={16} />
-                        <input
-                            type="text"
-                            placeholder="Search products..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-bar-input"
-                        />
-                    </div>
-                </div>
-
                 <div className="filter-group">
                     <label className="filter-label">Category</label>
                     <select
@@ -210,10 +204,18 @@ export default function InventoryItems() {
                     </select>
                 </div>
 
-                <button className="btn btn-primary" onClick={() => openCreateModal()}>
-                    <Plus size={18} />
-                    Add Product
-                </button>
+                <div className="filter-group flex-1">
+                    <div className="search-bar">
+                        <Search size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="search-bar-input"
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* Products Table */}
