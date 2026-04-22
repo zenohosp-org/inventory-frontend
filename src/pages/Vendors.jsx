@@ -2,21 +2,29 @@ import { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, X } from 'lucide-react';
 import { getVendors, createVendor, updateVendor, deleteVendor } from '../api/client';
 
+const GST_TYPES = ['REGULAR', 'COMPOSITION', 'UNREGISTERED', 'CONSUMER', 'OVERSEAS'];
+
+const EMPTY_FORM = {
+    name: '',
+    contactName: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    gstRegistrationType: '',
+    gstNumber: '',
+    panNumber: '',
+    isActive: true,
+};
 
 export default function Vendors() {
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({
-        name: '',
-        contactName: '',
-        phone: '',
-        email: '',
-        address: '',
-        city: '',
-        isActive: true
-    });
+    const [formData, setFormData] = useState(EMPTY_FORM);
 
     useEffect(() => {
         fetchVendors();
@@ -26,12 +34,9 @@ export default function Vendors() {
         setLoading(true);
         try {
             const res = await getVendors();
-            let vendorsData = res.data || res;
-            if (typeof vendorsData === 'string') {
-                vendorsData = JSON.parse(vendorsData);
-            }
-            vendorsData = Array.isArray(vendorsData) ? vendorsData : [];
-            setVendors(vendorsData);
+            let data = res.data || res;
+            if (typeof data === 'string') data = JSON.parse(data);
+            setVendors(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching vendors:', error);
             setVendors([]);
@@ -44,28 +49,27 @@ export default function Vendors() {
         if (vendor) {
             setEditingId(vendor.id);
             setFormData({
-                name: vendor.name,
+                name: vendor.name || '',
                 contactName: vendor.contactName || '',
                 phone: vendor.phone || '',
                 email: vendor.email || '',
                 address: vendor.address || '',
                 city: vendor.city || '',
-                isActive: vendor.isActive !== false
+                state: vendor.state || '',
+                pincode: vendor.pincode || '',
+                gstRegistrationType: vendor.gstRegistrationType || '',
+                gstNumber: vendor.gstNumber || '',
+                panNumber: vendor.panNumber || '',
+                isActive: vendor.isActive !== false,
             });
         } else {
             setEditingId(null);
-            setFormData({
-                name: '',
-                contactName: '',
-                phone: '',
-                email: '',
-                address: '',
-                city: '',
-                isActive: true
-            });
+            setFormData(EMPTY_FORM);
         }
         setShowModal(true);
     };
+
+    const set = (field) => (e) => setFormData(prev => ({ ...prev, [field]: e.target.value }));
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -84,24 +88,17 @@ export default function Vendors() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this vendor?')) {
-            try {
-                await deleteVendor(id);
-                fetchVendors();
-            } catch (error) {
-                console.error('Error deleting vendor:', error);
-                alert('Failed to delete vendor');
-            }
+        if (!window.confirm('Delete this vendor?')) return;
+        try {
+            await deleteVendor(id);
+            fetchVendors();
+        } catch (error) {
+            alert('Failed to delete vendor');
         }
-    };
-
-    const getStatusColor = (isActive) => {
-        return isActive ? 'badge-success' : 'badge-warning';
     };
 
     return (
         <div className="main-content">
-            {/* Page Header */}
             <div className="page-header">
                 <div className="page-header-left">
                     <h1 className="page-title">
@@ -120,12 +117,10 @@ export default function Vendors() {
                 </div>
             </div>
 
-            {/* Vendors Table */}
             <div className="table-container">
                 <div className="table-header">
                     <h3 className="table-title">Vendors ({vendors.length})</h3>
                 </div>
-
                 <div className="table-body">
                     {loading ? (
                         <div className="table-empty"><div className="spinner"></div></div>
@@ -138,46 +133,45 @@ export default function Vendors() {
                                     <th>Vendor Name</th>
                                     <th>Contact Person</th>
                                     <th>Phone / Email</th>
+                                    <th>GST Type</th>
+                                    <th>GST / PAN</th>
                                     <th>Location</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {vendors.map((vendor) => (
-                                    <tr key={vendor.id}>
+                                {vendors.map((v) => (
+                                    <tr key={v.id}>
+                                        <td><strong>{v.name}</strong></td>
+                                        <td className="text-muted">{v.contactName || '-'}</td>
+                                        <td className="text-muted">
+                                            <div>{v.phone || '-'}</div>
+                                            <span className="subtext">{v.email || '-'}</span>
+                                        </td>
+                                        <td className="text-muted">
+                                            {v.gstRegistrationType
+                                                ? <span className="badge badge-secondary">{v.gstRegistrationType}</span>
+                                                : '-'}
+                                        </td>
+                                        <td className="text-muted mono">
+                                            <div>{v.gstNumber || '-'}</div>
+                                            <span className="subtext">{v.panNumber || '-'}</span>
+                                        </td>
+                                        <td className="text-muted">
+                                            {[v.city, v.state, v.pincode].filter(Boolean).join(', ') || '-'}
+                                        </td>
                                         <td>
-                                            <strong>{vendor.name}</strong>
-                                        </td>
-                                        <td className="text-muted">
-                                            {vendor.contactName || '-'}
-                                        </td>
-                                        <td className="text-muted">
-                                            <div>{vendor.phone || '-'}</div>
-                                            <span className="subtext">{vendor.email || '-'}</span>
-                                        </td>
-                                        <td className="text-muted">
-                                            {vendor.city || '-'}
-                                        </td>
-                                        <td>
-                                            <span className={`badge ${getStatusColor(vendor.isActive)}`}>
-                                                {vendor.isActive !== false ? 'Active' : 'Inactive'}
+                                            <span className={`badge ${v.isActive !== false ? 'badge-success' : 'badge-warning'}`}>
+                                                {v.isActive !== false ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td>
                                             <div className="action-group">
-                                                <button
-                                                    className="btn btn-sm btn-secondary"
-                                                    onClick={() => handleOpenModal(vendor)}
-                                                    title="Edit"
-                                                >
+                                                <button className="btn btn-sm btn-secondary" onClick={() => handleOpenModal(v)} title="Edit">
                                                     <Edit2 size={16} />
                                                 </button>
-                                                <button
-                                                    className="btn btn-sm btn-danger"
-                                                    onClick={() => handleDelete(vendor.id)}
-                                                    title="Delete"
-                                                >
+                                                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(v.id)} title="Delete">
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
@@ -188,114 +182,105 @@ export default function Vendors() {
                         </table>
                     )}
                 </div>
-
                 <div className="table-footer">
-                    <span className="table-info">
-                        Total: {vendors.length} vendors
-                    </span>
+                    <span className="table-info">Total: {vendors.length} vendors</span>
                 </div>
             </div>
 
-            {/* Vendor Modal */}
             {showModal && (
                 <div className="modal-overlay active">
-                    <div className="modal modal-md">
+                    <div className="modal modal-lg">
                         <div className="modal-header">
-                            <h2 className="modal-title">
-                                {editingId ? 'Edit Vendor' : 'Add New Vendor'}
-                            </h2>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+                            <h2 className="modal-title">{editingId ? 'Edit Vendor' : 'Add New Vendor'}</h2>
+                            <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
                         </div>
-
                         <form onSubmit={handleSave}>
                             <div className="modal-body">
                                 <div className="form-group">
                                     <label className="form-label required">Vendor Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="form-input"
-                                        placeholder="e.g., ABC Pharmaceuticals Ltd."
-                                        required
-                                    />
+                                    <input type="text" className="form-input" value={formData.name}
+                                        onChange={set('name')} placeholder="e.g., ABC Pharmaceuticals Ltd." required />
                                 </div>
 
                                 <div className="form-2col">
                                     <div className="form-group">
                                         <label className="form-label">Contact Person</label>
-                                        <input
-                                            type="text"
-                                            value={formData.contactName}
-                                            onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                                            className="form-input"
-                                            placeholder="Name"
-                                        />
+                                        <input type="text" className="form-input" value={formData.contactName}
+                                            onChange={set('contactName')} placeholder="Full name" />
                                     </div>
-
                                     <div className="form-group">
                                         <label className="form-label">Phone</label>
-                                        <input
-                                            type="tel"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="form-input"
-                                            placeholder="+91 98765 43210"
-                                        />
+                                        <input type="tel" className="form-input" value={formData.phone}
+                                            onChange={set('phone')} placeholder="+91 98765 43210" />
                                     </div>
                                 </div>
 
                                 <div className="form-group">
-                                    <label className="form-label">Email</label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="form-input"
-                                        placeholder="vendor@example.com"
-                                    />
+                                    <label className="form-label">Email ID</label>
+                                    <input type="email" className="form-input" value={formData.email}
+                                        onChange={set('email')} placeholder="vendor@example.com" />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">GST Registration Type</label>
+                                    <select className="form-input" value={formData.gstRegistrationType}
+                                        onChange={set('gstRegistrationType')}>
+                                        <option value="">Select type...</option>
+                                        {GST_TYPES.map(t => (
+                                            <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-2col">
+                                    <div className="form-group">
+                                        <label className="form-label">GST Number</label>
+                                        <input type="text" className="form-input" value={formData.gstNumber}
+                                            onChange={set('gstNumber')} placeholder="22AAAAA0000A1Z5" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">PAN Number</label>
+                                        <input type="text" className="form-input" value={formData.panNumber}
+                                            onChange={set('panNumber')} placeholder="AAAAA0000A" />
+                                    </div>
                                 </div>
 
                                 <div className="form-group">
                                     <label className="form-label">Address</label>
-                                    <textarea
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="form-textarea"
-                                        placeholder="Street address"
-                                        rows="2"
-                                    ></textarea>
+                                    <textarea className="form-textarea" value={formData.address}
+                                        onChange={set('address')} placeholder="Street address" rows="2"></textarea>
                                 </div>
 
                                 <div className="form-2col">
                                     <div className="form-group">
                                         <label className="form-label">City</label>
-                                        <input
-                                            type="text"
-                                            value={formData.city}
-                                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                            className="form-input"
-                                            placeholder="City"
-                                        />
+                                        <input type="text" className="form-input" value={formData.city}
+                                            onChange={set('city')} placeholder="City" />
                                     </div>
-
                                     <div className="form-group">
+                                        <label className="form-label">State</label>
+                                        <input type="text" className="form-input" value={formData.state}
+                                            onChange={set('state')} placeholder="State" />
+                                    </div>
+                                </div>
+
+                                <div className="form-2col">
+                                    <div className="form-group">
+                                        <label className="form-label">Pincode</label>
+                                        <input type="text" className="form-input" value={formData.pincode}
+                                            onChange={set('pincode')} placeholder="600001" maxLength={6} />
+                                    </div>
+                                    <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '4px' }}>
                                         <label className="checkbox-label">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.isActive}
-                                                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                            />
+                                            <input type="checkbox" checked={formData.isActive}
+                                                onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))} />
                                             Mark as Active
                                         </label>
                                     </div>
                                 </div>
                             </div>
-
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                                    Cancel
-                                </button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                                 <button type="submit" className="btn btn-primary">
                                     {editingId ? 'Update Vendor' : 'Create Vendor'}
                                 </button>
