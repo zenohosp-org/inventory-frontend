@@ -61,6 +61,10 @@ export default function StockLog() {
                 return 'badge-accent';
             case 'EXPIRED_DISPOSED':
                 return 'badge-warning';
+            case 'TRANSFER_OUT':
+                return 'badge-primary';
+            case 'TRANSFER_IN':
+                return 'badge-accent';
             default:
                 return 'badge-gray';
         }
@@ -76,6 +80,10 @@ export default function StockLog() {
                 return '↩️ Return';
             case 'EXPIRED_DISPOSED':
                 return '🗑️ Disposed';
+            case 'TRANSFER_OUT':
+                return 'Transfer Out';
+            case 'TRANSFER_IN':
+                return 'Transfer In';
             default:
                 return type;
         }
@@ -128,6 +136,8 @@ export default function StockLog() {
                         <option value="INTERNAL_USE">Internal Use</option>
                         <option value="RETURN">Return</option>
                         <option value="EXPIRED_DISPOSED">Disposed</option>
+                        <option value="TRANSFER_OUT">Transfer Out</option>
+                        <option value="TRANSFER_IN">Transfer In</option>
                     </select>
                 </div>
             </div>

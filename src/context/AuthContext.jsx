@@ -103,11 +103,9 @@ export function AuthProvider({ children }) {
         setUser(null);
         console.log('✅ Local state cleared');
         
-        // Signal to other tabs/windows
+        // Signal other tabs via localStorage (storage event only fires in other tabs, not this one)
         try {
             localStorage.setItem('sso-logout', `${Date.now()}`);
-            window.dispatchEvent(new Event('sso-logout'));
-            console.log('✅ Logout signal broadcast');
         } catch (e) {
             console.warn('Failed to broadcast logout:', e);
         }

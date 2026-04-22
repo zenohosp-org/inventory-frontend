@@ -98,6 +98,9 @@ export const deleteItem = (id) => api.delete(`/api/inventory/items/${id}`);
 // ── Stock Overview ──
 export const getStockOverview = () => api.get('/api/inventory/stock-overview');
 
+// ── Stock Transfer ──
+export const transferStock = (data) => api.post('/api/inventory/stock-transfer', data);
+
 // ── Stock Transactions ──
 export const getStockLogs = (params) => api.get('/api/inventory/stock-transactions', { params });
 export const logStock = (data) => api.post('/api/inventory/log-stock', data);
