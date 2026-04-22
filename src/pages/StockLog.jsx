@@ -113,19 +113,6 @@ export default function StockLog() {
 
             {/* Filter Bar */}
             <div className="filter-bar">
-                <div className="filter-group flex-1">
-                    <div className="search-bar">
-                        <Search size={16} />
-                        <input
-                            type="text"
-                            placeholder="Search by product name or code..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="search-bar-input"
-                        />
-                    </div>
-                </div>
-
                 <div className="filter-group">
                     <label className="filter-label">Transaction Type</label>
                     <select
@@ -141,6 +128,18 @@ export default function StockLog() {
                         <option value="TRANSFER_OUT">Transfer Out</option>
                         <option value="TRANSFER_IN">Transfer In</option>
                     </select>
+                </div>
+                <div className="filter-group flex-1">
+                    <div className="search-bar">
+                        <Search size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search by product name or code..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="search-bar-input"
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -171,7 +171,7 @@ export default function StockOverview() {
                 <button
                     className={`btn btn-sm ${view === 'assets' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setView('assets')}
-                    style={view === 'assets' ? { background: '#7c3aed', borderColor: '#7c3aed' } : {}}
+                    style={view === 'assets' ? { background: '#000000', borderColor: '#000000' } : {}}
                 >
                     <Tag size={14} /> Sent to Assets {assetLogs.length > 0 && `(${assetLogs.length})`}
                 </button>
@@ -179,6 +179,15 @@ export default function StockOverview() {
 
             {/* Filter Bar */}
             <div className="filter-bar">
+                {view === 'stock' && (
+                    <div className="filter-group">
+                        <label className="filter-label">Category</label>
+                        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
+                            <option value="all">All Categories</option>
+                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                        </select>
+                    </div>
+                )}
                 <div className="filter-group flex-1">
                     <div className="search-bar">
                         <Search size={16} />
@@ -191,15 +200,6 @@ export default function StockOverview() {
                         />
                     </div>
                 </div>
-                {view === 'stock' && (
-                    <div className="filter-group">
-                        <label className="filter-label">Category</label>
-                        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
-                            <option value="all">All Categories</option>
-                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                        </select>
-                    </div>
-                )}
             </div>
 
             {/* Stock Table */}
@@ -277,7 +277,7 @@ export default function StockOverview() {
                                                             onClick={() => openAssetModal(stock)}
                                                             className="btn btn-sm"
                                                             title="Label as asset"
-                                                            style={{ background: '#7c3aed', borderColor: '#7c3aed', color: '#fff' }}
+                                                            style={{ background: '#000000', borderColor: '#000000', color: '#fff' }}
                                                         >
                                                             <Tag size={13} /> Asset
                                                         </button>
@@ -300,7 +300,7 @@ export default function StockOverview() {
             {view === 'assets' && (
                 <div className="table-container">
                     <div className="table-header">
-                        <h3 className="table-title" style={{ color: '#7c3aed' }}>Sent to Assets ({filteredAssetLogs.length})</h3>
+                        <h3 className="table-title" style={{ color: '#000000' }}>Sent to Assets ({filteredAssetLogs.length})</h3>
                     </div>
                     <div className="table-body">
                         {loading ? (
@@ -325,7 +325,7 @@ export default function StockOverview() {
                                             </td>
                                             <td><strong>{log.itemName}</strong></td>
                                             <td className="text-right">
-                                                <span style={{ color: '#7c3aed', fontWeight: 600 }}>
+                                                <span style={{ color: '#000000', fontWeight: 600 }}>
                                                     {Math.abs(Number(log.quantity))}
                                                 </span>
                                             </td>
@@ -362,7 +362,7 @@ export default function StockOverview() {
                 <div className="modal-overlay active">
                     <div className="modal modal-md">
                         <div className="modal-header">
-                            <h2 className="modal-title" style={{ color: '#7c3aed' }}>
+                            <h2 className="modal-title" style={{ color: '#000000' }}>
                                 <Tag size={18} /> Label as Asset — {assetStock.itemName}
                             </h2>
                             <button className="modal-close" onClick={() => setShowAssetModal(false)}><X size={18} /></button>
@@ -419,7 +419,7 @@ export default function StockOverview() {
                                     type="submit"
                                     className="btn btn-primary"
                                     disabled={assetSubmitting}
-                                    style={{ background: '#7c3aed', borderColor: '#7c3aed' }}
+                                    style={{ background: '#000000', borderColor: '#000000' }}
                                 >
                                     {assetSubmitting ? 'Labeling...' : 'Label as Asset'}
                                 </button>

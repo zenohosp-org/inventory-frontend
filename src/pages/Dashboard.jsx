@@ -145,21 +145,6 @@ const Dashboard = () => {
             {loading ? 'Loading overview...' : 'Here\'s your pharmaceutical inventory overview.'}
           </p>
         </div>
-        <div className="page-actions">
-          <button
-            className="btn btn-primary"
-            title={lowStockItems.length === 0 ? "No low stock items to log" : "Add new stock transaction"}
-            disabled={lowStockItems.length === 0}
-            onClick={() => {
-              if (lowStockItems.length > 0) {
-                handleLogStockClick(lowStockItems[0]);
-              }
-            }}
-          >
-            <Plus size={18} />
-            Log Stock
-          </button>
-        </div>
       </div>
 
       {/* Statistics Cards */}
