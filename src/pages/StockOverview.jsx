@@ -163,7 +163,7 @@ export default function StockOverview() {
 
     const filteredStocks = stocks.filter(s => {
         const matchesSearch = (s.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-                              (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+            (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
         const matchesCategory = filterCategory === 'all' || s.categoryId === filterCategory;
         const matchesVendor = filterVendor === 'all' || s.vendorId === filterVendor;
         return matchesSearch && matchesCategory && matchesVendor;
@@ -176,8 +176,10 @@ export default function StockOverview() {
     return (
         <div className="main-content">
             <div className="page-header">
-                <h1 className="page-title"><Package size={26} /> Stock Overview</h1>
-                <p className="page-subtitle">Monitor inventory levels and label items as assets.</p>
+                <div className="page-header-left">
+                    <h1 className="page-title"><Package size={26} /> Stock Overview</h1>
+                    <p className="page-subtitle">Monitor inventory levels and label items as assets.</p>
+                </div>
             </div>
 
             {/* View toggle */}
@@ -198,6 +200,15 @@ export default function StockOverview() {
 
             {/* Filter Bar */}
             <div className="filter-bar">
+                {view === 'stock' && (
+                    <div className="filter-group">
+                        <label className="filter-label">Category</label>
+                        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
+                            <option value="all">All Categories</option>
+                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                        </select>
+                    </div>
+                )}
                 <div className="filter-group flex-1">
                     <div className="search-bar">
                         <Search size={16} />

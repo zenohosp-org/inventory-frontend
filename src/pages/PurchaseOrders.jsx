@@ -10,10 +10,10 @@ import {
 import './PurchaseOrders.css';
 
 const STATUS_MAP = {
-    ORDERED:             { label: 'Ordered',  color: 'badge-primary' },
-    PARTIALLY_RECEIVED:  { label: 'Partial',  color: 'badge-warning' },
-    RECEIVED:            { label: 'Received', color: 'badge-success' },
-    BILLED:              { label: 'Billed',   color: 'badge-secondary' },
+    ORDERED: { label: 'Ordered', color: 'badge-primary' },
+    PARTIALLY_RECEIVED: { label: 'Partial', color: 'badge-warning' },
+    RECEIVED: { label: 'Received', color: 'badge-success' },
+    BILLED: { label: 'Billed', color: 'badge-secondary' },
 };
 
 const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', itemSearch: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
@@ -198,11 +198,22 @@ export default function PurchaseOrders() {
     return (
         <div className="main-content">
             <div className="page-header">
-                <h1 className="page-title">
-                    <ShoppingCart size={26} />
-                    Purchase Orders
-                </h1>
-                <p className="page-subtitle">Create and manage purchase orders from suppliers.</p>
+                <div className="page-header-left">
+                    <h1 className="page-title">
+                        <ShoppingCart size={26} />
+                        Purchase Orders
+                    </h1>
+                    <p className="page-subtitle">Create and manage purchase orders from suppliers.</p>
+                </div>
+                <button
+                    className="btn btn-primary"
+                    onClick={() => setShowCreateModal(true)}
+                    disabled={activeStores.length === 0}
+                    title={activeStores.length === 0 ? 'Create a store first' : ''}
+                >
+                    <Plus size={18} />
+                    Create Purchase Order
+                </button>
             </div>
 
             {error && (
@@ -217,15 +228,6 @@ export default function PurchaseOrders() {
             )}
 
             <div className="page-actions">
-                <button
-                    className="btn btn-primary"
-                    onClick={() => setShowCreateModal(true)}
-                    disabled={activeStores.length === 0}
-                    title={activeStores.length === 0 ? 'Create a store first' : ''}
-                >
-                    <Plus size={18} />
-                    Create Purchase Order
-                </button>
                 {activeStores.length === 0 && (
                     <div className="po-no-store-warn">
                         <AlertCircle size={16} />

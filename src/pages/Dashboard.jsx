@@ -139,27 +139,12 @@ const Dashboard = () => {
     <div className="main-content">
       {/* Page Header */}
       <div className="page-header">
-        <h1 className="page-title">Inventory Dashboard</h1>
-        <p className="page-subtitle">
-          {loading ? 'Loading overview...' : 'Here\'s your pharmaceutical inventory overview.'}
-        </p>
-      </div>
-
-      {/* Page Actions */}
-      <div className="page-actions">
-        <button
-          className="btn btn-primary"
-          title={lowStockItems.length === 0 ? "No low stock items to log" : "Add new stock transaction"}
-          disabled={lowStockItems.length === 0}
-          onClick={() => {
-              if (lowStockItems.length > 0) {
-                handleLogStockClick(lowStockItems[0]);
-              }
-          }}
-        >
-          <Plus size={18} />
-          Log Stock
-        </button>
+        <div className="page-header-left">
+          <h1 className="page-title">Inventory Dashboard</h1>
+          <p className="page-subtitle">
+            {loading ? 'Loading overview...' : 'Here\'s your pharmaceutical inventory overview.'}
+          </p>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -167,8 +152,8 @@ const Dashboard = () => {
         <div className="stat-card">
           <div>
             <div className="stat-label">Total Products</div>
-            <div className="stat-value">{stats.totalProducts}</div>
             <p>Active items in system</p>
+            <div className="stat-value">{stats.totalProducts}</div>
           </div>
           <div className="stat-icon">📦</div>
         </div>
@@ -176,8 +161,8 @@ const Dashboard = () => {
         <div className="stat-card warning">
           <div>
             <div className="stat-label">Low Stock Items</div>
-            <div className="stat-value">{stats.lowStockItems}</div>
             <p>Require reordering</p>
+            <div className="stat-value">{stats.lowStockItems}</div>
           </div>
           <div className="stat-icon">⚠️</div>
         </div>
@@ -185,8 +170,8 @@ const Dashboard = () => {
         <div className="stat-card success">
           <div>
             <div className="stat-label">Total Transactions</div>
-            <div className="stat-value">{recentActivity.length}</div>
             <p>Last 24 hours</p>
+            <div className="stat-value">{recentActivity.length}</div>
           </div>
           <div className="stat-icon">📊</div>
         </div>
@@ -194,8 +179,8 @@ const Dashboard = () => {
         <div className="stat-card info">
           <div>
             <div className="stat-label">System Status</div>
-            <div className="stat-value text-success">✓</div>
             <p>All systems operational</p>
+            <div className="stat-value text-success">✓</div>
           </div>
           <div className="stat-icon">✅</div>
         </div>
@@ -300,8 +285,8 @@ const Dashboard = () => {
 
       {/* Log Stock Modal */}
       {showLogModal && selectedStock && (
-        <LogStockModal 
-          stock={selectedStock} 
+        <LogStockModal
+          stock={selectedStock}
           onClose={() => setShowLogModal(false)}
           onSuccess={handleLogStockSuccess}
         />

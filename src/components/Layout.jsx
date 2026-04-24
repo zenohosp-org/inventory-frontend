@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Package, ShoppingCart, History,
-  LogOut, ChevronDown, ChevronRight, Layers, Store as StoreIcon,
-  Menu as MenuIcon, X as XIcon, Globe, Inbox, FileText, Truck, Receipt
+    LayoutDashboard, Package, ShoppingCart, History,
+    LogOut, ChevronDown, ChevronRight, Layers, Store as StoreIcon,
+    Menu as MenuIcon, X as XIcon, Globe, Inbox, FileText, Truck, Receipt
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -115,7 +115,7 @@ export default function Layout({ children }) {
                                     open={invOpen}
                                     onToggle={() => setInvOpen(o => !o)}
                                     icon={Inbox}
-                                    label="Inv"
+                                    label="Inventory"
                                 />
                                 {invOpen && (
                                     <div className="sidebar-submenu">

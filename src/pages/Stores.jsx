@@ -99,21 +99,21 @@ export default function Stores() {
         <div className="main-content">
             {/* Page Header */}
             <div className="page-header">
-                <h1 className="page-title">
-                    <Store size={26} />
-                    Stores Master
-                </h1>
-                <p className="page-subtitle">
-                    Create and manage hospital stores and storage locations.
-                </p>
-            </div>
-
-            {/* Page Actions */}
-            <div className="page-actions">
-                <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-                    <Plus size={18} />
-                    Add Store
-                </button>
+                <div className="page-header-left">
+                    <h1 className="page-title">
+                        <Store size={26} />
+                        Stores Master
+                    </h1>
+                    <p className="page-subtitle">
+                        Create and manage hospital stores and storage locations.
+                    </p>
+                </div>
+                <div className="page-actions">
+                    <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                        <Plus size={18} />
+                        Add Store
+                    </button>
+                </div>
             </div>
 
             {/* Stores Table */}
