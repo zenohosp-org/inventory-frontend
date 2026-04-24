@@ -265,11 +265,6 @@ export default function StockOverview() {
                                                 </td>
                                                 <td>
                                                     <div className="action-group">
-                                                        {pos.length > 0 && (
-                                                            <button onClick={() => handleReleaseClick(pos[0])} className="btn btn-sm btn-secondary" title="Record receipt from PO">
-                                                                Release
-                                                            </button>
-                                                        )}
                                                         <button onClick={() => handleLogStockClick(stock)} className="btn btn-sm btn-primary" title="Log stock transaction">
                                                             Log
                                                         </button>
