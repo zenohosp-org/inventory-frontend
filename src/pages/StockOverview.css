@@ -1,0 +1,197 @@
+/* ── View toggle ── */
+.so-view-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.btn-asset {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+}
+
+.btn-asset:hover {
+    background: #6d28d9;
+    border-color: #6d28d9;
+}
+
+/* ── Stock table + panel layout ── */
+.so-layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.so-table-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.so-hint {
+    font-size: 12px;
+}
+
+/* ── Clickable stock row ── */
+.so-row {
+    cursor: pointer;
+}
+
+.so-row-selected {
+    background: var(--color-primary-light, #eff6ff);
+}
+
+/* ── Detail panel ── */
+.so-panel {
+    width: 360px;
+    flex-shrink: 0;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 10px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    max-height: 600px;
+}
+
+.so-panel-header {
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--color-border, #e5e7eb);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.so-panel-name {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.so-panel-meta {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.so-panel-stats {
+    margin-top: 8px;
+    display: flex;
+    gap: 12px;
+}
+
+.so-stat-label {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.so-stat-value {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.so-stat-value--ok    { color: #16a34a; }
+.so-stat-value--low   { color: #dc2626; }
+.so-stat-value--incoming { color: #2563eb; }
+
+.so-panel-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 2px;
+}
+
+/* ── Transactions section ── */
+.so-txn-heading {
+    padding: 10px 16px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.so-txn-scroll {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.so-txn-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.so-txn-row {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f9fafb;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.so-txn-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.so-txn-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.so-txn-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.so-txn-qty {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.so-txn-qty--pos { color: #16a34a; }
+.so-txn-qty--neg { color: #dc2626; }
+
+.so-txn-date {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 3px;
+}
+
+.so-txn-remarks {
+    font-size: 11px;
+    color: #374151;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Assets view ── */
+.so-assets-title { color: #7c3aed; }
+
+.so-asset-qty {
+    color: #7c3aed;
+    font-weight: 600;
+}
+
+/* ── Label as Asset modal ── */
+.so-modal-title { color: #7c3aed; }
+
+.so-label-hint {
+    font-weight: 400;
+}
+
+.btn-purple {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+}
+
+.btn-purple:hover {
+    background: #6d28d9;
+    border-color: #6d28d9;
+}

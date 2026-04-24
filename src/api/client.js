@@ -150,6 +150,8 @@ export const createAsset = (data, token) =>
         withCredentials: true,
         headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
+export const getAssets = () =>
+    axios.get(`${ASSET_API_URL}/api/assets`, { withCredentials: true });
 
 
 // ── Directory API (for fetching directory data) ──

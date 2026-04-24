@@ -4,19 +4,23 @@ import { getVendors, createVendor, updateVendor, deleteVendor } from '../api/cli
 
 const GST_TYPES = ['REGULAR', 'COMPOSITION', 'UNREGISTERED', 'CONSUMER', 'OVERSEAS'];
 
+const GST_STATE_MAP = {
+    '01': 'Jammu and Kashmir', '02': 'Himachal Pradesh', '03': 'Punjab',
+    '04': 'Chandigarh', '05': 'Uttarakhand', '06': 'Haryana', '07': 'Delhi',
+    '08': 'Rajasthan', '09': 'Uttar Pradesh', '10': 'Bihar', '11': 'Sikkim',
+    '12': 'Arunachal Pradesh', '13': 'Nagaland', '14': 'Manipur', '15': 'Mizoram',
+    '16': 'Tripura', '17': 'Meghalaya', '18': 'Assam', '19': 'West Bengal',
+    '20': 'Jharkhand', '21': 'Odisha', '22': 'Chhattisgarh', '23': 'Madhya Pradesh',
+    '24': 'Gujarat', '26': 'Dadra and Nagar Haveli and Daman and Diu', '27': 'Maharashtra',
+    '29': 'Karnataka', '30': 'Goa', '31': 'Lakshadweep', '32': 'Kerala',
+    '33': 'Tamil Nadu', '34': 'Puducherry', '35': 'Andaman and Nicobar Islands',
+    '36': 'Telangana', '37': 'Andhra Pradesh', '38': 'Ladakh',
+};
+
 const EMPTY_FORM = {
-    name: '',
-    contactName: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-    gstRegistrationType: '',
-    gstNumber: '',
-    panNumber: '',
-    isActive: true,
+    name: '', contactName: '', phone: '', email: '',
+    address: '', city: '', state: '', pincode: '',
+    gstRegistrationType: '', gstNumber: '', panNumber: '', isActive: true,
 };
 
 export default function Vendors() {
@@ -25,10 +29,9 @@ export default function Vendors() {
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState(EMPTY_FORM);
+    const [stateAutoFilled, setStateAutoFilled] = useState(false);
 
-    useEffect(() => {
-        fetchVendors();
-    }, []);
+    useEffect(() => { fetchVendors(); }, []);
 
     const fetchVendors = async () => {
         setLoading(true);
@@ -37,8 +40,7 @@ export default function Vendors() {
             let data = res.data || res;
             if (typeof data === 'string') data = JSON.parse(data);
             setVendors(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error('Error fetching vendors:', error);
+        } catch {
             setVendors([]);
         } finally {
             setLoading(false);
@@ -62,17 +64,38 @@ export default function Vendors() {
                 panNumber: vendor.panNumber || '',
                 isActive: vendor.isActive !== false,
             });
+            setStateAutoFilled(false);
         } else {
             setEditingId(null);
             setFormData(EMPTY_FORM);
+            setStateAutoFilled(false);
         }
         setShowModal(true);
     };
 
     const set = (field) => (e) => setFormData(prev => ({ ...prev, [field]: e.target.value }));
 
+    const handleGstChange = (e) => {
+        const gst = e.target.value.toUpperCase();
+        const stateCode = gst.slice(0, 2);
+        const derivedState = GST_STATE_MAP[stateCode];
+        setFormData(prev => ({
+            ...prev,
+            gstNumber: gst,
+            ...(derivedState ? { state: derivedState } : {}),
+        }));
+        setStateAutoFilled(!!derivedState);
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
+        if (formData.gstNumber) {
+            const duplicate = vendors.find(v => v.gstNumber === formData.gstNumber && v.id !== editingId);
+            if (duplicate) {
+                alert(`GST number is already used by "${duplicate.name}"`);
+                return;
+            }
+        }
         try {
             if (editingId) {
                 await updateVendor(editingId, formData);
@@ -81,8 +104,7 @@ export default function Vendors() {
             }
             setShowModal(false);
             fetchVendors();
-        } catch (error) {
-            console.error('Error saving vendor:', error);
+        } catch {
             alert('Failed to save vendor');
         }
     };
@@ -92,7 +114,7 @@ export default function Vendors() {
         try {
             await deleteVendor(id);
             fetchVendors();
-        } catch (error) {
+        } catch {
             alert('Failed to delete vendor');
         }
     };
@@ -236,7 +258,8 @@ export default function Vendors() {
                                     <div className="form-group">
                                         <label className="form-label">GST Number</label>
                                         <input type="text" className="form-input" value={formData.gstNumber}
-                                            onChange={set('gstNumber')} placeholder="22AAAAA0000A1Z5" />
+                                            onChange={handleGstChange} placeholder="22AAAAA0000A1Z5"
+                                            maxLength={15} />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">PAN Number</label>
@@ -258,9 +281,14 @@ export default function Vendors() {
                                             onChange={set('city')} placeholder="City" />
                                     </div>
                                     <div className="form-group">
-                                        <label className="form-label">State</label>
+                                        <label className="form-label">
+                                            State {stateAutoFilled && <span className="text-muted" style={{ fontWeight: 400, fontSize: '12px' }}>(auto-filled from GST)</span>}
+                                        </label>
                                         <input type="text" className="form-input" value={formData.state}
-                                            onChange={set('state')} placeholder="State" />
+                                            readOnly={stateAutoFilled}
+                                            onChange={stateAutoFilled ? undefined : set('state')}
+                                            placeholder="State"
+                                            style={stateAutoFilled ? { background: 'var(--color-gray-50)', cursor: 'default' } : {}} />
                                     </div>
                                 </div>
 
