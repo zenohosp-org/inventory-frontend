@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Package, Search, Tag, X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, RotateCcw, Trash2, Wrench } from 'lucide-react';
 import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
-import { getStockOverview, getCategories, getPurchaseOrders, logStock, getStockLogs, createAsset } from '../api/client';
+import { getStockOverview, getCategories, getPurchaseOrders, logStock, getStockLogs, createAsset, getAssets, getVendors } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import './StockOverview.css';
 
@@ -26,9 +26,12 @@ export default function StockOverview() {
     const [stocks, setStocks] = useState([]);
     const [purchaseOrders, setPurchaseOrders] = useState([]);
     const [assetLogs, setAssetLogs] = useState([]);
+    const [assets, setAssets] = useState([]);
+    const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
+    const [filterVendor, setFilterVendor] = useState('all');
     const [categories, setCategories] = useState([]);
     const [view, setView] = useState('stock'); // 'stock' | 'assets'
 
@@ -56,11 +59,13 @@ export default function StockOverview() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [stockRes, catRes, poRes, logsRes] = await Promise.all([
+            const [stockRes, catRes, poRes, logsRes, assetsRes, vendsRes] = await Promise.all([
                 getStockOverview(),
                 getCategories(),
                 getPurchaseOrders(),
                 getStockLogs(),
+                getAssets().catch(() => ({ data: [] })),
+                getVendors().catch(() => ({ data: [] })),
             ]);
             setStocks(Array.isArray(stockRes.data) ? stockRes.data : []);
             setCategories(Array.isArray(catRes.data) ? catRes.data : []);
@@ -68,6 +73,8 @@ export default function StockOverview() {
             const allLogs = Array.isArray(logsRes.data) ? logsRes.data : [];
             setStockLogs(allLogs);
             setAssetLogs(allLogs.filter(t => t.transactionType === 'ASSET_OUT'));
+            setAssets(Array.isArray(assetsRes.data) ? assetsRes.data : []);
+            setVendors(Array.isArray(vendsRes.data) ? vendsRes.data : []);
         } catch {
             setStocks([]); setCategories([]); setPurchaseOrders([]); setStockLogs([]); setAssetLogs([]);
         } finally {
@@ -96,8 +103,11 @@ export default function StockOverview() {
     const handleModalClose = (refresh) => { setIsModalOpen(false); setSelectedStock(null); if (refresh) fetchData(); };
 
     const openAssetModal = (stock) => {
+        const prefix = (stock.itemName || '').replace(/\s+/g, '').slice(0, 3).toUpperCase();
+        const existing = assets.filter(a => a.assetCode?.startsWith(prefix + '-'));
+        const assetCode = prefix ? `${prefix}-${String(existing.length + 1).padStart(3, '0')}` : '';
         setAssetStock(stock);
-        setAssetForm({ ...ASSET_FORM_EMPTY, assetName: stock.itemName || '', quantity: '1' });
+        setAssetForm({ ...ASSET_FORM_EMPTY, assetName: stock.itemName || '', assetCode, quantity: '1' });
         setAssetError('');
         setShowAssetModal(true);
     };
@@ -155,7 +165,8 @@ export default function StockOverview() {
         const matchesSearch = (s.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                               (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
         const matchesCategory = filterCategory === 'all' || s.categoryId === filterCategory;
-        return matchesSearch && matchesCategory;
+        const matchesVendor = filterVendor === 'all' || s.vendorId === filterVendor;
+        return matchesSearch && matchesCategory && matchesVendor;
     });
 
     const filteredAssetLogs = assetLogs.filter(t =>
@@ -200,13 +211,22 @@ export default function StockOverview() {
                     </div>
                 </div>
                 {view === 'stock' && (
-                    <div className="filter-group">
-                        <label className="filter-label">Category</label>
-                        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
-                            <option value="all">All Categories</option>
-                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                        </select>
-                    </div>
+                    <>
+                        <div className="filter-group">
+                            <label className="filter-label">Category</label>
+                            <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
+                                <option value="all">All Categories</option>
+                                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="filter-group">
+                            <label className="filter-label">Vendor</label>
+                            <select value={filterVendor} onChange={(e) => setFilterVendor(e.target.value)} className="filter-select">
+                                <option value="all">All Vendors</option>
+                                {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                            </select>
+                        </div>
+                    </>
                 )}
             </div>
 
@@ -266,7 +286,7 @@ export default function StockOverview() {
                                                     </td>
                                                     <td>
                                                         {incomingQty > 0
-                                                            ? <span className="text-primary fw-semibold">+{incomingQty.toFixed(2)}</span>
+                                                            ? <span className="text-primary fw-semibold">+{Math.round(incomingQty)}</span>
                                                             : <span className="text-muted">-</span>}
                                                     </td>
                                                     <td>{stock.reorderLevel}</td>
@@ -324,7 +344,7 @@ export default function StockOverview() {
                                             </div>
                                             <div>
                                                 <div className="so-stat-label">Incoming</div>
-                                                <div className="so-stat-value so-stat-value--incoming">+{calculateIncomingQty(panelStock).toFixed(0)}</div>
+                                                <div className="so-stat-value so-stat-value--incoming">+{Math.round(calculateIncomingQty(panelStock))}</div>
                                             </div>
                                         </div>
                                     </div>

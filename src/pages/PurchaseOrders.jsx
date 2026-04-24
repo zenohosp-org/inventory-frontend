@@ -16,7 +16,7 @@ const STATUS_MAP = {
     BILLED:              { label: 'Billed',   color: 'badge-secondary' },
 };
 
-const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0 }] };
+const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', itemSearch: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
 const EMPTY_PAY = { paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
@@ -81,18 +81,28 @@ export default function PurchaseOrders() {
         setFormData(f => ({ ...f, items: next }));
     };
 
+    const handleItemSelect = (idx, selectedItem) => {
+        const next = [...formData.items];
+        next[idx] = {
+            ...next[idx],
+            itemId: selectedItem.id,
+            itemSearch: selectedItem.name,
+            gstPercent: selectedItem.gstPercent ?? 0,
+        };
+        setFormData(f => ({ ...f, items: next }));
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
         const validItems = formData.items.filter(i => i.itemId && i.quantity > 0);
         if (!formData.storeId) { alert('Please select a store'); return; }
         if (!formData.vendorId) { alert('Please select a vendor'); return; }
-        if (!formData.expectedDate) { alert('Please select expected date'); return; }
         if (validItems.length === 0) { alert('Please add at least one item'); return; }
         try {
             await createPurchaseOrder({
                 storeId: formData.storeId,
                 vendorId: formData.vendorId,
-                expectedDate: formData.expectedDate,
+                expectedDate: formData.expectedDate || null,
                 items: validItems.map(i => ({
                     itemId: i.itemId,
                     quantity: Number(i.quantity),
@@ -338,76 +348,125 @@ export default function PurchaseOrders() {
                                 </div>
 
                                 <div className="form-group">
-                                    <label className="form-label required">Expected Delivery Date</label>
+                                    <label className="form-label">Expected Delivery Date</label>
                                     <input
                                         type="date"
                                         className="form-input"
                                         value={formData.expectedDate}
                                         onChange={e => setFormData(f => ({ ...f, expectedDate: e.target.value }))}
-                                        required
                                     />
                                 </div>
 
                                 <div className="form-group">
                                     <label className="form-label">Line Items</label>
                                     <div className="po-line-items">
-                                        {formData.items.map((item, idx) => (
-                                            <div key={idx} className="po-line-item">
-                                                <div>
-                                                    <span className="po-line-item-label">Product</span>
-                                                    <select
-                                                        className="form-select"
-                                                        value={item.itemId}
-                                                        onChange={e => handleItemChange(idx, 'itemId', e.target.value)}
-                                                        required
+                                        {formData.items.map((item, idx) => {
+                                            const filtered = items.filter(i =>
+                                                i.name.toLowerCase().includes((item.itemSearch || '').toLowerCase()) ||
+                                                i.code?.toLowerCase().includes((item.itemSearch || '').toLowerCase())
+                                            );
+                                            const lineBase = Number(item.quantity) * Number(item.unitPrice);
+                                            const lineGst = lineBase * ((Number(item.gstPercent) || 0) / 100);
+                                            return (
+                                                <div key={idx} className="po-line-item">
+                                                    <div style={{ position: 'relative', flex: 2 }}>
+                                                        <span className="po-line-item-label">Product</span>
+                                                        <input
+                                                            type="text"
+                                                            className="form-input"
+                                                            value={item.itemSearch || ''}
+                                                            onChange={e => handleItemChange(idx, 'itemSearch', e.target.value)}
+                                                            placeholder="Search product..."
+                                                            autoComplete="off"
+                                                            required={!item.itemId}
+                                                        />
+                                                        {item.itemSearch && !item.itemId && filtered.length > 0 && (
+                                                            <div className="po-product-dropdown">
+                                                                {filtered.slice(0, 6).map(i => (
+                                                                    <div key={i.id} className="po-product-option"
+                                                                        onMouseDown={() => handleItemSelect(idx, i)}>
+                                                                        <span>{i.name}</span>
+                                                                        {i.code && <span className="text-muted mono" style={{ fontSize: '11px' }}>{i.code}</span>}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        {item.itemId && (
+                                                            <button type="button" className="po-clear-item"
+                                                                onClick={() => handleItemChange(idx, 'itemSearch', '') || handleItemChange(idx, 'itemId', '')}>
+                                                                ×
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <span className="po-line-item-label">GST %</span>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            className="form-input"
+                                                            value={item.gstPercent}
+                                                            onChange={e => handleItemChange(idx, 'gstPercent', Number(e.target.value))}
+                                                            style={{ width: '60px' }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <span className="po-line-item-label">Qty</span>
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            className="form-input"
+                                                            value={item.quantity}
+                                                            onChange={e => handleItemChange(idx, 'quantity', Number(e.target.value))}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <span className="po-line-item-label">Unit Price (₹)</span>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            step="0.01"
+                                                            className="form-input"
+                                                            value={item.unitPrice}
+                                                            onChange={e => handleItemChange(idx, 'unitPrice', Number(e.target.value))}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <span className="po-line-item-label">Line Total</span>
+                                                        <div className="po-line-total">₹{(lineBase + lineGst).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-danger po-remove-btn"
+                                                        onClick={() => setFormData(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }))}
                                                     >
-                                                        <option value="">Select</option>
-                                                        {items.map(i => (
-                                                            <option key={i.id} value={i.id}>{i.name}</option>
-                                                        ))}
-                                                    </select>
+                                                        <X size={15} />
+                                                    </button>
                                                 </div>
-                                                <div>
-                                                    <span className="po-line-item-label">Qty</span>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        className="form-input"
-                                                        value={item.quantity}
-                                                        onChange={e => handleItemChange(idx, 'quantity', Number(e.target.value))}
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <span className="po-line-item-label">Unit Price (₹)</span>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        step="0.01"
-                                                        className="form-input"
-                                                        value={item.unitPrice}
-                                                        onChange={e => handleItemChange(idx, 'unitPrice', Number(e.target.value))}
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-sm btn-danger po-remove-btn"
-                                                    onClick={() => setFormData(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }))}
-                                                >
-                                                    <X size={15} />
-                                                </button>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                     <button
                                         type="button"
                                         className="btn btn-sm btn-secondary po-add-item"
-                                        onClick={() => setFormData(f => ({ ...f, items: [...f.items, { itemId: '', quantity: 1, unitPrice: 0 }] }))}
+                                        onClick={() => setFormData(f => ({ ...f, items: [...f.items, { itemId: '', itemSearch: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] }))}
                                     >
                                         <Plus size={15} />
                                         Add Item
                                     </button>
                                 </div>
+
+                                {(() => {
+                                    const total = formData.items.reduce((sum, i) => {
+                                        const base = Number(i.quantity) * Number(i.unitPrice);
+                                        return sum + base + base * ((Number(i.gstPercent) || 0) / 100);
+                                    }, 0);
+                                    return (
+                                        <div className="po-est-total">
+                                            Estimated Total: <strong>₹{total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>
