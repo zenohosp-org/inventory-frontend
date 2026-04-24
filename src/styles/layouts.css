@@ -118,13 +118,11 @@
 .sidebar-link:hover {
   background-color: #f3f4f6;
   color: #000000;
-  border-left: none;
 }
 
 .sidebar-link.active {
   background-color: #e4e4e4;
   color: #020617;
-  border-left: none;
   margin: 0px 0px 0px 12px;
   font-weight: 500;
 }
