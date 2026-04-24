@@ -432,10 +432,6 @@ export default function PurchaseOrders() {
                                                             onChange={e => handleItemChange(idx, 'unitPrice', Number(e.target.value))}
                                                         />
                                                     </div>
-                                                    <div>
-                                                        <span className="po-line-item-label">Line Total</span>
-                                                        <div className="po-line-total">₹{(lineBase + lineGst).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-                                                    </div>
                                                     <button
                                                         type="button"
                                                         className="btn btn-sm btn-danger po-remove-btn"

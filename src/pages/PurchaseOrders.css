@@ -95,7 +95,7 @@
 
 .po-line-item {
     display: grid;
-    grid-template-columns: 1.5fr 70px 70px 100px 120px 40px;
+    grid-template-columns: 1.5fr 70px 70px 100px 40px;
     gap: var(--spacing-3);
     align-items: flex-end;
     padding: var(--spacing-4);
