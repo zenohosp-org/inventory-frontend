@@ -116,7 +116,7 @@ export default function InventoryItems() {
 
     const filteredItems = items.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              item.code?.toLowerCase().includes(searchTerm.toLowerCase());
+            item.code?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
         return matchesSearch && matchesCategory;
     });
@@ -124,8 +124,13 @@ export default function InventoryItems() {
     return (
         <div className="main-content">
             <div className="page-header">
-                <h1 className="page-title"><Package size={26} /> Product Master</h1>
-                <p className="page-subtitle">Manage pharmaceutical products, categories, and inventory settings.</p>
+                <div className="page-header-left">
+                    <h1 className="page-title"><Package size={26} /> Product Master</h1>
+                    <p className="page-subtitle">Manage pharmaceutical products, categories, and inventory settings.</p>
+                </div>
+                <button className="btn btn-primary" onClick={openCreateModal}>
+                    <Plus size={18} /> Add Product
+                </button>
             </div>
 
             <div className="filter-bar">
@@ -148,9 +153,6 @@ export default function InventoryItems() {
                         {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                     </select>
                 </div>
-                <button className="btn btn-primary" onClick={openCreateModal}>
-                    <Plus size={18} /> Add Product
-                </button>
             </div>
 
             <div className="table-container">

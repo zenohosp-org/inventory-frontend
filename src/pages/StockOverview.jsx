@@ -7,13 +7,13 @@ import { useAuth } from '../context/AuthContext';
 import './StockOverview.css';
 
 const TXN_TYPE = {
-    PURCHASE_IN:      { label: 'Purchase In',   color: '#16a34a', bg: '#dcfce7' },
-    TRANSFER_IN:      { label: 'Transfer In',   color: '#0891b2', bg: '#cffafe' },
-    TRANSFER_OUT:     { label: 'Transfer Out',  color: '#6366f1', bg: '#e0e7ff' },
-    RETURN:           { label: 'Return',        color: '#d97706', bg: '#fef3c7' },
-    INTERNAL_USE:     { label: 'Internal Use',  color: '#2563eb', bg: '#dbeafe' },
-    EXPIRED_DISPOSED: { label: 'Disposed',      color: '#dc2626', bg: '#fee2e2' },
-    ASSET_OUT:        { label: 'Asset Out',     color: '#7c3aed', bg: '#ede9fe' },
+    PURCHASE_IN: { label: 'Purchase In', color: '#16a34a', bg: '#dcfce7' },
+    TRANSFER_IN: { label: 'Transfer In', color: '#0891b2', bg: '#cffafe' },
+    TRANSFER_OUT: { label: 'Transfer Out', color: '#6366f1', bg: '#e0e7ff' },
+    RETURN: { label: 'Return', color: '#d97706', bg: '#fef3c7' },
+    INTERNAL_USE: { label: 'Internal Use', color: '#2563eb', bg: '#dbeafe' },
+    EXPIRED_DISPOSED: { label: 'Disposed', color: '#dc2626', bg: '#fee2e2' },
+    ASSET_OUT: { label: 'Asset Out', color: '#7c3aed', bg: '#ede9fe' },
 };
 
 const ASSET_FORM_EMPTY = {
@@ -224,13 +224,6 @@ export default function StockOverview() {
                 {view === 'stock' && (
                     <>
                         <div className="filter-group">
-                            <label className="filter-label">Category</label>
-                            <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
-                                <option value="all">All Categories</option>
-                                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="filter-group">
                             <label className="filter-label">Vendor</label>
                             <select value={filterVendor} onChange={(e) => setFilterVendor(e.target.value)} className="filter-select">
                                 <option value="all">All Vendors</option>
@@ -291,8 +284,8 @@ export default function StockOverview() {
                                                     <td>
                                                         <strong className={
                                                             stock.quantityAvail <= stock.reorderLevel ? 'text-danger' :
-                                                            stock.quantityAvail <= stock.reorderLevel * 1.5 ? 'text-warning' :
-                                                            'text-success'
+                                                                stock.quantityAvail <= stock.reorderLevel * 1.5 ? 'text-warning' :
+                                                                    'text-success'
                                                         }>{stock.quantityAvail}</strong>
                                                     </td>
                                                     <td>
@@ -305,8 +298,8 @@ export default function StockOverview() {
                                                         {stock.quantityAvail <= stock.reorderLevel
                                                             ? <span className="badge badge-error">Low Stock</span>
                                                             : stock.quantityAvail <= stock.reorderLevel * 1.5
-                                                            ? <span className="badge badge-warning">Caution</span>
-                                                            : <span className="badge badge-success">Optimal</span>}
+                                                                ? <span className="badge badge-warning">Caution</span>
+                                                                : <span className="badge badge-success">Optimal</span>}
                                                     </td>
                                                     <td onClick={e => e.stopPropagation()}>
                                                         <div className="action-group">

@@ -298,7 +298,7 @@ export default function Vendors() {
                                         <input type="text" className="form-input" value={formData.pincode}
                                             onChange={set('pincode')} placeholder="600001" maxLength={6} />
                                     </div>
-                                    <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '4px' }}>
+                                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <label className="checkbox-label">
                                             <input type="checkbox" checked={formData.isActive}
                                                 onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))} />
