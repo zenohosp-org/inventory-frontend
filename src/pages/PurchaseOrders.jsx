@@ -388,7 +388,6 @@ export default function PurchaseOrders() {
                                                                     <div key={i.id} className="po-product-option"
                                                                         onMouseDown={() => handleItemSelect(idx, i)}>
                                                                         <span>{i.name}</span>
-                                                                        {i.code && <span className="text-muted mono" style={{ fontSize: '11px' }}>{i.code}</span>}
                                                                     </div>
                                                                 ))}
                                                             </div>
