@@ -382,9 +382,9 @@ export default function PurchaseOrders() {
                                                             autoComplete="off"
                                                             required={!item.itemId}
                                                         />
-                                                        {item.itemSearch && !item.itemId && filtered.length > 0 && (
+                                                        {!item.itemId && filtered.length > 0 && (
                                                             <div className="po-product-dropdown">
-                                                                {filtered.slice(0, 6).map(i => (
+                                                                {filtered.map(i => (
                                                                     <div key={i.id} className="po-product-option"
                                                                         onMouseDown={() => handleItemSelect(idx, i)}>
                                                                         <span>{i.name}</span>
@@ -408,7 +408,6 @@ export default function PurchaseOrders() {
                                                             className="form-input"
                                                             value={item.gstPercent}
                                                             onChange={e => handleItemChange(idx, 'gstPercent', Number(e.target.value))}
-                                                            style={{ width: '60px' }}
                                                         />
                                                     </div>
                                                     <div>
