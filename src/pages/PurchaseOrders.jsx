@@ -5,6 +5,7 @@ import {
     getVendors, getItems, getStores,
     recordPOReceipt,
     payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
+    getPOBills,
 } from '../api/client';
 import './PurchaseOrders.css';
 
@@ -16,13 +17,14 @@ const STATUS_MAP = {
 };
 
 const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0 }] };
-const EMPTY_PAY = { paymentStatus: 'PENDING', paidAmount: '', bankAccountId: '', referenceNo: '' };
+const EMPTY_PAY = { paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
     const [pos, setPos] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
     const [activeStores, setActiveStores] = useState([]);
+    const [billsByPoId, setBillsByPoId] = useState({});
     const [bankAccounts, setBankAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -51,16 +53,22 @@ export default function PurchaseOrders() {
         setLoading(true);
         setError(null);
         try {
-            const [posRes, vendsRes, itemsRes, storesRes] = await Promise.all([
-                getPurchaseOrders(), getVendors(), getItems(), getStores(),
+            const [posRes, vendsRes, itemsRes, storesRes, billsRes] = await Promise.all([
+                getPurchaseOrders(), getVendors(), getItems(), getStores(), getPOBills(),
             ]);
             setPos(extractArray(posRes));
             setVendors(extractArray(vendsRes));
             setItems(extractArray(itemsRes));
             setActiveStores(extractArray(storesRes).filter(s => s?.isActive));
+            const billMap = {};
+            extractArray(billsRes).forEach(b => {
+                const poId = b.purchaseOrder?.id;
+                if (poId) billMap[poId] = b;
+            });
+            setBillsByPoId(billMap);
         } catch (e) {
             setError('Failed to load data. ' + (e.response?.data?.message || e.message));
-            setPos([]); setVendors([]); setItems([]); setActiveStores([]);
+            setPos([]); setVendors([]); setItems([]); setActiveStores([]); setBillsByPoId({});
         } finally {
             setLoading(false);
         }
@@ -126,7 +134,7 @@ export default function PurchaseOrders() {
 
     // ── Pay Advance ──
     const openPayModal = async (po) => {
-        setPayModal(po);
+        setPayModal({ ...po, bill: billsByPoId[po.id] || null });
         setPayForm(EMPTY_PAY);
         setBankLoading(true);
         try {
@@ -164,7 +172,6 @@ export default function PurchaseOrders() {
             }
             // 2. Record in inventory (auto-creates bill if absent)
             await payAdvancePO(payModal.id, {
-                paymentStatus: payForm.paymentStatus,
                 paidAmount: Number(payForm.paidAmount),
                 bankAccountId: payForm.bankAccountId || null,
                 bankAccountName: selectedAccount?.accountName || '',
@@ -245,7 +252,8 @@ export default function PurchaseOrders() {
                                 {pos.map(po => {
                                     const s = STATUS_MAP[po.status] || { label: po.status || '-', color: 'badge-secondary' };
                                     const canReceive = po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED' || po.status === 'RECEIVED';
-                                    const canPay = po.status !== 'BILLED';
+                                    const bill = billsByPoId[po.id];
+                                    const canPay = bill?.paymentStatus !== 'PAID';
                                     return (
                                         <tr key={po.id}>
                                             <td><strong className="mono">{po.poNumber || po.id}</strong></td>
@@ -470,20 +478,29 @@ export default function PurchaseOrders() {
                         </div>
                         <div className="modal-body">
                             <p className="modal-subtitle">
-                                {payModal.vendor?.name || ''} · Total: ₹{Number(payModal.totalAmount || 0).toLocaleString()}
+                                {payModal.vendor?.name || ''}
                             </p>
-                            <div className="form-group">
-                                <label className="form-label">Payment Status</label>
-                                <select
-                                    className="form-select"
-                                    value={payForm.paymentStatus}
-                                    onChange={e => setPayForm(f => ({ ...f, paymentStatus: e.target.value }))}
-                                >
-                                    <option value="PENDING">Pending</option>
-                                    <option value="PARTIAL">Partial</option>
-                                    <option value="PAID">Paid</option>
-                                </select>
-                            </div>
+                            {(() => {
+                                const total = Number(payModal.totalAmount || 0);
+                                const paid = Number(payModal.bill?.paidAmount || 0);
+                                const remaining = total - paid;
+                                return (
+                                    <div className="po-pay-summary">
+                                        <div className="po-pay-summary-row">
+                                            <span>Total</span>
+                                            <span>₹{total.toLocaleString()}</span>
+                                        </div>
+                                        <div className="po-pay-summary-row">
+                                            <span>Already Paid</span>
+                                            <span>₹{paid.toLocaleString()}</span>
+                                        </div>
+                                        <div className="po-pay-summary-row po-pay-summary-remaining">
+                                            <span>Remaining</span>
+                                            <span>₹{remaining.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                             <div className="form-group">
                                 <label className="form-label">Amount Paid (₹) *</label>
                                 <input
