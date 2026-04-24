@@ -18,7 +18,11 @@ export default function POBill() {
 
     useEffect(() => {
         getPOBills()
-            .then(res => setBills(Array.isArray(res.data) ? res.data : []))
+            .then(res => {
+                const data = Array.isArray(res.data) ? res.data : [];
+                data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setBills(data);
+            })
             .catch(() => setBills([]))
             .finally(() => setLoading(false));
     }, []);
