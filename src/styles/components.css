@@ -61,13 +61,12 @@
 
 /* Accent */
 .btn-accent {
-  background-color: var(--color-accent);
+  background-color: #333333;
   color: var(--color-white);
-  box-shadow: 0 1px 3px rgba(14, 165, 233, 0.25);
 }
 
 .btn-accent:hover:not(:disabled) {
-  background-color: var(--color-accent-dark);
+  background-color: #1a1a1a;
   transform: translateY(-1px);
 }
 

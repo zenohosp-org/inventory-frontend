@@ -152,8 +152,8 @@ const Dashboard = () => {
         <div className="stat-card">
           <div>
             <div className="stat-label">Total Products</div>
-            <div className="stat-value">{stats.totalProducts}</div>
             <p>Active items in system</p>
+            <div className="stat-value">{stats.totalProducts}</div>
           </div>
           <div className="stat-icon">📦</div>
         </div>
@@ -161,8 +161,8 @@ const Dashboard = () => {
         <div className="stat-card warning">
           <div>
             <div className="stat-label">Low Stock Items</div>
-            <div className="stat-value">{stats.lowStockItems}</div>
             <p>Require reordering</p>
+            <div className="stat-value">{stats.lowStockItems}</div>
           </div>
           <div className="stat-icon">⚠️</div>
         </div>
@@ -170,8 +170,8 @@ const Dashboard = () => {
         <div className="stat-card success">
           <div>
             <div className="stat-label">Total Transactions</div>
-            <div className="stat-value">{recentActivity.length}</div>
             <p>Last 24 hours</p>
+            <div className="stat-value">{recentActivity.length}</div>
           </div>
           <div className="stat-icon">📊</div>
         </div>
@@ -179,8 +179,8 @@ const Dashboard = () => {
         <div className="stat-card info">
           <div>
             <div className="stat-label">System Status</div>
-            <div className="stat-value text-success">✓</div>
             <p>All systems operational</p>
+            <div className="stat-value text-success">✓</div>
           </div>
           <div className="stat-icon">✅</div>
         </div>
