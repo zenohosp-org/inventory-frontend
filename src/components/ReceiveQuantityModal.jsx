@@ -5,7 +5,8 @@ import { AlertCircle, Check } from 'lucide-react';
 export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
     const [items, setItems] = useState(po.items.map(item => ({
         ...item,
-        receivedQty: item.receivedQty || 0
+        alreadyReceived: parseFloat(item.receivedQty || 0),
+        toReceive: 0,
     })));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -13,40 +14,33 @@ export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
 
     const handleQuantityChange = (itemIndex, value) => {
         const newItems = [...items];
-        const max = parseFloat(newItems[itemIndex].quantity);
-        const val = parseFloat(value) || 0;
-        
-        // Prevent exceeding ordered quantity
-        if (val <= max) {
-            newItems[itemIndex].receivedQty = val;
-            setItems(newItems);
-        }
+        const ordered = parseFloat(newItems[itemIndex].quantity);
+        const already = newItems[itemIndex].alreadyReceived;
+        const remaining = ordered - already;
+        const val = Math.min(Math.max(0, parseFloat(value) || 0), remaining);
+        newItems[itemIndex].toReceive = val;
+        setItems(newItems);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+        const payload = {
+            items: items
+                .filter(item => parseFloat(item.toReceive) > 0)
+                .map(item => ({ poItemId: item.id, receivedQty: item.toReceive }))
+        };
+        if (payload.items.length === 0) {
+            setError('Enter a quantity to receive for at least one item');
+            return;
+        }
         try {
             setLoading(true);
             setError(null);
-
-            // Record receipt for each item that has been updated
-            for (const item of items) {
-                if (parseFloat(item.receivedQty) > 0) {
-                    await api.post(`/api/inventory/po/${po.id}/record-receipt`, {
-                        poItemId: item.id,
-                        receivedQty: item.receivedQty
-                    });
-                }
-            }
-
+            await api.post(`/api/inventory/po/${po.id}/record-receipt`, payload);
             setSuccess(true);
-            setTimeout(() => {
-                onSuccess();
-            }, 1500);
+            setTimeout(() => { onSuccess(); }, 1500);
         } catch (err) {
             setError('Failed to record receipt: ' + (err.response?.data?.message || err.message));
-            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -84,56 +78,54 @@ export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
                                     <th className="text-left px-3 py-2 font-medium">Item</th>
                                     <th className="text-center px-3 py-2 font-medium">Ordered</th>
                                     <th className="text-center px-3 py-2 font-medium">Received</th>
-                                    <th className="text-center px-3 py-2 font-medium">Input</th>
+                                    <th className="text-center px-3 py-2 font-medium">Remaining</th>
+                                    <th className="text-center px-3 py-2 font-medium">Receive Now</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {items.map((item, idx) => (
-                                    <tr key={item.id} className="border-b hover:bg-gray-50">
-                                        <td className="px-3 py-3">
-                                            <div>
+                                {items.map((item, idx) => {
+                                    const remaining = parseFloat(item.quantity) - item.alreadyReceived;
+                                    return (
+                                        <tr key={item.id} className="border-b hover:bg-gray-50">
+                                            <td className="px-3 py-3">
                                                 <p className="font-medium text-gray-900">{item.inventoryItem?.name || 'N/A'}</p>
                                                 <p className="text-xs text-gray-500">${parseFloat(item.unitPrice).toFixed(2)}/unit</p>
-                                            </div>
-                                        </td>
-                                        <td className="text-center px-3 py-3 font-medium">
-                                            {parseFloat(item.quantity).toFixed(2)}
-                                        </td>
-                                        <td className="text-center px-3 py-3 text-gray-600">
-                                            {parseFloat(item.receivedQty).toFixed(2)}
-                                        </td>
-                                        <td className="text-center px-3 py-3">
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                max={parseFloat(item.quantity)}
-                                                value={parseFloat(item.receivedQty).toFixed(2)}
-                                                onChange={(e) => handleQuantityChange(idx, e.target.value)}
-                                                className="input-field w-20 text-center text-sm"
-                                                disabled={loading}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td className="text-center px-3 py-3 font-medium">
+                                                {parseFloat(item.quantity).toFixed(2)}
+                                            </td>
+                                            <td className="text-center px-3 py-3 text-gray-600">
+                                                {item.alreadyReceived.toFixed(2)}
+                                            </td>
+                                            <td className="text-center px-3 py-3 text-gray-600">
+                                                {remaining <= 0
+                                                    ? <span className="text-green-600 font-medium">Done</span>
+                                                    : remaining.toFixed(2)}
+                                            </td>
+                                            <td className="text-center px-3 py-3">
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    max={remaining}
+                                                    value={item.toReceive}
+                                                    onChange={(e) => handleQuantityChange(idx, e.target.value)}
+                                                    className="input-field w-20 text-center text-sm"
+                                                    disabled={loading || remaining <= 0}
+                                                />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
 
                     <div className="flex gap-2">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="btn btn-primary flex-1"
-                        >
+                        <button type="submit" disabled={loading} className="btn btn-primary flex-1">
                             {loading ? 'Saving...' : 'Record Receipt'}
                         </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            disabled={loading}
-                            className="btn btn-secondary flex-1"
-                        >
+                        <button type="button" onClick={onClose} disabled={loading} className="btn btn-secondary flex-1">
                             Cancel
                         </button>
                     </div>
