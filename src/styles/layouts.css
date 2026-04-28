@@ -49,6 +49,7 @@
 .sidebar-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-2);
   padding: 20px var(--spacing-5);
   flex-shrink: 0;
