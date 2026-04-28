@@ -128,10 +128,11 @@ export default function StockOverview() {
         setAssetSubmitting(true);
         setAssetError('');
         try {
-            // 1. Create asset record in asset-manager
-            await createAsset({
+            // 1. Create one asset record per unit in asset-manager
+            const prefix = assetForm.assetCode.replace(/-\d+$/, '');
+            const existingCount = assets.filter(a => a.assetCode?.startsWith(prefix + '-')).length;
+            const basePayload = {
                 assetName: assetForm.assetName,
-                assetCode: assetForm.assetCode,
                 serialNumber: assetForm.serialNumber || null,
                 make: assetForm.make || null,
                 model: assetForm.model || null,
@@ -141,15 +142,21 @@ export default function StockOverview() {
                 notes: assetForm.notes || null,
                 description: `Labeled from inventory: ${assetStock.itemName}${assetStock.itemCode ? ' (' + assetStock.itemCode + ')' : ''}`,
                 status: 'ACTIVE',
-            }, user?.token);
+            };
+            const createPromises = [];
+            for (let i = 0; i < qty; i++) {
+                const code = `${prefix}-${String(existingCount + i + 1).padStart(3, '0')}`;
+                createPromises.push(createAsset({ ...basePayload, assetCode: code }, user?.token));
+            }
+            await Promise.all(createPromises);
 
-            // 2. Deduct from inventory stock
+            // 2. Deduct from inventory stock (single log entry for total qty)
             await logStock({
                 movementType: 'ASSET_OUT',
                 storeId: assetStock.storeId,
                 itemId: assetStock.itemId,
                 quantity: qty,
-                notes: `Labeled as asset: ${assetForm.assetCode}`,
+                notes: `Labeled as assets: ${prefix}-${String(existingCount + 1).padStart(3, '0')}${qty > 1 ? ` to ${prefix}-${String(existingCount + qty).padStart(3, '0')}` : ''}`,
             });
 
             setShowAssetModal(false);
