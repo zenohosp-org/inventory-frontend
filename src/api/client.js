@@ -88,6 +88,10 @@ export const createStore = (data) => api.post('/api/inventory/stores', data);
 export const updateStore = (id, data) => api.put(`/api/inventory/stores/${id}`, data);
 export const deleteStore = (id) => api.delete(`/api/inventory/stores/${id}`);
 
+// ── Item Types ──
+export const getItemTypes = () => api.get('/api/inventory/item-types');
+export const createItemType = (data) => api.post('/api/inventory/item-types', data);
+
 // ── Items ──
 export const getItems = () => api.get('/api/inventory/items');
 export const getItemById = (id) => api.get(`/api/inventory/items/${id}`);

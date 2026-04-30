@@ -11,6 +11,7 @@ import Stores from './pages/Stores';
 import Vendors from './pages/Vendors';
 import InventoryCategories from './pages/InventoryCategories';
 import InventoryItems from './pages/InventoryItems';
+import ItemTypes from './pages/ItemTypes';
 import PurchaseOrders from './pages/PurchaseOrders';
 import StockLog from './pages/StockLog';
 
@@ -36,6 +37,7 @@ export default function App() {
                 <Route path="/vendors" element={<ProtectedRoute><Layout><Vendors /></Layout></ProtectedRoute>} />
                 <Route path="/inventory-categories" element={<ProtectedRoute><Layout><InventoryCategories /></Layout></ProtectedRoute>} />
                 <Route path="/inventory-items" element={<ProtectedRoute><Layout><InventoryItems /></Layout></ProtectedRoute>} />
+                <Route path="/item-types" element={<ProtectedRoute><Layout><ItemTypes /></Layout></ProtectedRoute>} />
 
                 {/* Operations */}
                 <Route path="/purchase-orders" element={<ProtectedRoute><Layout><PurchaseOrders /></Layout></ProtectedRoute>} />
