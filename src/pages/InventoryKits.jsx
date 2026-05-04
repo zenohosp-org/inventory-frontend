@@ -96,6 +96,12 @@ export default function InventoryKits() {
     const handleComponentChange = (idx, field, value) => {
         const next = [...formData.components];
         next[idx] = { ...next[idx], [field]: value };
+
+        // Auto-clear itemId when user starts typing to enable dropdown again
+        if (field === 'itemSearch' && next[idx].itemId && value !== next[idx].itemSearch) {
+            next[idx].itemId = '';
+        }
+
         setFormData(prev => ({ ...prev, components: next }));
     };
 
@@ -489,7 +495,11 @@ export default function InventoryKits() {
                                                         {isSelected && (
                                                             <button
                                                                 type="button"
-                                                                onClick={() => handleComponentChange(idx, 'itemId', '') || handleComponentChange(idx, 'itemSearch', '')}
+                                                                onClick={() => {
+                                                                    const next = [...formData.components];
+                                                                    next[idx] = { ...next[idx], itemId: '', itemSearch: '' };
+                                                                    setFormData(prev => ({ ...prev, components: next }));
+                                                                }}
                                                                 style={{
                                                                     position: 'absolute',
                                                                     right: '8px',
