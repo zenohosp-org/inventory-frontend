@@ -99,6 +99,14 @@ export const createItem = (data) => api.post('/api/inventory/items', data);
 export const updateItem = (id, data) => api.put(`/api/inventory/items/${id}`, data);
 export const deleteItem = (id) => api.delete(`/api/inventory/items/${id}`);
 
+// ── Inventory Kits ──
+export const getKits = () => api.get('/api/inventory/kits');
+export const createKit = (data) => api.post('/api/inventory/kits', data);
+export const updateKit = (id, data) => api.put(`/api/inventory/kits/${id}`, data);
+export const deleteKit = (id) => api.delete(`/api/inventory/kits/${id}`);
+export const consumeKit = (id, data) => api.post(`/api/inventory/kits/${id}/consume`, data);
+export const getKitConsumptions = () => api.get('/api/inventory/kits/consumptions');
+
 // ── Stock Overview ──
 export const getStockOverview = () => api.get('/api/inventory/stock-overview');
 

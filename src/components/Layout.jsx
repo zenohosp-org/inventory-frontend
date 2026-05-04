@@ -19,7 +19,7 @@ export default function Layout({ children }) {
         ['/vendors', '/purchase-orders', '/po-bill'].includes(location.pathname)
     );
     const [productsOpen, setProductsOpen] = useState(
-        ['/inventory-items', '/inventory-categories', '/item-types'].includes(location.pathname)
+        ['/inventory-items', '/inventory-categories', '/item-types', '/inventory-kits'].includes(location.pathname)
     );
 
     const isAdmin = user?.role === 'hospital_admin' || user?.role === 'super_admin' || user?.role?.toLowerCase() === 'admin';
@@ -106,6 +106,7 @@ export default function Layout({ children }) {
                                         <NavLink to="/inventory-items" icon={Package} label="Items" />
                                         <NavLink to="/item-types" icon={Tag} label="Item Types" />
                                         <NavLink to="/inventory-categories" icon={Layers} label="Categories" />
+                                        <NavLink to="/inventory-kits" icon={Package} label="Kits" />
                                     </div>
                                 )}
                             </div>
