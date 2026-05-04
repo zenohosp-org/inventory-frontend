@@ -109,6 +109,14 @@ export default function InventoryKits() {
         setFormData(prev => ({ ...prev, components: next }));
     };
 
+    const getFilteredItems = (searchText) => {
+        if (!searchText) return [];
+        return items.filter(i =>
+            (i.name?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
+            (i.code?.toLowerCase() || '').includes(searchText.toLowerCase())
+        );
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name.trim()) {
@@ -391,34 +399,107 @@ export default function InventoryKits() {
                                     <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', color: '#64748b' }}>Kit Components</h4>
                                     {formData.components.map((comp, idx) => {
                                         const selectedItem = items.find(i => i.id === comp.itemId);
+                                        const filteredItems = getFilteredItems(comp.itemName);
+                                        const isSelected = comp.itemId !== '';
+
                                         return (
                                             <div key={idx} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                                                 <div style={{ flex: '2', minWidth: '150px', position: 'relative' }}>
-                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Item</label>
-                                                    <input
-                                                        className="form-input"
-                                                        type="text"
-                                                        value={comp.itemName}
-                                                        onChange={(e) => handleComponentChange(idx, 'itemName', e.target.value)}
-                                                        placeholder="Search item..."
-                                                    />
-                                                    {comp.itemName && (
-                                                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: '200px', overflowY: 'auto', marginTop: '2px' }}>
-                                                            {items.filter(i => i.name?.toLowerCase().includes(comp.itemName.toLowerCase())).map(item => (
-                                                                <div
-                                                                    key={item.id}
-                                                                    onClick={() => handleItemSelect(idx, item)}
-                                                                    style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }}
-                                                                    onMouseDown={(e) => e.preventDefault()}
-                                                                >
-                                                                    {item.name}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Item *</label>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <input
+                                                            className="form-input"
+                                                            type="text"
+                                                            value={comp.itemName}
+                                                            onChange={(e) => handleComponentChange(idx, 'itemName', e.target.value)}
+                                                            placeholder="Search by name or code..."
+                                                            autoComplete="off"
+                                                            style={{
+                                                                borderColor: isSelected ? '#10b981' : undefined,
+                                                                borderWidth: isSelected ? '2px' : undefined,
+                                                            }}
+                                                        />
+                                                        {comp.itemName && !isSelected && filteredItems.length > 0 && (
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                top: '100%',
+                                                                left: 0,
+                                                                right: 0,
+                                                                background: '#fff',
+                                                                border: '1px solid #e2e8f0',
+                                                                borderRadius: '6px',
+                                                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                                zIndex: 100,
+                                                                maxHeight: '250px',
+                                                                overflowY: 'auto',
+                                                                marginTop: '2px'
+                                                            }}>
+                                                                {filteredItems.map(item => (
+                                                                    <div
+                                                                        key={item.id}
+                                                                        onClick={() => handleItemSelect(idx, item)}
+                                                                        style={{
+                                                                            padding: '10px 12px',
+                                                                            cursor: 'pointer',
+                                                                            borderBottom: '1px solid #f0f0f0',
+                                                                            display: 'flex',
+                                                                            justifyContent: 'space-between',
+                                                                            alignItems: 'center',
+                                                                        }}
+                                                                        onMouseDown={(e) => e.preventDefault()}
+                                                                        onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
+                                                                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                                                    >
+                                                                        <div>
+                                                                            <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>{item.name}</div>
+                                                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{item.code}</div>
+                                                                        </div>
+                                                                        <div style={{ fontSize: '0.75rem', color: '#64748b', minWidth: '60px', textAlign: 'right' }}>
+                                                                            Stock: {(() => {
+                                                                                const stock = formData.components
+                                                                                    .map((c, i) => ({ itemId: c.itemId, idx: i }))
+                                                                                    .filter(c => c.itemId === item.id && c.idx !== idx);
+                                                                                return stock.length > 0 ? '⚠️ Used' : '✓';
+                                                                            })()}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        {comp.itemName && !isSelected && filteredItems.length === 0 && (
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                top: '100%',
+                                                                left: 0,
+                                                                right: 0,
+                                                                background: '#fff',
+                                                                border: '1px solid #e2e8f0',
+                                                                borderRadius: '6px',
+                                                                padding: '10px 12px',
+                                                                fontSize: '0.85rem',
+                                                                color: '#94a3b8',
+                                                                zIndex: 100,
+                                                                marginTop: '2px'
+                                                            }}>
+                                                                No items found
+                                                            </div>
+                                                        )}
+                                                        {isSelected && (
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                right: '8px',
+                                                                top: '50%',
+                                                                transform: 'translateY(-50%)',
+                                                                color: '#10b981',
+                                                                fontSize: '1.2rem'
+                                                            }}>
+                                                                ✓
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div style={{ flex: '1', minWidth: '80px' }}>
-                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Qty Per Kit</label>
+                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Qty Per Kit *</label>
                                                     <input
                                                         type="number"
                                                         min="0.1"
@@ -427,6 +508,7 @@ export default function InventoryKits() {
                                                         value={comp.quantity}
                                                         onChange={(e) => handleComponentChange(idx, 'quantity', e.target.value)}
                                                         required
+                                                        placeholder="0.1"
                                                     />
                                                 </div>
                                                 <button
@@ -434,6 +516,7 @@ export default function InventoryKits() {
                                                     onClick={() => handleRemoveComponent(idx)}
                                                     className="btn btn-sm btn-danger"
                                                     style={{ marginBottom: '0' }}
+                                                    title="Remove component"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>
