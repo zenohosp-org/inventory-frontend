@@ -6,7 +6,9 @@ import {
     recordPOReceipt,
     payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
     getPOBills,
+    createAsset, getAssets, logStock,
 } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import './PurchaseOrders.css';
 
 const STATUS_MAP = {
@@ -20,6 +22,7 @@ const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ item
 const EMPTY_PAY = { paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
+    const { user } = useAuth();
     const [pos, setPos] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
@@ -34,6 +37,7 @@ export default function PurchaseOrders() {
 
     const [receiptModal, setReceiptModal] = useState(null);
     const [receiptQtys, setReceiptQtys] = useState({});
+    const [autoCreateAssets, setAutoCreateAssets] = useState(true);
 
     const [payModal, setPayModal] = useState(null);
     const [payForm, setPayForm] = useState(EMPTY_PAY);
@@ -120,19 +124,70 @@ export default function PurchaseOrders() {
     // ── Record Receipt ──
     const openReceiptModal = (po) => {
         const init = {};
-        (po.items || []).forEach(item => { init[item.id] = ''; });
+        (po.items || []).forEach(item => { init[item.id] = { qty: '', batchNumber: '', expiryDate: '' }; });
         setReceiptQtys(init);
+        setAutoCreateAssets(true);
         setReceiptModal(po);
     };
 
     const handleReceiptSubmit = async () => {
         const items = Object.entries(receiptQtys)
-            .filter(([, qty]) => qty !== '' && Number(qty) > 0)
-            .map(([poItemId, receivedQty]) => ({ poItemId, receivedQty: Number(receivedQty) }));
+            .filter(([, val]) => val.qty !== '' && Number(val.qty) > 0)
+            .map(([poItemId, val]) => ({
+                poItemId,
+                receivedQty: Number(val.qty),
+                batchNumber: val.batchNumber || null,
+                expiryDate: val.expiryDate || null,
+            }));
         if (items.length === 0) return;
         setSubmitting(true);
         try {
             await recordPOReceipt(receiptModal.id, items);
+
+            // Auto-create assets for ASSIGN_ONLY items if checkbox is checked
+            const hasAssignOnlyItems = receiptModal?.items?.some(
+                item => item.inventoryItem?.consumptionType === 'ASSIGN_ONLY'
+            );
+
+            if (autoCreateAssets && hasAssignOnlyItems) {
+                const assetsRes = await getAssets().catch(() => ({ data: [] }));
+                const existingAssets = Array.isArray(assetsRes.data) ? assetsRes.data : [];
+
+                for (const item of items) {
+                    const poItem = receiptModal.items.find(i => i.id === item.poItemId);
+                    const inv = poItem?.inventoryItem;
+                    if (inv?.consumptionType !== 'ASSIGN_ONLY') continue;
+
+                    const prefix = (inv.name || '').replace(/\s+/g, '').slice(0, 3).toUpperCase();
+                    const existingForItem = existingAssets.filter(a => a.assetCode?.startsWith(prefix + '-'));
+                    const qty = item.receivedQty;
+
+                    // Create one asset record per unit
+                    const createPromises = [];
+                    for (let i = 0; i < qty; i++) {
+                        const code = `${prefix}-${String(existingForItem.length + i + 1).padStart(3, '0')}`;
+                        createPromises.push(createAsset({
+                            assetName: inv.name,
+                            assetCode: code,
+                            description: `Auto-created from PO receipt: ${receiptModal.poNumber}`,
+                            status: 'ACTIVE',
+                        }, user?.token));
+                    }
+                    await Promise.all(createPromises);
+
+                    // Log ASSET_OUT transaction to deduct from inventory stock
+                    const startCode = `${prefix}-${String(existingForItem.length + 1).padStart(3, '0')}`;
+                    const endCode = `${prefix}-${String(existingForItem.length + qty).padStart(3, '0')}`;
+                    await logStock({
+                        movementType: 'ASSET_OUT',
+                        storeId: receiptModal.store?.id,
+                        itemId: inv.id,
+                        quantity: qty,
+                        notes: `Auto-labeled from PO: ${receiptModal.poNumber} — ${qty > 1 ? `${startCode} to ${endCode}` : startCode}`,
+                    });
+                }
+            }
+
             setReceiptModal(null);
             await fetchData();
         } catch (e) {
@@ -140,6 +195,15 @@ export default function PurchaseOrders() {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const getDestination = (inv) => {
+        if (!inv) return null;
+        if (inv.consumptionType === 'ASSIGN_ONLY') return { label: 'Asset Register', color: '#8b5cf6' };
+        if (inv.billingGroup === 'PHARMACY') return { label: 'Pharmacy Stock', color: '#10b981' };
+        if (inv.billingGroup === 'OT') return { label: 'OT Stock', color: '#f59e0b' };
+        if (inv.billingGroup === 'ROOM') return { label: 'Room / Ward Stock', color: '#3b82f6' };
+        return { label: 'Main Inventory', color: '#64748b' };
     };
 
     // ── Pay Advance ──
@@ -476,42 +540,114 @@ export default function PurchaseOrders() {
             {/* Receive Modal */}
             {receiptModal && (
                 <div className="modal-overlay active">
-                    <div className="modal">
+                    <div className="modal" style={{ maxWidth: '580px', width: '100%' }}>
                         <div className="modal-header">
                             <h2 className="modal-title">Receive Items — {receiptModal.poNumber}</h2>
                             <button className="modal-close" onClick={() => setReceiptModal(null)}><X size={18} /></button>
                         </div>
-                        <div className="modal-body">
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Ordered</th>
-                                        <th>Already Received</th>
-                                        <th>Enter Qty</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {(receiptModal.items || []).map(item => (
-                                        <tr key={item.id}>
-                                            <td><strong>{item.inventoryItem?.name || '-'}</strong></td>
-                                            <td>{item.quantity}</td>
-                                            <td>{item.receivedQty ?? 0}</td>
-                                            <td>
+                        {(() => {
+                            const hasAssignOnlyItems = receiptModal?.items?.some(
+                                item => item.inventoryItem?.consumptionType === 'ASSIGN_ONLY'
+                            );
+                            return hasAssignOnlyItems ? (
+                                <div style={{
+                                    background: '#fef3c7',
+                                    borderBottom: '1px solid #fcd34d',
+                                    padding: '0.75rem 1.25rem',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.5rem'
+                                }}>
+                                    <div style={{ fontSize: '0.9rem', color: '#92400e' }}>
+                                        <strong>⚠️ Assets-type items in this order</strong><br />
+                                        These items will be <strong>automatically sent to the Asset Register</strong> upon receipt.
+                                    </div>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', margin: 0 }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={autoCreateAssets}
+                                            onChange={e => setAutoCreateAssets(e.target.checked)}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <span style={{ color: '#92400e' }}>Automatically create asset records</span>
+                                    </label>
+                                </div>
+                            ) : null;
+                        })()}
+                        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {(receiptModal.items || []).map(item => {
+                                const inv = item.inventoryItem;
+                                const dest = getDestination(inv);
+                                const val = receiptQtys[item.id] || { qty: '', batchNumber: '', expiryDate: '' };
+                                const remaining = Number(item.quantity) - Number(item.receivedQty ?? 0);
+                                return (
+                                    <div key={item.id} style={{ border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '8px', padding: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                                        {/* Item header */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            <div>
+                                                <strong style={{ fontSize: '0.9375rem' }}>{inv?.name || '-'}</strong>
+                                                {inv?.itemTypeName && (
+                                                    <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted, #94a3b8)' }}>{inv.itemTypeName}</span>
+                                                )}
+                                            </div>
+                                            {dest && (
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: '999px', background: dest.color + '18', color: dest.color, whiteSpace: 'nowrap' }}>
+                                                    → {dest.label}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Qty summary */}
+                                        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-secondary, #64748b)' }}>
+                                            <span>Ordered: <strong>{item.quantity}</strong></span>
+                                            <span>Received: <strong>{item.receivedQty ?? 0}</strong></span>
+                                            <span>Remaining: <strong style={{ color: remaining > 0 ? 'inherit' : '#10b981' }}>{remaining}</strong></span>
+                                        </div>
+
+                                        {/* Inputs */}
+                                        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                            <div style={{ flex: '1', minWidth: '80px' }}>
+                                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Qty to Receive</label>
                                                 <input
                                                     type="number"
                                                     min="0"
+                                                    max={remaining}
                                                     step="any"
                                                     className="form-input"
-                                                    value={receiptQtys[item.id] ?? ''}
-                                                    onChange={e => setReceiptQtys(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                                    value={val.qty}
+                                                    onChange={e => setReceiptQtys(prev => ({ ...prev, [item.id]: { ...prev[item.id], qty: e.target.value } }))}
                                                     placeholder="0"
                                                 />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                            </div>
+
+                                            {inv?.batchRequired && (
+                                                <div style={{ flex: '2', minWidth: '120px' }}>
+                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Batch No <span style={{ color: '#ef4444' }}>*</span></label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        value={val.batchNumber}
+                                                        onChange={e => setReceiptQtys(prev => ({ ...prev, [item.id]: { ...prev[item.id], batchNumber: e.target.value } }))}
+                                                        placeholder="e.g. BT-2024-001"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {inv?.expiryRequired && (
+                                                <div style={{ flex: '2', minWidth: '130px' }}>
+                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Expiry Date <span style={{ color: '#ef4444' }}>*</span></label>
+                                                    <input
+                                                        type="date"
+                                                        className="form-input"
+                                                        value={val.expiryDate}
+                                                        onChange={e => setReceiptQtys(prev => ({ ...prev, [item.id]: { ...prev[item.id], expiryDate: e.target.value } }))}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                         <div className="modal-footer">
                             <button className="btn btn-secondary" onClick={() => setReceiptModal(null)}>Cancel</button>
