@@ -104,7 +104,17 @@ export default function InventoryKits() {
         next[idx] = {
             ...next[idx],
             itemId: selectedItem.id,
-            itemName: selectedItem.name,
+            itemName: selectedItem.name, // Set to full name for display
+        };
+        setFormData(prev => ({ ...prev, components: next }));
+    };
+
+    const handleClearItem = (idx) => {
+        const next = [...formData.components];
+        next[idx] = {
+            ...next[idx],
+            itemId: '',
+            itemName: '', // Clear search text too so user can start fresh
         };
         setFormData(prev => ({ ...prev, components: next }));
     };
@@ -398,9 +408,9 @@ export default function InventoryKits() {
                                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem' }}>
                                     <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', color: '#64748b' }}>Kit Components</h4>
                                     {formData.components.map((comp, idx) => {
-                                        const selectedItem = items.find(i => i.id === comp.itemId);
                                         const filteredItems = getFilteredItems(comp.itemName);
                                         const isSelected = comp.itemId !== '';
+                                        const hasSearchText = comp.itemName.trim() !== '';
 
                                         return (
                                             <div key={idx} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -417,9 +427,10 @@ export default function InventoryKits() {
                                                             style={{
                                                                 borderColor: isSelected ? '#10b981' : undefined,
                                                                 borderWidth: isSelected ? '2px' : undefined,
+                                                                paddingRight: isSelected ? '32px' : undefined,
                                                             }}
                                                         />
-                                                        {comp.itemName && !isSelected && filteredItems.length > 0 && (
+                                                        {hasSearchText && !isSelected && filteredItems.length > 0 && (
                                                             <div style={{
                                                                 position: 'absolute',
                                                                 top: '100%',
@@ -446,16 +457,15 @@ export default function InventoryKits() {
                                                                             justifyContent: 'space-between',
                                                                             alignItems: 'center',
                                                                         }}
-                                                                        onMouseDown={(e) => e.preventDefault()}
-                                                                        onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
-                                                                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                                                     >
                                                                         <div>
                                                                             <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>{item.name}</div>
                                                                             <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{item.code}</div>
                                                                         </div>
                                                                         <div style={{ fontSize: '0.75rem', color: '#64748b', minWidth: '60px', textAlign: 'right' }}>
-                                                                            Stock: {(() => {
+                                                                            {(() => {
                                                                                 const stock = formData.components
                                                                                     .map((c, i) => ({ itemId: c.itemId, idx: i }))
                                                                                     .filter(c => c.itemId === item.id && c.idx !== idx);
@@ -466,7 +476,7 @@ export default function InventoryKits() {
                                                                 ))}
                                                             </div>
                                                         )}
-                                                        {comp.itemName && !isSelected && filteredItems.length === 0 && (
+                                                        {hasSearchText && !isSelected && filteredItems.length === 0 && (
                                                             <div style={{
                                                                 position: 'absolute',
                                                                 top: '100%',
@@ -485,16 +495,27 @@ export default function InventoryKits() {
                                                             </div>
                                                         )}
                                                         {isSelected && (
-                                                            <div style={{
-                                                                position: 'absolute',
-                                                                right: '8px',
-                                                                top: '50%',
-                                                                transform: 'translateY(-50%)',
-                                                                color: '#10b981',
-                                                                fontSize: '1.2rem'
-                                                            }}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleClearItem(idx)}
+                                                                style={{
+                                                                    position: 'absolute',
+                                                                    right: '8px',
+                                                                    top: '50%',
+                                                                    transform: 'translateY(-50%)',
+                                                                    background: 'none',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#10b981',
+                                                                    fontSize: '1.2rem',
+                                                                    padding: '0 4px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                }}
+                                                                title="Clear selection"
+                                                            >
                                                                 ✓
-                                                            </div>
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </div>
