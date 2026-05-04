@@ -22,8 +22,17 @@ export default function InventoryKits() {
     const [consumeForm, setConsumeForm] = useState({ storeId: '', quantity: '', force: false });
     const [lowStockWarning, setLowStockWarning] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState(null); // Track which component's dropdown is open
 
     useEffect(() => { fetchData(); }, []);
+
+    useEffect(() => {
+        const handleClickOutside = () => setOpenDropdown(null);
+        if (openDropdown !== null) {
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+        }
+    }, [openDropdown]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -420,6 +429,7 @@ export default function InventoryKits() {
                                                             type="text"
                                                             value={comp.itemSearch || ''}
                                                             onChange={(e) => handleComponentChange(idx, 'itemSearch', e.target.value)}
+                                                            onClick={() => setOpenDropdown(openDropdown === idx ? null : idx)}
                                                             placeholder="Search by name or code..."
                                                             autoComplete="off"
                                                             style={{
@@ -428,7 +438,7 @@ export default function InventoryKits() {
                                                                 paddingRight: isSelected ? '32px' : undefined,
                                                             }}
                                                         />
-                                                        {!isSelected && filtered.length > 0 && (
+                                                        {openDropdown === idx && !isSelected && filtered.length > 0 && (
                                                             <div style={{
                                                                 position: 'absolute',
                                                                 top: '100%',
@@ -446,7 +456,10 @@ export default function InventoryKits() {
                                                                 {filtered.map(item => (
                                                                     <div
                                                                         key={item.id}
-                                                                        onMouseDown={() => handleItemSelect(idx, item)}
+                                                                        onMouseDown={() => {
+                                                                            handleItemSelect(idx, item);
+                                                                            setOpenDropdown(null);
+                                                                        }}
                                                                         style={{
                                                                             padding: '10px 12px',
                                                                             cursor: 'pointer',
@@ -474,7 +487,7 @@ export default function InventoryKits() {
                                                                 ))}
                                                             </div>
                                                         )}
-                                                        {comp.itemSearch && !isSelected && filtered.length === 0 && (
+                                                        {openDropdown === idx && comp.itemSearch && !isSelected && filtered.length === 0 && (
                                                             <div style={{
                                                                 position: 'absolute',
                                                                 top: '100%',
@@ -499,6 +512,7 @@ export default function InventoryKits() {
                                                                     const next = [...formData.components];
                                                                     next[idx] = { ...next[idx], itemId: '', itemSearch: '' };
                                                                     setFormData(prev => ({ ...prev, components: next }));
+                                                                    setOpenDropdown(null);
                                                                 }}
                                                                 style={{
                                                                     position: 'absolute',
