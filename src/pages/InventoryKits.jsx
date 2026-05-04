@@ -61,8 +61,8 @@ export default function InventoryKits() {
             description: kit.description || '',
             components: (kit.components || []).map(c => ({
                 itemId: c.item?.id || '',
+                itemSearch: c.itemName || c.item?.name || '',
                 quantity: c.quantity || '',
-                itemName: c.itemName || c.item?.name || '',
             })),
         });
         setShowModal(true);
@@ -82,7 +82,7 @@ export default function InventoryKits() {
     const handleAddComponent = () => {
         setFormData(prev => ({
             ...prev,
-            components: [...prev.components, { itemId: '', quantity: '', itemName: '' }],
+            components: [...prev.components, { itemId: '', itemSearch: '', quantity: '' }],
         }));
     };
 
@@ -104,17 +104,7 @@ export default function InventoryKits() {
         next[idx] = {
             ...next[idx],
             itemId: selectedItem.id,
-            itemName: selectedItem.name, // Set to full name for display
-        };
-        setFormData(prev => ({ ...prev, components: next }));
-    };
-
-    const handleClearItem = (idx) => {
-        const next = [...formData.components];
-        next[idx] = {
-            ...next[idx],
-            itemId: '',
-            itemName: '', // Clear search text too so user can start fresh
+            itemSearch: selectedItem.name,
         };
         setFormData(prev => ({ ...prev, components: next }));
     };
@@ -408,9 +398,11 @@ export default function InventoryKits() {
                                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem' }}>
                                     <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', color: '#64748b' }}>Kit Components</h4>
                                     {formData.components.map((comp, idx) => {
-                                        const filteredItems = getFilteredItems(comp.itemName);
+                                        const filtered = items.filter(i =>
+                                            (i.name?.toLowerCase() || '').includes((comp.itemSearch || '').toLowerCase()) ||
+                                            (i.code?.toLowerCase() || '').includes((comp.itemSearch || '').toLowerCase())
+                                        );
                                         const isSelected = comp.itemId !== '';
-                                        const hasSearchText = comp.itemName.trim() !== '';
 
                                         return (
                                             <div key={idx} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -420,8 +412,8 @@ export default function InventoryKits() {
                                                         <input
                                                             className="form-input"
                                                             type="text"
-                                                            value={comp.itemName}
-                                                            onChange={(e) => handleComponentChange(idx, 'itemName', e.target.value)}
+                                                            value={comp.itemSearch || ''}
+                                                            onChange={(e) => handleComponentChange(idx, 'itemSearch', e.target.value)}
                                                             placeholder="Search by name or code..."
                                                             autoComplete="off"
                                                             style={{
@@ -430,7 +422,7 @@ export default function InventoryKits() {
                                                                 paddingRight: isSelected ? '32px' : undefined,
                                                             }}
                                                         />
-                                                        {hasSearchText && !isSelected && filteredItems.length > 0 && (
+                                                        {!isSelected && filtered.length > 0 && (
                                                             <div style={{
                                                                 position: 'absolute',
                                                                 top: '100%',
@@ -445,10 +437,10 @@ export default function InventoryKits() {
                                                                 overflowY: 'auto',
                                                                 marginTop: '2px'
                                                             }}>
-                                                                {filteredItems.map(item => (
+                                                                {filtered.map(item => (
                                                                     <div
                                                                         key={item.id}
-                                                                        onClick={() => handleItemSelect(idx, item)}
+                                                                        onMouseDown={() => handleItemSelect(idx, item)}
                                                                         style={{
                                                                             padding: '10px 12px',
                                                                             cursor: 'pointer',
@@ -476,7 +468,7 @@ export default function InventoryKits() {
                                                                 ))}
                                                             </div>
                                                         )}
-                                                        {hasSearchText && !isSelected && filteredItems.length === 0 && (
+                                                        {comp.itemSearch && !isSelected && filtered.length === 0 && (
                                                             <div style={{
                                                                 position: 'absolute',
                                                                 top: '100%',
@@ -497,7 +489,7 @@ export default function InventoryKits() {
                                                         {isSelected && (
                                                             <button
                                                                 type="button"
-                                                                onClick={() => handleClearItem(idx)}
+                                                                onClick={() => handleComponentChange(idx, 'itemId', '') || handleComponentChange(idx, 'itemSearch', '')}
                                                                 style={{
                                                                     position: 'absolute',
                                                                     right: '8px',
@@ -514,7 +506,7 @@ export default function InventoryKits() {
                                                                 }}
                                                                 title="Clear selection"
                                                             >
-                                                                ✓
+                                                                ×
                                                             </button>
                                                         )}
                                                     </div>
