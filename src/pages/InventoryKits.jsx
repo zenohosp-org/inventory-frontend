@@ -3,7 +3,7 @@ import { Plus, X, Edit2, Trash2, Package, AlertCircle } from 'lucide-react';
 import { getKits, createKit, updateKit, deleteKit, consumeKit, getItems, getStores } from '../api/client';
 import './InventoryKits.css';
 
-const EMPTY_FORM = { name: '', code: '', description: '', components: [] };
+const EMPTY_FORM = { name: '', code: '', description: '', patientBillingPrice: '', insuranceBillingPrice: '', components: [] };
 
 export default function InventoryKits() {
     const [kits, setKits] = useState([]);
@@ -59,6 +59,8 @@ export default function InventoryKits() {
             name: kit.name || '',
             code: kit.code || '',
             description: kit.description || '',
+            patientBillingPrice: kit.patientBillingPrice || '',
+            insuranceBillingPrice: kit.insuranceBillingPrice || '',
             components: (kit.components || []).map(c => ({
                 itemId: c.item?.id || '',
                 itemSearch: c.itemName || c.item?.name || '',
@@ -144,6 +146,8 @@ export default function InventoryKits() {
                 name: formData.name,
                 code: formData.code || null,
                 description: formData.description || null,
+                patientBillingPrice: formData.patientBillingPrice ? Number(formData.patientBillingPrice) : null,
+                insuranceBillingPrice: formData.insuranceBillingPrice ? Number(formData.insuranceBillingPrice) : null,
                 components: formData.components.map(c => ({
                     itemId: c.itemId,
                     quantity: Number(c.quantity),
@@ -398,6 +402,32 @@ export default function InventoryKits() {
                                             onChange={handleInputChange}
                                             placeholder="Optional description"
                                         />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <div className="form-group" style={{ flex: 1 }}>
+                                            <label className="form-label">Patient Billing Price</label>
+                                            <input
+                                                className="form-input"
+                                                type="number"
+                                                step="0.01"
+                                                name="patientBillingPrice"
+                                                value={formData.patientBillingPrice}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ flex: 1 }}>
+                                            <label className="form-label">Insurance Billing Price</label>
+                                            <input
+                                                className="form-input"
+                                                type="number"
+                                                step="0.01"
+                                                name="insuranceBillingPrice"
+                                                value={formData.insuranceBillingPrice}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 

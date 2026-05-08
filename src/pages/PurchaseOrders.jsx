@@ -140,6 +140,23 @@ export default function PurchaseOrders() {
                 expiryDate: val.expiryDate || null,
             }));
         if (items.length === 0) return;
+
+        // Validate required batch/expiry fields
+        const missingFields = [];
+        for (const item of items) {
+            const poItem = receiptModal.items.find(i => i.id === item.poItemId);
+            const val = receiptQtys[item.poItemId];
+            if (poItem?.inventoryItem?.batchRequired && !val?.batchNumber?.trim()) {
+                missingFields.push(`${poItem.inventoryItem.name}: Batch No required`);
+            }
+            if (poItem?.inventoryItem?.expiryRequired && !val?.expiryDate?.trim()) {
+                missingFields.push(`${poItem.inventoryItem.name}: Expiry Date required`);
+            }
+        }
+        if (missingFields.length > 0) {
+            alert('Please fill in required fields:\n\n' + missingFields.join('\n'));
+            return;
+        }
         setSubmitting(true);
         try {
             await recordPOReceipt(receiptModal.id, items);
