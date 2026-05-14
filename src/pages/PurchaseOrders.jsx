@@ -124,7 +124,7 @@ export default function PurchaseOrders() {
     // ── Record Receipt ──
     const openReceiptModal = (po) => {
         const init = {};
-        (po.items || []).forEach(item => { init[item.id] = { qty: '', batchNumber: '', expiryDate: '' }; });
+        (po.items || []).forEach(item => { init[item.id] = { qty: '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' }; });
         setReceiptQtys(init);
         setAutoCreateAssets(true);
         setReceiptModal(po);
@@ -133,12 +133,18 @@ export default function PurchaseOrders() {
     const handleReceiptSubmit = async () => {
         const items = Object.entries(receiptQtys)
             .filter(([, val]) => val.qty !== '' && Number(val.qty) > 0)
-            .map(([poItemId, val]) => ({
-                poItemId,
-                receivedQty: Number(val.qty),
-                batchNumber: val.batchNumber || null,
-                expiryDate: val.expiryDate || null,
-            }));
+            .map(([poItemId, val]) => {
+                const poItem = receiptModal.items.find(i => i.id === poItemId);
+                const isPharmacy = poItem?.inventoryItem?.billingGroup === 'PHARMACY';
+                return {
+                    poItemId,
+                    receivedQty: Number(val.qty),
+                    batchNumber: val.batchNumber || null,
+                    expiryDate: val.expiryDate || null,
+                    mrp: isPharmacy && val.mrp !== '' ? Number(val.mrp) : null,
+                    sellingPrice: isPharmacy && val.sellingPrice !== '' ? Number(val.sellingPrice) : null,
+                };
+            });
         if (items.length === 0) return;
 
         // Validate required batch/expiry fields
@@ -662,6 +668,34 @@ export default function PurchaseOrders() {
                                                 </div>
                                             )}
                                         </div>
+                                        {inv?.billingGroup === 'PHARMACY' && (
+                                            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                                <div style={{ flex: '1', minWidth: '110px' }}>
+                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>MRP (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        className="form-input"
+                                                        value={val.mrp}
+                                                        onChange={e => setReceiptQtys(prev => ({ ...prev, [item.id]: { ...prev[item.id], mrp: e.target.value } }))}
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                                <div style={{ flex: '1', minWidth: '110px' }}>
+                                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Selling Price (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        className="form-input"
+                                                        value={val.sellingPrice}
+                                                        onChange={e => setReceiptQtys(prev => ({ ...prev, [item.id]: { ...prev[item.id], sellingPrice: e.target.value } }))}
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
