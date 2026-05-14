@@ -22,6 +22,7 @@ const EMPTY_FORM = {
     batchRequired: false,
     expiryRequired: false,
     serialRequired: false,
+    pharmacyDrugId: '',
 };
 
 const BILLABLE_LABEL = { YES: 'Yes', NO: 'No', CONDITIONAL: 'Conditional' };
@@ -98,6 +99,7 @@ export default function InventoryItems() {
             ...formData,
             packSize: formData.packSize !== '' ? Number(formData.packSize) : null,
             purchasePrice: formData.purchasePrice !== '' ? Number(formData.purchasePrice) : null,
+            pharmacyDrugId: formData.pharmacyDrugId.trim() !== '' ? formData.pharmacyDrugId.trim() : null,
             sellingPrice: formData.sellingPrice !== '' ? Number(formData.sellingPrice) : null,
             itemTypeId: formData.itemTypeId || null,
             categoryId: formData.categoryId || null,
@@ -145,6 +147,7 @@ export default function InventoryItems() {
             batchRequired: item.batchRequired || false,
             expiryRequired: item.expiryRequired || false,
             serialRequired: item.serialRequired || false,
+            pharmacyDrugId: item.pharmacyDrugId || '',
         });
         setShowModal(true);
     };
@@ -411,6 +414,27 @@ export default function InventoryItems() {
                                                 )}
                                             </div>
                                         </div>
+
+                                        {/* Pharmacy Drug Link */}
+                                        {formData.billingGroup === 'PHARMACY' && (
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>Pharmacy Link</div>
+                                                <div className="form-group" style={{ margin: 0 }}>
+                                                    <label className="form-label">Pharmacy Drug ID <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(paste UUID from pharmacy drug master)</span></label>
+                                                    <input
+                                                        type="text"
+                                                        name="pharmacyDrugId"
+                                                        value={formData.pharmacyDrugId}
+                                                        onChange={handleInputChange}
+                                                        className="form-input"
+                                                        placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
+                                                    />
+                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted, #94a3b8)', marginTop: '0.25rem' }}>
+                                                        When set, receiving this PO item auto-creates a batch in pharmacy stock.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Behavior */}
                                         <div>
