@@ -17,12 +17,15 @@ const EMPTY_FORM = {
     purchasePrice: '',
     sellingPrice: '',
     billable: 'NO',
-    billingGroup: 'PHARMACY',
+    billingGroup: '',
     consumptionType: 'AUTO_CONSUME',
     batchRequired: false,
     expiryRequired: false,
     serialRequired: false,
-    pharmacyDrugId: '',
+    genericName: '',
+    hsnCode: '',
+    drugSchedule: '',
+    drugReorderQty: '',
 };
 
 const BILLABLE_LABEL = { YES: 'Yes', NO: 'No', CONDITIONAL: 'Conditional' };
@@ -90,6 +93,7 @@ export default function InventoryItems() {
             consumptionType: type.defaultConsumptionType || 'AUTO_CONSUME',
             batchRequired: type.defaultBatchRequired || false,
             expiryRequired: type.defaultExpiryRequired || false,
+            billingGroup: type.defaultBillingGroup || prev.billingGroup,
         }));
     };
 
@@ -99,8 +103,8 @@ export default function InventoryItems() {
             ...formData,
             packSize: formData.packSize !== '' ? Number(formData.packSize) : null,
             purchasePrice: formData.purchasePrice !== '' ? Number(formData.purchasePrice) : null,
-            pharmacyDrugId: formData.pharmacyDrugId.trim() !== '' ? formData.pharmacyDrugId.trim() : null,
             sellingPrice: formData.sellingPrice !== '' ? Number(formData.sellingPrice) : null,
+            drugReorderQty: formData.drugReorderQty !== '' ? Number(formData.drugReorderQty) : null,
             itemTypeId: formData.itemTypeId || null,
             categoryId: formData.categoryId || null,
         };
@@ -142,12 +146,15 @@ export default function InventoryItems() {
             purchasePrice: item.purchasePrice ?? '',
             sellingPrice: item.sellingPrice ?? '',
             billable: item.billable || 'NO',
-            billingGroup: item.billingGroup || 'PHARMACY',
+            billingGroup: item.billingGroup || '',
             consumptionType: item.consumptionType || 'AUTO_CONSUME',
             batchRequired: item.batchRequired || false,
             expiryRequired: item.expiryRequired || false,
             serialRequired: item.serialRequired || false,
-            pharmacyDrugId: item.pharmacyDrugId || '',
+            genericName: item.genericName || '',
+            hsnCode: item.hsnCode || '',
+            drugSchedule: item.drugSchedule || '',
+            drugReorderQty: item.drugReorderQty ?? '',
         });
         setShowModal(true);
     };
@@ -415,23 +422,63 @@ export default function InventoryItems() {
                                             </div>
                                         </div>
 
-                                        {/* Pharmacy Drug Link */}
+                                        {/* Pharmacy Fields */}
                                         {formData.billingGroup === 'PHARMACY' && (
                                             <div>
-                                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>Pharmacy Link</div>
-                                                <div className="form-group" style={{ margin: 0 }}>
-                                                    <label className="form-label">Pharmacy Drug ID <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(paste UUID from pharmacy drug master)</span></label>
-                                                    <input
-                                                        type="text"
-                                                        name="pharmacyDrugId"
-                                                        value={formData.pharmacyDrugId}
-                                                        onChange={handleInputChange}
-                                                        className="form-input"
-                                                        placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
-                                                    />
-                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted, #94a3b8)', marginTop: '0.25rem' }}>
-                                                        When set, receiving this PO item auto-creates a batch in pharmacy stock.
-                                                    </p>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>Pharmacy Details</div>
+                                                <div className="form-row" style={{ margin: 0, marginBottom: '0.75rem' }}>
+                                                    <div className="form-group" style={{ margin: 0 }}>
+                                                        <label className="form-label">Generic Name</label>
+                                                        <input
+                                                            type="text"
+                                                            name="genericName"
+                                                            value={formData.genericName}
+                                                            onChange={handleInputChange}
+                                                            className="form-input"
+                                                            placeholder="e.g. Paracetamol"
+                                                        />
+                                                    </div>
+                                                    <div className="form-group" style={{ margin: 0 }}>
+                                                        <label className="form-label">HSN Code</label>
+                                                        <input
+                                                            type="text"
+                                                            name="hsnCode"
+                                                            value={formData.hsnCode}
+                                                            onChange={handleInputChange}
+                                                            className="form-input"
+                                                            placeholder="e.g. 30049099"
+                                                            maxLength={10}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="form-row" style={{ margin: 0 }}>
+                                                    <div className="form-group" style={{ margin: 0 }}>
+                                                        <label className="form-label">Drug Schedule</label>
+                                                        <select
+                                                            name="drugSchedule"
+                                                            value={formData.drugSchedule}
+                                                            onChange={handleInputChange}
+                                                            className="form-select"
+                                                        >
+                                                            <option value="">— Select —</option>
+                                                            <option value="OTC">OTC (Over the Counter)</option>
+                                                            <option value="H">H (Prescription)</option>
+                                                            <option value="H1">H1 (Narcotic/Psychotropic)</option>
+                                                            <option value="X">X (Controlled)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="form-group" style={{ margin: 0 }}>
+                                                        <label className="form-label">Reorder Qty</label>
+                                                        <input
+                                                            type="number"
+                                                            name="drugReorderQty"
+                                                            value={formData.drugReorderQty}
+                                                            onChange={handleInputChange}
+                                                            className="form-input"
+                                                            placeholder="e.g. 50"
+                                                            min="0"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}

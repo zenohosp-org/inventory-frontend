@@ -11,6 +11,7 @@ const EMPTY_FORM = {
     defaultConsumptionType: 'AUTO_CONSUME',
     defaultBatchRequired: false,
     defaultExpiryRequired: false,
+    defaultBillingGroup: '',
 };
 
 export default function ItemTypes() {
@@ -79,6 +80,7 @@ export default function ItemTypes() {
                                     <th>Name</th>
                                     <th>Billable Default</th>
                                     <th>Consumption Type</th>
+                                    <th>Routing</th>
                                     <th>Batch</th>
                                     <th>Expiry</th>
                                     <th>Type</th>
@@ -90,6 +92,11 @@ export default function ItemTypes() {
                                         <td><strong>{type.name}</strong></td>
                                         <td>{BILLABLE_LABELS[type.defaultBillable] || type.defaultBillable}</td>
                                         <td>{CONSUMPTION_LABELS[type.defaultConsumptionType] || type.defaultConsumptionType}</td>
+                                        <td>
+                                            {type.defaultBillingGroup
+                                                ? <span className="badge badge-info">{type.defaultBillingGroup}</span>
+                                                : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                                        </td>
                                         <td>{type.defaultBatchRequired ? '✓' : '—'}</td>
                                         <td>{type.defaultExpiryRequired ? '✓' : '—'}</td>
                                         <td>
@@ -148,6 +155,22 @@ export default function ItemTypes() {
                                         <option value="RETURNABLE">Returnable</option>
                                         <option value="ASSIGN_ONLY">Assign-only (Asset)</option>
                                     </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Routes to Module</label>
+                                    <select
+                                        className="form-select"
+                                        value={formData.defaultBillingGroup}
+                                        onChange={e => setFormData(p => ({ ...p, defaultBillingGroup: e.target.value }))}
+                                    >
+                                        <option value="">None (General Inventory)</option>
+                                        <option value="PHARMACY">Pharmacy</option>
+                                        <option value="OT">OT</option>
+                                        <option value="ASSET">Asset</option>
+                                    </select>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                                        Items of this type will automatically appear in the selected module.
+                                    </p>
                                 </div>
                                 <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
