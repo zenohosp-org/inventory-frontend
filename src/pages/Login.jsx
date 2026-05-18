@@ -106,7 +106,7 @@ export default function Login() {
                     WebkitTextFillColor: 'transparent',
                     lineHeight: 1.2,
                 }}>
-                    Institutional Level<br />Asset Management
+                    Institutional Level<br />Inventory Management
                 </h1>
 
                 <p style={{
@@ -115,7 +115,7 @@ export default function Login() {
                     maxWidth: '500px',
                     marginBottom: '48px',
                 }}>
-                    Gain full visibility over hospital equipment, transfer flows, and maintenance statuses powered by ZenoHosp's integrated security directory.
+                    Gain full visibility over hospital stock levels, purchase orders, and store operations powered by ZenoHosp's integrated security directory.
                 </p>
 
                 <div style={{ marginBottom: '20px' }}>
@@ -128,7 +128,7 @@ export default function Login() {
                         marginBottom: '16px',
                     }}>
                         <span style={{ color: '#10b981' }}>✓</span>
-                        <span>Centralized hardware and equipment logs</span>
+                        <span>Centralized stock and purchase order tracking</span>
                     </div>
                     <div style={{
                         display: 'flex',
@@ -139,7 +139,7 @@ export default function Login() {
                         marginBottom: '16px',
                     }}>
                         <span style={{ color: '#10b981' }}>✓</span>
-                        <span>Automated asset transfer tracking and sign-offs</span>
+                        <span>Multi-store inventory with real-time stock levels</span>
                     </div>
                     <div style={{
                         display: 'flex',

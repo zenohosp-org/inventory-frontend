@@ -7,11 +7,9 @@ import {
     Activity, BarChart2, Box, ArrowUpRight
 } from 'lucide-react';
 import Header from './Header';
-import { useAuth } from '../context/AuthContext';
 
 export default function Layout({ children }) {
     const location = useLocation();
-    const { user } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [invOpen, setInvOpen] = useState(
@@ -23,8 +21,6 @@ export default function Layout({ children }) {
     const [productsOpen, setProductsOpen] = useState(
         ['/inventory-items', '/inventory-categories', '/item-types', '/inventory-kits'].includes(location.pathname)
     );
-
-    const isAdmin = user?.role === 'hospital_admin' || user?.role === 'super_admin' || user?.role?.toLowerCase() === 'admin';
 
     const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
@@ -166,17 +162,6 @@ export default function Layout({ children }) {
                 </nav>
 
                 <div className="sidebar-footer">
-                    {isAdmin && (
-                        <a
-                            href="https://directory.zenohosp.com/dashboard"
-                            className="btn btn-sm sidebar-footer-dir-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <Globe size={14} />
-                            Directory Admin
-                        </a>
-                    )}
                     <div className="sidebar-copyright">© 2026 Inventory Manager</div>
                 </div>
             </aside>
