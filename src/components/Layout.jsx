@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Package, ShoppingCart, History,
     LogOut, ChevronDown, ChevronRight, Layers, Store as StoreIcon,
-    Menu as MenuIcon, X as XIcon, Globe, Inbox, FileText, Truck, Receipt, Tag
+    Menu as MenuIcon, X as XIcon, Globe, Inbox, FileText, Truck, Receipt, Tag,
+    Activity, BarChart2, Box, ArrowUpRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -153,6 +154,30 @@ export default function Layout({ children }) {
                                 <StoreIcon className="sidebar-icon" size={18} />
                                 Stores
                             </Link>
+                        </li>
+
+                        {/* Other Apps */}
+                        <li className="sidebar-section">
+                            <div className="sidebar-section-title">Other Apps</div>
+                            {[
+                                { label: 'HMS', href: 'https://hms.zenohosp.com', icon: Activity },
+                                { label: 'Finance', href: 'https://finance.zenohosp.com', icon: BarChart2 },
+                                { label: 'Assets', href: 'https://asset.zenohosp.com', icon: Box },
+                                { label: 'Directory', href: 'https://directory.zenohosp.com', icon: Globe },
+                            ].map(({ label, href, icon: Icon }) => (
+                                <a
+                                    key={href}
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="sidebar-link"
+                                    onClick={() => setSidebarOpen(false)}
+                                >
+                                    <Icon className="sidebar-icon" size={18} />
+                                    {label}
+                                    <ArrowUpRight size={12} style={{ marginLeft: 'auto', opacity: 0.4 }} />
+                                </a>
+                            ))}
                         </li>
                     </ul>
                 </nav>
