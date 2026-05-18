@@ -150,10 +150,11 @@ export default function PurchaseOrders() {
         for (const item of items) {
             const poItem = receiptModal.items.find(i => i.id === item.poItemId);
             const val = receiptQtys[item.poItemId];
-            if (poItem?.inventoryItem?.batchRequired && !val?.batchNumber?.trim()) {
+            const isPharmacy = poItem?.inventoryItem?.billingGroup === 'PHARMACY';
+            if ((poItem?.inventoryItem?.batchRequired || isPharmacy) && !val?.batchNumber?.trim()) {
                 missingFields.push(`${poItem.inventoryItem.name}: Batch No required`);
             }
-            if (poItem?.inventoryItem?.expiryRequired && !val?.expiryDate?.trim()) {
+            if ((poItem?.inventoryItem?.expiryRequired || isPharmacy) && !val?.expiryDate?.trim()) {
                 missingFields.push(`${poItem.inventoryItem.name}: Expiry Date required`);
             }
         }
@@ -627,7 +628,7 @@ export default function PurchaseOrders() {
                                                 />
                                             </div>
 
-                                            {inv?.batchRequired && (
+                                            {(inv?.batchRequired || inv?.billingGroup === 'PHARMACY') && (
                                                 <div style={{ flex: '2', minWidth: '120px' }}>
                                                     <label className="form-label" style={{ fontSize: '0.75rem' }}>Batch No <span style={{ color: '#ef4444' }}>*</span></label>
                                                     <input
@@ -640,7 +641,7 @@ export default function PurchaseOrders() {
                                                 </div>
                                             )}
 
-                                            {inv?.expiryRequired && (
+                                            {(inv?.expiryRequired || inv?.billingGroup === 'PHARMACY') && (
                                                 <div style={{ flex: '2', minWidth: '130px' }}>
                                                     <label className="form-label" style={{ fontSize: '0.75rem' }}>Expiry Date <span style={{ color: '#ef4444' }}>*</span></label>
                                                     <input
