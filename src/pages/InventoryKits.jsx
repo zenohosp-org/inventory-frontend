@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Package, AlertCircle } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Package, AlertCircle, MoreVertical } from 'lucide-react';
 import { getKits, createKit, updateKit, deleteKit, consumeKit, getItems, getStores } from '../api/client';
 import './InventoryKits.css';
 
@@ -22,8 +22,15 @@ export default function InventoryKits() {
     const [consumeForm, setConsumeForm] = useState({ storeId: '', quantity: '', force: false });
     const [lowStockWarning, setLowStockWarning] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [activeDropdown, setActiveDropdown] = useState(null);
 
     useEffect(() => { fetchData(); }, []);
+
+    useEffect(() => {
+        const handleClickOutside = () => setActiveDropdown(null);
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
 
     const fetchData = async () => {
         setLoading(true);
@@ -298,12 +305,27 @@ export default function InventoryKits() {
                                         <td>{kit.components?.length || 0} items</td>
                                         <td><strong style={{ color: getStatusColor(kit.maxAssemblable) }}>{kit.maxAssemblable || 0}</strong></td>
                                         <td><span className="badge" style={{ background: getStatusColor(kit.maxAssemblable) + '20', color: getStatusColor(kit.maxAssemblable) }}>{getStatusLabel(kit.maxAssemblable)}</span></td>
-                                        <td onClick={e => e.stopPropagation()}>
-                                            <div className="action-group">
-                                                <button onClick={() => openConsumeModal(kit)} className="btn btn-sm btn-secondary">Consume</button>
-                                                <button onClick={() => handleEdit(kit)} className="btn btn-sm btn-ghost"><Edit2 size={14} /></button>
-                                                <button onClick={() => handleDelete(kit)} className="btn btn-sm btn-danger"><Trash2 size={14} /></button>
-                                            </div>
+                                        <td onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === kit.id ? null : kit.id); }}
+                                                className="app-btn-icon"
+                                            >
+                                                <MoreVertical size={18} />
+                                            </button>
+                                            {activeDropdown === kit.id && (
+                                                <div className="assets-dropdown">
+                                                    <button onClick={(e) => { e.stopPropagation(); openConsumeModal(kit); }} className="assets-dropdown-item">
+                                                        <Package size={16} style={{ color: '#8b5cf6' }} /> Consume
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleEdit(kit); }} className="assets-dropdown-item">
+                                                        <Edit2 size={16} style={{ color: '#3b82f6' }} /> Edit
+                                                    </button>
+                                                    <div style={{ height: '1px', margin: '4px 0', background: '#f1f5f9' }} />
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(kit); }} className="assets-dropdown-item--danger">
+                                                        <Trash2 size={16} /> Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

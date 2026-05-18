@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Store, Plus, Edit2, Trash2, X, Eye } from 'lucide-react';
+import { Store, Plus, Edit2, Trash2, X, Eye, MoreVertical } from 'lucide-react';
 import { getStores, createStore, updateStore, deleteStore } from '../api/client';
 
 export default function Stores() {
@@ -14,9 +14,16 @@ export default function Stores() {
         type: 'CENTRAL',
         isActive: true
     });
+    const [activeDropdown, setActiveDropdown] = useState(null);
 
     useEffect(() => {
         fetchStores();
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = () => setActiveDropdown(null);
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
     const fetchStores = async () => {
@@ -161,30 +168,31 @@ export default function Stores() {
                                         <td className="text-muted">
                                             {store.description || '-'}
                                         </td>
-                                        <td>
-                                            <div className="action-group">
-                                                <Link
-                                                    to={`/stores/${store.id}`}
-                                                    className="btn btn-sm btn-primary"
-                                                    title="View Details"
-                                                >
-                                                    <Eye size={16} />
-                                                </Link>
-                                                <button
-                                                    className="btn btn-sm btn-secondary"
-                                                    onClick={() => handleOpenModal(store)}
-                                                    title="Edit"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-danger"
-                                                    onClick={() => handleDelete(store.id)}
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
+                                        <td style={{ position: 'relative' }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === store.id ? null : store.id); }}
+                                                className="app-btn-icon"
+                                            >
+                                                <MoreVertical size={18} />
+                                            </button>
+                                            {activeDropdown === store.id && (
+                                                <div className="assets-dropdown">
+                                                    <Link
+                                                        to={`/stores/${store.id}`}
+                                                        className="assets-dropdown-item"
+                                                        onClick={() => setActiveDropdown(null)}
+                                                    >
+                                                        <Eye size={16} style={{ color: '#10b981' }} /> View Details
+                                                    </Link>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleOpenModal(store); }} className="assets-dropdown-item">
+                                                        <Edit2 size={16} style={{ color: '#3b82f6' }} /> Edit
+                                                    </button>
+                                                    <div style={{ height: '1px', margin: '4px 0', background: '#f1f5f9' }} />
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(store.id); }} className="assets-dropdown-item--danger">
+                                                        <Trash2 size={16} /> Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

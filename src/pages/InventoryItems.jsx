@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Search, MoreVertical } from 'lucide-react';
 import { getItems, getCategories, createItem, updateItem, deleteItem, getItemTypes } from '../api/client';
 
 const GST_OPTIONS = [0, 5, 12, 18, 28];
@@ -46,8 +46,15 @@ export default function InventoryItems() {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [editingItem, setEditingItem] = useState(null);
     const [formData, setFormData] = useState(EMPTY_FORM);
+    const [activeDropdown, setActiveDropdown] = useState(null);
 
     useEffect(() => { fetchData(); }, []);
+
+    useEffect(() => {
+        const handleClickOutside = () => setActiveDropdown(null);
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
 
     const fetchData = async () => {
         setLoading(true);
@@ -257,15 +264,24 @@ export default function InventoryItems() {
                                             {item.billable === 'CONDITIONAL' && <span className="badge badge-warning">Conditional</span>}
                                             {!item.billable && <span style={{ color: 'var(--text-muted)' }}>—</span>}
                                         </td>
-                                        <td>
-                                            <div className="action-group">
-                                                <button className="btn btn-sm btn-ghost" onClick={() => handleEdit(item)}>
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(item.id)}>
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
+                                        <td style={{ position: 'relative' }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === item.id ? null : item.id); }}
+                                                className="app-btn-icon"
+                                            >
+                                                <MoreVertical size={18} />
+                                            </button>
+                                            {activeDropdown === item.id && (
+                                                <div className="assets-dropdown">
+                                                    <button onClick={(e) => { e.stopPropagation(); handleEdit(item); }} className="assets-dropdown-item">
+                                                        <Edit2 size={16} style={{ color: '#3b82f6' }} /> Edit
+                                                    </button>
+                                                    <div style={{ height: '1px', margin: '4px 0', background: '#f1f5f9' }} />
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} className="assets-dropdown-item--danger">
+                                                        <Trash2 size={16} /> Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

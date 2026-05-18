@@ -1142,3 +1142,62 @@
   background-color: var(--color-primary-subtle);
   color: var(--color-primary-dark);
 }
+
+/* Kebab dropdown action button — matches asset inventory style */
+.app-btn-icon {
+  background: transparent;
+  color: #94a3b8;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.app-btn-icon:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.assets-dropdown {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+  width: 192px;
+  padding: 4px 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+.assets-dropdown-item,
+.assets-dropdown-item--danger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.assets-dropdown-item {
+  color: #334155;
+}
+
+.assets-dropdown-item:hover {
+  background: #f8fafc;
+}
+
+.assets-dropdown-item--danger {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.assets-dropdown-item--danger:hover {
+  background: #fef2f2;
+}
