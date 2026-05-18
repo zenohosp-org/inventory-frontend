@@ -2,13 +2,8 @@ import { useState, useEffect } from 'react';
 import { Tag, Plus, X } from 'lucide-react';
 import { getItemTypes, createItemType } from '../api/client';
 
-const BILLABLE_LABELS = { YES: 'Yes', NO: 'No', CONDITIONAL: 'Conditional' };
-const CONSUMPTION_LABELS = { AUTO_CONSUME: 'Auto-consume', RETURNABLE: 'Returnable', ASSIGN_ONLY: 'Assign-only' };
-
 const EMPTY_FORM = {
     name: '',
-    defaultBillable: 'NO',
-    defaultConsumptionType: 'AUTO_CONSUME',
     defaultBatchRequired: false,
     defaultExpiryRequired: false,
     defaultBillingGroup: '',
@@ -78,8 +73,6 @@ export default function ItemTypes() {
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Billable Default</th>
-                                    <th>Consumption Type</th>
                                     <th>Routing</th>
                                     <th>Batch</th>
                                     <th>Expiry</th>
@@ -90,8 +83,6 @@ export default function ItemTypes() {
                                 {itemTypes.map(type => (
                                     <tr key={type.id}>
                                         <td><strong>{type.name}</strong></td>
-                                        <td>{BILLABLE_LABELS[type.defaultBillable] || type.defaultBillable}</td>
-                                        <td>{CONSUMPTION_LABELS[type.defaultConsumptionType] || type.defaultConsumptionType}</td>
                                         <td>
                                             {type.defaultBillingGroup
                                                 ? <span className="badge badge-info">{type.defaultBillingGroup}</span>
@@ -131,30 +122,6 @@ export default function ItemTypes() {
                                         onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                                         required
                                     />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Default Billable</label>
-                                    <select
-                                        className="form-select"
-                                        value={formData.defaultBillable}
-                                        onChange={e => setFormData(p => ({ ...p, defaultBillable: e.target.value }))}
-                                    >
-                                        <option value="YES">Yes</option>
-                                        <option value="NO">No</option>
-                                        <option value="CONDITIONAL">Conditional</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Default Consumption Type</label>
-                                    <select
-                                        className="form-select"
-                                        value={formData.defaultConsumptionType}
-                                        onChange={e => setFormData(p => ({ ...p, defaultConsumptionType: e.target.value }))}
-                                    >
-                                        <option value="AUTO_CONSUME">Auto-consume</option>
-                                        <option value="RETURNABLE">Returnable</option>
-                                        <option value="ASSIGN_ONLY">Assign-only (Asset)</option>
-                                    </select>
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Routes to Module</label>

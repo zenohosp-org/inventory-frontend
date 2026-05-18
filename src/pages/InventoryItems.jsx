@@ -28,8 +28,6 @@ const EMPTY_FORM = {
     drugReorderQty: '',
 };
 
-const BILLABLE_LABEL = { YES: 'Yes', NO: 'No', CONDITIONAL: 'Conditional' };
-const CONSUMPTION_LABEL = { AUTO_CONSUME: 'Auto-consume', RETURNABLE: 'Returnable', ASSIGN_ONLY: 'Assign-only' };
 
 function generateCode(name, items) {
     const prefix = name.replace(/\s+/g, '').slice(0, 3).toUpperCase();
@@ -393,34 +391,6 @@ export default function InventoryItems() {
                                             </div>
                                         </div>
 
-                                        {/* Billing */}
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>Billing</div>
-                                            <div className="form-row" style={{ margin: 0, alignItems: 'flex-start' }}>
-                                                <div className="form-group" style={{ margin: 0 }}>
-                                                    <label className="form-label">Billable</label>
-                                                    <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.25rem' }}>
-                                                        {['YES', 'NO', 'CONDITIONAL'].map(v => (
-                                                            <label key={v} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.875rem' }}>
-                                                                <input type="radio" name="billable" value={v} checked={formData.billable === v} onChange={handleInputChange} />
-                                                                {BILLABLE_LABEL[v]}
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                {(formData.billable === 'YES' || formData.billable === 'CONDITIONAL') && (
-                                                    <div className="form-group" style={{ margin: 0 }}>
-                                                        <label className="form-label">Billing Group</label>
-                                                        <select name="billingGroup" value={formData.billingGroup} onChange={handleInputChange} className="form-select">
-                                                            <option value="OT">OT</option>
-                                                            <option value="PHARMACY">Pharmacy</option>
-                                                            <option value="ROOM">Room</option>
-                                                            <option value="PACKAGE">Package</option>
-                                                        </select>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
 
                                         {/* Pharmacy Fields */}
                                         {formData.billingGroup === 'PHARMACY' && (
@@ -483,21 +453,6 @@ export default function InventoryItems() {
                                             </div>
                                         )}
 
-                                        {/* Behavior */}
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>Behavior</div>
-                                            <div className="form-group" style={{ margin: 0 }}>
-                                                <label className="form-label">Consumption Type</label>
-                                                <div style={{ display: 'flex', gap: '1.25rem', paddingTop: '0.25rem' }}>
-                                                    {[['AUTO_CONSUME', 'Auto-consume'], ['RETURNABLE', 'Returnable'], ['ASSIGN_ONLY', 'Assign-only (Asset)']].map(([v, label]) => (
-                                                        <label key={v} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.875rem' }}>
-                                                            <input type="radio" name="consumptionType" value={v} checked={formData.consumptionType === v} onChange={handleInputChange} />
-                                                            {label}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
 
                                         {/* Cost */}
                                         <div>
