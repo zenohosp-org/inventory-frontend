@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Package, ShoppingCart, History,
-    LogOut, ChevronDown, ChevronRight, Layers, Store as StoreIcon,
-    Menu as MenuIcon, X as XIcon, Globe, Inbox, FileText, Truck, Receipt, Tag,
+    ChevronDown, ChevronRight, Layers, Store as StoreIcon,
+    Globe, Inbox, FileText, Truck, Receipt, Tag,
     Activity, BarChart2, Box, ArrowUpRight
 } from 'lucide-react';
+import Header from './Header';
 import { useAuth } from '../context/AuthContext';
 
 export default function Layout({ children }) {
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [invOpen, setInvOpen] = useState(
@@ -50,24 +51,6 @@ export default function Layout({ children }) {
 
     return (
         <div className="app-layout">
-            {/* Mobile Header */}
-            <header className="app-header">
-                <div className="app-logo">
-                    <Package size={22} />
-                    <span>ZenoInventory</span>
-                </div>
-                <div className="header-right">
-                    <div className="user-menu">
-                        <span className="header-welcome">{user?.name || 'User'}</span>
-                        <div className="user-avatar">
-                            {user?.name?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                    </div>
-                    <button className="btn btn-icon btn-ghost" onClick={() => setSidebarOpen(!sidebarOpen)}>
-                        {sidebarOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
-                    </button>
-                </div>
-            </header>
 
             {/* Sidebar */}
             <aside className={`sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
@@ -185,25 +168,26 @@ export default function Layout({ children }) {
                 <div className="sidebar-footer">
                     {isAdmin && (
                         <a
-                            href="http://localhost:5173/dashboard"
+                            href="https://directory.zenohosp.com/dashboard"
                             className="btn btn-sm sidebar-footer-dir-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             <Globe size={14} />
                             Directory Admin
                         </a>
                     )}
-                    <button onClick={logout} className="btn btn-sm sidebar-footer-signout">
-                        <LogOut size={14} />
-                        Sign Out
-                    </button>
                     <div className="sidebar-copyright">© 2026 Inventory Manager</div>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="main-content">
-                {children}
-            </main>
+            {/* Header + Main */}
+            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <Header onMenuClick={() => setSidebarOpen(o => !o)} />
+                <main className="main-content" style={{ flex: 1, gridColumn: 'unset', gridRow: 'unset' }}>
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }
