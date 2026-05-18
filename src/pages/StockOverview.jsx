@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Package, Search, Tag, X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, RotateCcw, Trash2, Wrench } from 'lucide-react';
+import { Package, Search, X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, RotateCcw, Trash2, Wrench } from 'lucide-react';
 import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
-import { getStockOverview, getCategories, getPurchaseOrders, logStock, getStockLogs, createAsset, getAssets, getVendors } from '../api/client';
-import { useAuth } from '../context/AuthContext';
+import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors } from '../api/client';
 import './StockOverview.css';
 
 const TXN_TYPE = {
@@ -16,24 +15,15 @@ const TXN_TYPE = {
     ASSET_OUT: { label: 'Asset Out', color: '#7c3aed', bg: '#ede9fe' },
 };
 
-const ASSET_FORM_EMPTY = {
-    assetName: '', assetCode: '', serialNumber: '', make: '', model: '',
-    purchaseDate: '', purchasePrice: '', location: '', notes: '', quantity: '',
-};
-
 export default function StockOverview() {
-    const { user } = useAuth();
     const [stocks, setStocks] = useState([]);
     const [purchaseOrders, setPurchaseOrders] = useState([]);
-    const [assetLogs, setAssetLogs] = useState([]);
-    const [assets, setAssets] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
     const [filterVendor, setFilterVendor] = useState('all');
     const [categories, setCategories] = useState([]);
-    const [view, setView] = useState('stock'); // 'stock' | 'assets'
 
     // Log stock modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,36 +37,25 @@ export default function StockOverview() {
     const [panelStock, setPanelStock] = useState(null);
     const [stockLogs, setStockLogs] = useState([]);
 
-    // Label as asset modal
-    const [showAssetModal, setShowAssetModal] = useState(false);
-    const [assetStock, setAssetStock] = useState(null);
-    const [assetForm, setAssetForm] = useState(ASSET_FORM_EMPTY);
-    const [assetSubmitting, setAssetSubmitting] = useState(false);
-    const [assetError, setAssetError] = useState('');
-
     useEffect(() => { fetchData(); }, []);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [stockRes, catRes, poRes, logsRes, assetsRes, vendsRes] = await Promise.all([
+            const [stockRes, catRes, poRes, logsRes, vendsRes] = await Promise.all([
                 getStockOverview(),
                 getCategories(),
                 getPurchaseOrders(),
                 getStockLogs(),
-                getAssets().catch(() => ({ data: [] })),
                 getVendors().catch(() => ({ data: [] })),
             ]);
             setStocks(Array.isArray(stockRes.data) ? stockRes.data : []);
             setCategories(Array.isArray(catRes.data) ? catRes.data : []);
             setPurchaseOrders(Array.isArray(poRes.data) ? poRes.data : []);
-            const allLogs = Array.isArray(logsRes.data) ? logsRes.data : [];
-            setStockLogs(allLogs);
-            setAssetLogs(allLogs.filter(t => t.transactionType === 'ASSET_OUT'));
-            setAssets(Array.isArray(assetsRes.data) ? assetsRes.data : []);
+            setStockLogs(Array.isArray(logsRes.data) ? logsRes.data : []);
             setVendors(Array.isArray(vendsRes.data) ? vendsRes.data : []);
         } catch {
-            setStocks([]); setCategories([]); setPurchaseOrders([]); setStockLogs([]); setAssetLogs([]);
+            setStocks([]); setCategories([]); setPurchaseOrders([]); setStockLogs([]);
         } finally {
             setLoading(false);
         }
@@ -102,72 +81,6 @@ export default function StockOverview() {
     const handleReleaseClick = (po) => { setSelectedPO(po); setShowReceiveModal(true); };
     const handleModalClose = (refresh) => { setIsModalOpen(false); setSelectedStock(null); if (refresh) fetchData(); };
 
-    const openAssetModal = (stock) => {
-        const prefix = (stock.itemName || '').replace(/\s+/g, '').slice(0, 3).toUpperCase();
-        const existing = assets.filter(a => a.assetCode?.startsWith(prefix + '-'));
-        const assetCode = prefix ? `${prefix}-${String(existing.length + 1).padStart(3, '0')}` : '';
-        setAssetStock(stock);
-        setAssetForm({ ...ASSET_FORM_EMPTY, assetName: stock.itemName || '', assetCode, quantity: '1' });
-        setAssetError('');
-        setShowAssetModal(true);
-    };
-
-    const af = (k) => (e) => setAssetForm(prev => ({ ...prev, [k]: e.target.value }));
-
-    const handleAssetSubmit = async (e) => {
-        e.preventDefault();
-        if (!assetForm.assetName.trim()) { setAssetError('Asset name is required'); return; }
-        if (!assetForm.assetCode.trim()) { setAssetError('Asset code is required (must be unique)'); return; }
-        const qty = Number(assetForm.quantity);
-        if (!qty || qty <= 0) { setAssetError('Quantity must be greater than 0'); return; }
-        if (qty > Number(assetStock.quantityAvail)) {
-            setAssetError(`Cannot exceed available stock (${assetStock.quantityAvail})`);
-            return;
-        }
-
-        setAssetSubmitting(true);
-        setAssetError('');
-        try {
-            // 1. Create one asset record per unit in asset-manager
-            const prefix = assetForm.assetCode.replace(/-\d+$/, '');
-            const existingCount = assets.filter(a => a.assetCode?.startsWith(prefix + '-')).length;
-            const basePayload = {
-                assetName: assetForm.assetName,
-                serialNumber: assetForm.serialNumber || null,
-                make: assetForm.make || null,
-                model: assetForm.model || null,
-                purchaseDate: assetForm.purchaseDate || null,
-                purchasePrice: assetForm.purchasePrice ? Number(assetForm.purchasePrice) : null,
-                location: assetForm.location || null,
-                notes: assetForm.notes || null,
-                description: `Labeled from inventory: ${assetStock.itemName}${assetStock.itemCode ? ' (' + assetStock.itemCode + ')' : ''}`,
-                status: 'ACTIVE',
-            };
-            const createPromises = [];
-            for (let i = 0; i < qty; i++) {
-                const code = `${prefix}-${String(existingCount + i + 1).padStart(3, '0')}`;
-                createPromises.push(createAsset({ ...basePayload, assetCode: code }, user?.token));
-            }
-            await Promise.all(createPromises);
-
-            // 2. Deduct from inventory stock (single log entry for total qty)
-            await logStock({
-                movementType: 'ASSET_OUT',
-                storeId: assetStock.storeId,
-                itemId: assetStock.itemId,
-                quantity: qty,
-                notes: `Labeled as assets: ${prefix}-${String(existingCount + 1).padStart(3, '0')}${qty > 1 ? ` to ${prefix}-${String(existingCount + qty).padStart(3, '0')}` : ''}`,
-            });
-
-            setShowAssetModal(false);
-            fetchData();
-        } catch (err) {
-            setAssetError(err.response?.data?.message || err.response?.data || 'Failed to label as asset. Check asset code uniqueness.');
-        } finally {
-            setAssetSubmitting(false);
-        }
-    };
-
     const filteredStocks = stocks.filter(s => {
         const matchesSearch = (s.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
             (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
@@ -176,74 +89,47 @@ export default function StockOverview() {
         return matchesSearch && matchesCategory && matchesVendor;
     });
 
-    const filteredAssetLogs = assetLogs.filter(t =>
-        (t.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-    );
-
     return (
         <div className="main-content">
             <div className="page-header">
                 <div className="page-header-left">
                     <h1 className="page-title"><Package size={26} /> Stock Overview</h1>
-                    <p className="page-subtitle">Monitor inventory levels and label items as assets.</p>
+                    <p className="page-subtitle">Monitor inventory levels and stock transactions.</p>
                 </div>
-            </div>
-
-            {/* View toggle */}
-            <div className="so-view-toggle">
-                <button
-                    className={`btn btn-sm ${view === 'stock' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setView('stock')}
-                >
-                    <Package size={14} /> Stock
-                </button>
-                <button
-                    className={`btn btn-sm ${view === 'assets' ? 'btn-asset' : 'btn-secondary'}`}
-                    onClick={() => setView('assets')}
-                >
-                    <Tag size={14} /> Sent to Assets {assetLogs.length > 0 && `(${assetLogs.length})`}
-                </button>
             </div>
 
             {/* Filter Bar */}
             <div className="filter-bar">
-                {view === 'stock' && (
-                    <div className="filter-group">
-                        <label className="filter-label">Category</label>
-                        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
-                            <option value="all">All Categories</option>
-                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                        </select>
-                    </div>
-                )}
+                <div className="filter-group">
+                    <label className="filter-label">Category</label>
+                    <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
+                        <option value="all">All Categories</option>
+                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                    </select>
+                </div>
                 <div className="filter-group flex-1">
                     <div className="search-bar">
                         <Search size={16} />
                         <input
                             type="text"
-                            placeholder={view === 'stock' ? 'Search by product name or code...' : 'Search by item name...'}
+                            placeholder="Search by product name or code..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="search-bar-input"
                         />
                     </div>
                 </div>
-                {view === 'stock' && (
-                    <>
-                        <div className="filter-group">
-                            <label className="filter-label">Vendor</label>
-                            <select value={filterVendor} onChange={(e) => setFilterVendor(e.target.value)} className="filter-select">
-                                <option value="all">All Vendors</option>
-                                {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                            </select>
-                        </div>
-                    </>
-                )}
+                <div className="filter-group">
+                    <label className="filter-label">Vendor</label>
+                    <select value={filterVendor} onChange={(e) => setFilterVendor(e.target.value)} className="filter-select">
+                        <option value="all">All Vendors</option>
+                        {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                    </select>
+                </div>
             </div>
 
             {/* Stock Table + Detail Panel */}
-            {view === 'stock' && (
-                <div className="so-layout">
+            <div className="so-layout">
                     <div className="table-container so-table-wrap">
                         <div className="table-header">
                             <h3 className="table-title">Products ({filteredStocks.length})</h3>
@@ -309,18 +195,9 @@ export default function StockOverview() {
                                                                 : <span className="badge badge-success">Optimal</span>}
                                                     </td>
                                                     <td onClick={e => e.stopPropagation()}>
-                                                        <div className="action-group">
-                                                            <button onClick={() => handleLogStockClick(stock)} className="btn btn-sm btn-primary" title="Log stock transaction">
-                                                                Log
-                                                            </button>
-                                                            <button
-                                                                onClick={() => openAssetModal(stock)}
-                                                                className="btn btn-sm btn-asset"
-                                                                title="Label as asset"
-                                                            >
-                                                                <Tag size={13} /> Asset
-                                                            </button>
-                                                        </div>
+                                                        <button onClick={() => handleLogStockClick(stock)} className="btn btn-sm btn-primary" title="Log stock transaction">
+                                                            Log
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             );
@@ -400,50 +277,6 @@ export default function StockOverview() {
                         );
                     })()}
                 </div>
-            )}
-
-            {/* Sent to Assets view */}
-            {view === 'assets' && (
-                <div className="table-container">
-                    <div className="table-header">
-                        <h3 className="table-title so-assets-title">Sent to Assets ({filteredAssetLogs.length})</h3>
-                    </div>
-                    <div className="table-body">
-                        {loading ? (
-                            <div className="table-empty"><div className="spinner"></div></div>
-                        ) : filteredAssetLogs.length === 0 ? (
-                            <div className="table-empty">No stock labeled as assets yet. Click "Asset" on any stock row.</div>
-                        ) : (
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Item</th>
-                                        <th className="text-right">Qty Sent</th>
-                                        <th>Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredAssetLogs.map((log, idx) => (
-                                        <tr key={log.id || idx}>
-                                            <td className="text-xs text-muted">
-                                                {new Date(log.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </td>
-                                            <td><strong>{log.itemName}</strong></td>
-                                            <td className="text-right">
-                                                <span className="so-asset-qty">
-                                                    {Math.abs(Number(log.quantity))}
-                                                </span>
-                                            </td>
-                                            <td className="text-muted">{log.remarks || '—'}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* Log Stock modal */}
             {isModalOpen && selectedStock && (
@@ -463,76 +296,6 @@ export default function StockOverview() {
                 />
             )}
 
-            {/* Label as Asset modal */}
-            {showAssetModal && assetStock && (
-                <div className="modal-overlay active">
-                    <div className="modal modal-md">
-                        <div className="modal-header">
-                            <h2 className="modal-title so-modal-title">
-                                <Tag size={18} /> Label as Asset — {assetStock.itemName}
-                            </h2>
-                            <button className="modal-close" onClick={() => setShowAssetModal(false)}><X size={18} /></button>
-                        </div>
-                        <form onSubmit={handleAssetSubmit}>
-                            <div className="modal-body">
-                                {assetError && <div className="alert alert-error">{assetError}</div>}
-                                <div className="form-2col">
-                                    <div className="form-group">
-                                        <label className="form-label">Asset Name *</label>
-                                        <input className="form-input" value={assetForm.assetName} onChange={af('assetName')} required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Asset Code * <span className="text-muted so-label-hint">(must be unique)</span></label>
-                                        <input className="form-input" value={assetForm.assetCode} onChange={af('assetCode')} placeholder="e.g. AST-0001" required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Quantity to Label * <span className="text-muted so-label-hint">(available: {assetStock.quantityAvail})</span></label>
-                                        <input type="number" min="1" max={assetStock.quantityAvail} step="1" className="form-input" value={assetForm.quantity} onChange={af('quantity')} required />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Serial Number</label>
-                                        <input className="form-input" value={assetForm.serialNumber} onChange={af('serialNumber')} placeholder="Optional" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Make</label>
-                                        <input className="form-input" value={assetForm.make} onChange={af('make')} placeholder="Manufacturer" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Model</label>
-                                        <input className="form-input" value={assetForm.model} onChange={af('model')} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Purchase Date</label>
-                                        <input type="date" className="form-input" value={assetForm.purchaseDate} onChange={af('purchaseDate')} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Purchase Price (₹)</label>
-                                        <input type="number" min="0" step="0.01" className="form-input" value={assetForm.purchasePrice} onChange={af('purchasePrice')} placeholder="0.00" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Location</label>
-                                        <input className="form-input" value={assetForm.location} onChange={af('location')} placeholder="Ward / Room / Floor" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Notes</label>
-                                        <input className="form-input" value={assetForm.notes} onChange={af('notes')} placeholder="Optional notes" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowAssetModal(false)}>Cancel</button>
-                                <button
-                                    type="submit"
-                                    className="btn btn-purple"
-                                    disabled={assetSubmitting}
-                                >
-                                    {assetSubmitting ? 'Labeling...' : 'Label as Asset'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

@@ -37,7 +37,6 @@ export default function PurchaseOrders() {
 
     const [receiptModal, setReceiptModal] = useState(null);
     const [receiptQtys, setReceiptQtys] = useState({});
-    const [autoCreateAssets, setAutoCreateAssets] = useState(true);
 
     const [payModal, setPayModal] = useState(null);
     const [payForm, setPayForm] = useState(EMPTY_PAY);
@@ -126,7 +125,6 @@ export default function PurchaseOrders() {
         const init = {};
         (po.items || []).forEach(item => { init[item.id] = { qty: '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' }; });
         setReceiptQtys(init);
-        setAutoCreateAssets(true);
         setReceiptModal(po);
     };
 
@@ -167,25 +165,24 @@ export default function PurchaseOrders() {
         try {
             await recordPOReceipt(receiptModal.id, items);
 
-            // Auto-create assets for ASSIGN_ONLY items if checkbox is checked
-            const hasAssignOnlyItems = receiptModal?.items?.some(
-                item => item.inventoryItem?.consumptionType === 'ASSIGN_ONLY'
+            // Auto-create assets for items routed to Asset module (billingGroup === 'ASSET')
+            const hasAssetItems = receiptModal?.items?.some(
+                item => item.inventoryItem?.billingGroup === 'ASSET'
             );
 
-            if (autoCreateAssets && hasAssignOnlyItems) {
+            if (hasAssetItems) {
                 const assetsRes = await getAssets().catch(() => ({ data: [] }));
                 const existingAssets = Array.isArray(assetsRes.data) ? assetsRes.data : [];
 
                 for (const item of items) {
                     const poItem = receiptModal.items.find(i => i.id === item.poItemId);
                     const inv = poItem?.inventoryItem;
-                    if (inv?.consumptionType !== 'ASSIGN_ONLY') continue;
+                    if (inv?.billingGroup !== 'ASSET') continue;
 
                     const prefix = (inv.name || '').replace(/\s+/g, '').slice(0, 3).toUpperCase();
                     const existingForItem = existingAssets.filter(a => a.assetCode?.startsWith(prefix + '-'));
                     const qty = item.receivedQty;
 
-                    // Create one asset record per unit
                     const createPromises = [];
                     for (let i = 0; i < qty; i++) {
                         const code = `${prefix}-${String(existingForItem.length + i + 1).padStart(3, '0')}`;
@@ -198,7 +195,6 @@ export default function PurchaseOrders() {
                     }
                     await Promise.all(createPromises);
 
-                    // Log ASSET_OUT transaction to deduct from inventory stock
                     const startCode = `${prefix}-${String(existingForItem.length + 1).padStart(3, '0')}`;
                     const endCode = `${prefix}-${String(existingForItem.length + qty).padStart(3, '0')}`;
                     await logStock({
@@ -222,7 +218,7 @@ export default function PurchaseOrders() {
 
     const getDestination = (inv) => {
         if (!inv) return null;
-        if (inv.consumptionType === 'ASSIGN_ONLY') return { label: 'Asset Register', color: '#8b5cf6' };
+        if (inv.billingGroup === 'ASSET') return { label: 'Asset Register', color: '#8b5cf6' };
         if (inv.billingGroup === 'PHARMACY') return { label: 'Pharmacy Stock', color: '#10b981' };
         if (inv.billingGroup === 'OT') return { label: 'OT Stock', color: '#f59e0b' };
         if (inv.billingGroup === 'ROOM') return { label: 'Room / Ward Stock', color: '#3b82f6' };
@@ -569,31 +565,19 @@ export default function PurchaseOrders() {
                             <button className="modal-close" onClick={() => setReceiptModal(null)}><X size={18} /></button>
                         </div>
                         {(() => {
-                            const hasAssignOnlyItems = receiptModal?.items?.some(
-                                item => item.inventoryItem?.consumptionType === 'ASSIGN_ONLY'
+                            const hasAssetItems = receiptModal?.items?.some(
+                                item => item.inventoryItem?.billingGroup === 'ASSET'
                             );
-                            return hasAssignOnlyItems ? (
+                            return hasAssetItems ? (
                                 <div style={{
                                     background: '#fef3c7',
                                     borderBottom: '1px solid #fcd34d',
                                     padding: '0.75rem 1.25rem',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.5rem'
                                 }}>
                                     <div style={{ fontSize: '0.9rem', color: '#92400e' }}>
-                                        <strong>⚠️ Assets-type items in this order</strong><br />
-                                        These items will be <strong>automatically sent to the Asset Register</strong> upon receipt.
+                                        <strong>Asset items in this order</strong><br />
+                                        Items routed to the Asset Register will be <strong>automatically registered as assets</strong> upon receipt.
                                     </div>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', margin: 0 }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={autoCreateAssets}
-                                            onChange={e => setAutoCreateAssets(e.target.checked)}
-                                            style={{ cursor: 'pointer' }}
-                                        />
-                                        <span style={{ color: '#92400e' }}>Automatically create asset records</span>
-                                    </label>
                                 </div>
                             ) : null;
                         })()}
