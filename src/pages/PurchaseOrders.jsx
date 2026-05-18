@@ -184,6 +184,7 @@ export default function PurchaseOrders() {
                     const existingForItem = existingAssets.filter(a => a.assetCode?.startsWith(prefix + '-'));
                     const qty = item.receivedQty;
 
+                    const poDate = receiptModal.createdAt ? receiptModal.createdAt.split('T')[0] : null;
                     const createPromises = [];
                     for (let i = 0; i < qty; i++) {
                         const code = `${prefix}-${String(existingForItem.length + i + 1).padStart(3, '0')}`;
@@ -192,6 +193,9 @@ export default function PurchaseOrders() {
                             assetCode: code,
                             description: `Auto-created from PO receipt: ${receiptModal.poNumber}`,
                             status: 'ACTIVE',
+                            vendor: receiptModal.vendor?.id ? { id: receiptModal.vendor.id } : null,
+                            purchaseDate: poDate,
+                            purchasePrice: poItem?.unitPrice || null,
                         }, user?.token));
                     }
                     await Promise.all(createPromises);
