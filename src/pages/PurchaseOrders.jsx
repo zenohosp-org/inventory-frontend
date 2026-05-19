@@ -43,6 +43,8 @@ export default function PurchaseOrders() {
     const [bankLoading, setBankLoading] = useState(false);
 
     const [submitting, setSubmitting] = useState(false);
+    const [pageIndex, setPageIndex] = useState(0);
+    const pageSize = 20;
 
     useEffect(() => { fetchData(); }, []);
 
@@ -283,6 +285,9 @@ export default function PurchaseOrders() {
         }
     };
 
+    const totalPages = Math.ceil(pos.length / pageSize);
+    const paginatedPos = pos.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+
     return (
         <div className="main-content">
             <div className="page-header">
@@ -349,7 +354,7 @@ export default function PurchaseOrders() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {pos.map(po => {
+                                {paginatedPos.map(po => {
                                     const s = STATUS_MAP[po.status] || { label: po.status || '-', color: 'badge-secondary' };
                                     const canReceive = po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED' || po.status === 'RECEIVED';
                                     const bill = billsByPoId[po.id];
@@ -393,7 +398,27 @@ export default function PurchaseOrders() {
                     )}
                 </div>
                 <div className="table-footer">
-                    <span className="table-info">Total: {pos.length} purchase orders</span>
+                    <span className="table-info">
+                        Showing {pos.length === 0 ? 0 : pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, pos.length)} of {pos.length} purchase orders
+                    </span>
+                    {totalPages > 1 && (
+                        <div className="pagination">
+                            <button className="pagination-item" disabled={pageIndex === 0} onClick={() => setPageIndex(pageIndex - 1)}>← Previous</button>
+                            {(() => {
+                                const visible = Math.min(totalPages, 5);
+                                const start = Math.max(0, Math.min(pageIndex - 2, totalPages - visible));
+                                return Array.from({ length: visible }).map((_, i) => {
+                                    const page = start + i;
+                                    return (
+                                        <button key={page} className={`pagination-item ${pageIndex === page ? 'active' : ''}`} onClick={() => setPageIndex(page)}>
+                                            {page + 1}
+                                        </button>
+                                    );
+                                });
+                            })()}
+                            <button className="pagination-item" disabled={pageIndex >= totalPages - 1} onClick={() => setPageIndex(pageIndex + 1)}>Next →</button>
+                        </div>
+                    )}
                 </div>
             </div>
 

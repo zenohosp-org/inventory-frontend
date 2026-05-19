@@ -47,6 +47,8 @@ export default function InventoryItems() {
     const [editingItem, setEditingItem] = useState(null);
     const [formData, setFormData] = useState(EMPTY_FORM);
     const [activeDropdown, setActiveDropdown] = useState(null);
+    const [pageIndex, setPageIndex] = useState(0);
+    const pageSize = 20;
 
     useEffect(() => { fetchData(); }, []);
 
@@ -183,6 +185,11 @@ export default function InventoryItems() {
         return matchesSearch && matchesCategory;
     });
 
+    useEffect(() => { setPageIndex(0); }, [searchTerm, selectedCategory]);
+
+    const totalPages = Math.ceil(filteredItems.length / pageSize);
+    const paginatedItems = filteredItems.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+
     const selectedType = itemTypes.find(t => t.id === formData.itemTypeId);
 
     return (
@@ -242,7 +249,7 @@ export default function InventoryItems() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredItems.map(item => (
+                                {paginatedItems.map(item => (
                                     <tr key={item.id}>
                                         <td><span className="mono-sm">{item.code || '-'}</span></td>
                                         <td><strong>{item.name}</strong></td>
@@ -290,7 +297,27 @@ export default function InventoryItems() {
                     )}
                 </div>
                 <div className="table-footer">
-                    <span className="table-info">Showing {filteredItems.length} of {items.length} products</span>
+                    <span className="table-info">
+                        Showing {filteredItems.length === 0 ? 0 : pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, filteredItems.length)} of {filteredItems.length} products
+                    </span>
+                    {totalPages > 1 && (
+                        <div className="pagination">
+                            <button className="pagination-item" disabled={pageIndex === 0} onClick={() => setPageIndex(pageIndex - 1)}>← Previous</button>
+                            {(() => {
+                                const visible = Math.min(totalPages, 5);
+                                const start = Math.max(0, Math.min(pageIndex - 2, totalPages - visible));
+                                return Array.from({ length: visible }).map((_, i) => {
+                                    const page = start + i;
+                                    return (
+                                        <button key={page} className={`pagination-item ${pageIndex === page ? 'active' : ''}`} onClick={() => setPageIndex(page)}>
+                                            {page + 1}
+                                        </button>
+                                    );
+                                });
+                            })()}
+                            <button className="pagination-item" disabled={pageIndex >= totalPages - 1} onClick={() => setPageIndex(pageIndex + 1)}>Next →</button>
+                        </div>
+                    )}
                 </div>
             </div>
 
