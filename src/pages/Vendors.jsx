@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, X, MoreVertical } from 'lucide-react';
 import { getVendors, createVendor, updateVendor, deleteVendor } from '../api/client';
+import { withCache, invalidate } from '../cache';
 
 const GST_TYPES = ['REGULAR', 'COMPOSITION', 'UNREGISTERED', 'CONSUMER', 'OVERSEAS'];
 
@@ -43,7 +44,7 @@ export default function Vendors() {
     const fetchVendors = async () => {
         setLoading(true);
         try {
-            const res = await getVendors();
+            const res = await withCache('vendors', getVendors);
             let data = res.data || res;
             if (typeof data === 'string') data = JSON.parse(data);
             setVendors(Array.isArray(data) ? data : []);
@@ -109,6 +110,7 @@ export default function Vendors() {
             } else {
                 await createVendor(formData);
             }
+            invalidate('vendors');
             setShowModal(false);
             fetchVendors();
         } catch {
@@ -120,6 +122,7 @@ export default function Vendors() {
         if (!window.confirm('Delete this vendor?')) return;
         try {
             await deleteVendor(id);
+            invalidate('vendors');
             fetchVendors();
         } catch {
             alert('Failed to delete vendor');

@@ -3,6 +3,7 @@ import { Package, Search, X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Rotate
 import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
 import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors } from '../api/client';
+import { withCache } from '../cache';
 import './StockOverview.css';
 
 const TXN_TYPE = {
@@ -44,10 +45,10 @@ export default function StockOverview() {
         try {
             const [stockRes, catRes, poRes, logsRes, vendsRes] = await Promise.all([
                 getStockOverview(),
-                getCategories(),
+                withCache('categories', getCategories),
                 getPurchaseOrders(),
                 getStockLogs(),
-                getVendors().catch(() => ({ data: [] })),
+                withCache('vendors', getVendors).catch(() => ({ data: [] })),
             ]);
             setStocks(Array.isArray(stockRes.data) ? stockRes.data : []);
             setCategories(Array.isArray(catRes.data) ? catRes.data : []);

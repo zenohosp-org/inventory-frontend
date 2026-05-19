@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Layers, Plus, Edit2, Trash2, X, MoreVertical } from 'lucide-react';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../api/client';
+import { invalidate } from '../cache';
 
 
 export default function InventoryCategories() {
@@ -65,6 +66,7 @@ export default function InventoryCategories() {
             } else {
                 await createCategory(formData);
             }
+            invalidate('categories');
             setShowModal(false);
             fetchCategories();
         } catch (error) {
@@ -77,6 +79,7 @@ export default function InventoryCategories() {
         if (window.confirm('Are you sure you want to delete this category?')) {
             try {
                 await deleteCategory(id);
+                invalidate('categories');
                 fetchCategories();
             } catch (error) {
                 console.error('Error deleting category:', error);

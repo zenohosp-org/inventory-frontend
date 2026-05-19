@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Plus, Edit2, Trash2, Search, MoreVertical } from 'lucide-react';
 import { getItems, getCategories, createItem, updateItem, deleteItem, getItemTypes } from '../api/client';
+import { withCache, invalidate } from '../cache';
 import SearchableSelect from '../components/SearchableSelect';
 
 const GST_OPTIONS = [0, 5, 12, 18, 28];
@@ -62,7 +63,7 @@ export default function InventoryItems() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [itemsRes, catsRes, typesRes] = await Promise.all([getItems(), getCategories(), getItemTypes()]);
+            const [itemsRes, catsRes, typesRes] = await Promise.all([getItems(), withCache('categories', getCategories), withCache('itemTypes', getItemTypes)]);
             const parse = (r) => { let d = r.data || r; if (typeof d === 'string') d = JSON.parse(d); return Array.isArray(d) ? d : []; };
             setItems(parse(itemsRes));
             setCategories(parse(catsRes));
@@ -122,6 +123,7 @@ export default function InventoryItems() {
             } else {
                 await createItem({ ...payload, isActive: true });
             }
+            invalidate('items');
             closeModal();
             fetchData();
         } catch {
@@ -133,6 +135,7 @@ export default function InventoryItems() {
         if (!window.confirm('Delete this product?')) return;
         try {
             await deleteItem(id);
+            invalidate('items');
             fetchData();
         } catch {
             alert('Failed to delete product');

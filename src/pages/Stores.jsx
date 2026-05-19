@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Store, Plus, Edit2, Trash2, X, Eye, MoreVertical } from 'lucide-react';
 import { getStores, createStore, updateStore, deleteStore } from '../api/client';
+import { invalidate } from '../cache';
 
 export default function Stores() {
     const [stores, setStores] = useState([]);
@@ -73,6 +74,7 @@ export default function Stores() {
             } else {
                 await createStore(formData);
             }
+            invalidate('stores');
             setShowModal(false);
             fetchStores();
         } catch (error) {
@@ -85,6 +87,7 @@ export default function Stores() {
         if (window.confirm('Are you sure you want to delete this store?')) {
             try {
                 await deleteStore(id);
+                invalidate('stores');
                 fetchStores();
             } catch (error) {
                 console.error('Error deleting store:', error);

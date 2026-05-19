@@ -9,6 +9,7 @@ import {
     createAsset, getAssets, logStock,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { withCache } from '../cache';
 import SearchableSelect from '../components/SearchableSelect';
 import './PurchaseOrders.css';
 
@@ -60,7 +61,7 @@ export default function PurchaseOrders() {
         setError(null);
         try {
             const [posRes, vendsRes, itemsRes, storesRes, billsRes] = await Promise.all([
-                getPurchaseOrders(), getVendors(), getItems(), getStores(), getPOBills(),
+                getPurchaseOrders(), withCache('vendors', getVendors), withCache('items', getItems), withCache('stores', getStores), getPOBills(),
             ]);
             setPos(extractArray(posRes));
             setVendors(extractArray(vendsRes));
