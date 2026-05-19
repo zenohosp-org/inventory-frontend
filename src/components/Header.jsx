@@ -5,7 +5,8 @@ import '../styles/header.css';
 export default function Header({ onMenuClick }) {
     const { user, logout } = useAuth();
 
-    const nameParts = (user?.name || '').split(' ').filter(Boolean);
+    const displayName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email || 'User';
+    const nameParts = displayName.split(' ').filter(Boolean);
     const initials = nameParts.length >= 2
         ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
         : (nameParts[0]?.[0] ?? 'U');
@@ -35,7 +36,7 @@ export default function Header({ onMenuClick }) {
                         {initials.toUpperCase()}
                     </div>
                     <div className="inv-header-name-group">
-                        <span className="inv-header-name">{user?.name || 'User'}</span>
+                        <span className="inv-header-name">{displayName}</span>
                         <span className="inv-header-role">{user?.role}</span>
                     </div>
                     <button
