@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Plus, Edit2, Trash2, Search, MoreVertical } from 'lucide-react';
 import { getItems, getCategories, createItem, updateItem, deleteItem, getItemTypes } from '../api/client';
+import SearchableSelect from '../components/SearchableSelect';
 
 const GST_OPTIONS = [0, 5, 12, 18, 28];
 
@@ -348,10 +349,15 @@ export default function InventoryItems() {
                                             </div>
                                             <div className="form-group" style={{ margin: 0 }}>
                                                 <label className="form-label required">Category</label>
-                                                <select name="categoryId" value={formData.categoryId} onChange={handleInputChange} className="form-select" required>
-                                                    <option value="">Select Category</option>
-                                                    {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                                                </select>
+                                                <SearchableSelect
+                                                    value={formData.categoryId}
+                                                    onChange={v => setFormData(p => ({ ...p, categoryId: v }))}
+                                                    options={categories}
+                                                    getId={c => c.id}
+                                                    getLabel={c => c.name}
+                                                    placeholder="Select Category"
+                                                    required
+                                                />
                                             </div>
                                         </div>
                                         <div className="form-group" style={{ margin: 0 }}>

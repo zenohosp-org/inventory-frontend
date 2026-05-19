@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, X, Edit2, Trash2, Package, AlertCircle, MoreVertical } from 'lucide-react';
 import { getKits, createKit, updateKit, deleteKit, consumeKit, getItems, getStores } from '../api/client';
+import SearchableSelect from '../components/SearchableSelect';
 import './InventoryKits.css';
 
 const EMPTY_FORM = { name: '', code: '', description: '', patientBillingPrice: '', insuranceBillingPrice: '', components: [] };
@@ -640,14 +641,14 @@ export default function InventoryKits() {
 
                             <div className="form-group">
                                 <label className="form-label">Store *</label>
-                                <select
-                                    className="form-input"
+                                <SearchableSelect
                                     value={consumeForm.storeId}
-                                    onChange={(e) => setConsumeForm(prev => ({ ...prev, storeId: e.target.value }))}
-                                >
-                                    <option value="">Select Store</option>
-                                    {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
+                                    onChange={v => setConsumeForm(prev => ({ ...prev, storeId: v }))}
+                                    options={stores}
+                                    getId={s => s.id}
+                                    getLabel={s => s.name}
+                                    placeholder="Select Store"
+                                />
                             </div>
 
                             <div className="form-group">

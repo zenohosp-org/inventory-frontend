@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, RotateCcw, ActivitySquare, Trash2 } from 'lucide-react';
 import { getVendors, logStock } from '../api/client';
+import SearchableSelect from '../components/SearchableSelect';
 
 
 export default function LogStockModal({ stock, onClose, onSuccess }) {
@@ -177,15 +178,15 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                             <div className="grid grid-cols-2 gap-5">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Vendor <span className="text-rose-500">*</span></label>
-                                    <select
-                                        required
+                                    <SearchableSelect
                                         value={vendorId}
-                                        onChange={e => setVendorId(e.target.value)}
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                                    >
-                                        <option value="">Select Vendor</option>
-                                        {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                                    </select>
+                                        onChange={setVendorId}
+                                        options={vendors}
+                                        getId={v => v.id}
+                                        getLabel={v => v.name}
+                                        placeholder="Select Vendor"
+                                        required
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Expiry Date</label>

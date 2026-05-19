@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { transferStock } from '../api/client';
+import SearchableSelect from './SearchableSelect';
 
 export default function TransferStockModal({ stock, fromStoreId, stores, onClose, onSuccess }) {
     const [toStoreId, setToStoreId] = useState('');
@@ -69,17 +70,15 @@ export default function TransferStockModal({ stock, fromStoreId, stores, onClose
                         </div>
                         <div className="form-group">
                             <label className="form-label">Destination Store</label>
-                            <select
-                                className="form-input"
+                            <SearchableSelect
                                 value={toStoreId}
-                                onChange={e => setToStoreId(e.target.value)}
+                                onChange={setToStoreId}
+                                options={destinationStores}
+                                getId={s => s.id}
+                                getLabel={s => s.name}
+                                placeholder="Select store..."
                                 required
-                            >
-                                <option value="">Select store...</option>
-                                {destinationStores.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </select>
+                            />
                         </div>
                         <div className="form-group">
                             <label className="form-label">Quantity to Transfer</label>

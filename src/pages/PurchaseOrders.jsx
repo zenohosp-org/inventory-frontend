@@ -9,6 +9,7 @@ import {
     createAsset, getAssets, logStock,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import SearchableSelect from '../components/SearchableSelect';
 import './PurchaseOrders.css';
 
 const STATUS_MAP = {
@@ -434,32 +435,28 @@ export default function PurchaseOrders() {
                             <div className="modal-body">
                                 <div className="form-group">
                                     <label className="form-label required">Store</label>
-                                    <select
-                                        className="form-select"
+                                    <SearchableSelect
                                         value={formData.storeId}
-                                        onChange={e => setFormData(f => ({ ...f, storeId: e.target.value }))}
+                                        onChange={v => setFormData(f => ({ ...f, storeId: v }))}
+                                        options={activeStores}
+                                        getId={s => s.id}
+                                        getLabel={s => `${s.name} (${s.type})`}
+                                        placeholder="Select Store"
                                         required
-                                    >
-                                        <option value="">Select Store</option>
-                                        {activeStores.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name} ({s.type})</option>
-                                        ))}
-                                    </select>
+                                    />
                                 </div>
 
                                 <div className="form-group">
                                     <label className="form-label required">Vendor</label>
-                                    <select
-                                        className="form-select"
+                                    <SearchableSelect
                                         value={formData.vendorId}
-                                        onChange={e => setFormData(f => ({ ...f, vendorId: e.target.value }))}
+                                        onChange={v => setFormData(f => ({ ...f, vendorId: v }))}
+                                        options={vendors}
+                                        getId={v => v.id}
+                                        getLabel={v => v.name}
+                                        placeholder="Select Vendor"
                                         required
-                                    >
-                                        <option value="">Select Vendor</option>
-                                        {vendors.map(v => (
-                                            <option key={v.id} value={v.id}>{v.name}</option>
-                                        ))}
-                                    </select>
+                                    />
                                 </div>
 
                                 <div className="form-group">
@@ -776,18 +773,14 @@ export default function PurchaseOrders() {
                                 ) : bankAccounts.length === 0 ? (
                                     <p className="form-help">No bank accounts found. Add one in the Finance app.</p>
                                 ) : (
-                                    <select
-                                        className="form-select"
+                                    <SearchableSelect
                                         value={payForm.bankAccountId}
-                                        onChange={e => setPayForm(f => ({ ...f, bankAccountId: e.target.value }))}
-                                    >
-                                        <option value="">Select Bank Account (optional)</option>
-                                        {bankAccounts.map(acc => (
-                                            <option key={acc.id} value={acc.id}>
-                                                {acc.accountName} — {acc.accountType}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        onChange={v => setPayForm(f => ({ ...f, bankAccountId: v }))}
+                                        options={bankAccounts}
+                                        getId={a => a.id}
+                                        getLabel={a => `${a.accountName} — ${a.accountType}`}
+                                        placeholder="Select Bank Account (optional)"
+                                    />
                                 )}
                             </div>
                             <div className="form-group">
