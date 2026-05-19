@@ -63,7 +63,7 @@ export default function InventoryItems() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [itemsRes, catsRes, typesRes] = await Promise.all([getItems(), withCache('categories', getCategories), withCache('itemTypes', getItemTypes)]);
+            const [itemsRes, catsRes, typesRes] = await Promise.all([withCache('items', getItems), withCache('categories', getCategories), withCache('itemTypes', getItemTypes)]);
             const parse = (r) => { let d = r.data || r; if (typeof d === 'string') d = JSON.parse(d); return Array.isArray(d) ? d : []; };
             setItems(parse(itemsRes));
             setCategories(parse(catsRes));
