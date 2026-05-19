@@ -168,7 +168,7 @@ export default function Layout({ children }) {
 
             {/* Header + Main */}
             <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <Header onMenuClick={() => setSidebarOpen(o => !o)} />
+                <Header />
                 <main className="main-content" style={{ flex: 1, gridColumn: 'unset', gridRow: 'unset' }}>
                     {children}
                 </main>
