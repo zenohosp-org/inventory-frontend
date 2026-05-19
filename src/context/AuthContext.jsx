@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
         }
         getMe()
             .then((res) => {
-                const userData = res.data.data || res.data;
+                const userData = mapProfileToUser(res.data.data || res.data);
                 sessionStorage.setItem('inventory_user', JSON.stringify(userData));
                 setUser(userData);
             })
@@ -155,3 +155,22 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
+function nameFromEmail(email = '') {
+    return (email || '').split('@')[0].split(/[._-]/).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+
+function mapProfileToUser(profile) {
+    const raw = profile || {};
+    const email = raw.email ?? '';
+    const parts = nameFromEmail(email).split(' ');
+    return {
+        userId: raw.userId ?? '',
+        email,
+        firstName: raw.firstName || parts[0] || '',
+        lastName: raw.lastName || parts.slice(1).join(' ') || '',
+        role: (raw.role ?? '').toLowerCase(),
+        hospitalId: raw.hospitalId ?? '',
+        modules: raw.modules ?? [],
+    };
+}

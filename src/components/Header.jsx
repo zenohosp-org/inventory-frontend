@@ -5,11 +5,8 @@ import '../styles/header.css';
 export default function Header({ onMenuClick }) {
     const { user, logout } = useAuth();
 
-    const displayName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email || 'User';
-    const nameParts = displayName.split(' ').filter(Boolean);
-    const initials = nameParts.length >= 2
-        ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
-        : (nameParts[0]?.[0] ?? 'U');
+    const displayName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User';
+    const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}` || 'U';
 
     return (
         <header className="inv-header">
