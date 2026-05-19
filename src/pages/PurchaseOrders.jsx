@@ -19,7 +19,7 @@ const STATUS_MAP = {
     BILLED: { label: 'Billed', color: 'badge-secondary' },
 };
 
-const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', itemSearch: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
+const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
 const EMPTY_PAY = { paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
@@ -92,7 +92,6 @@ export default function PurchaseOrders() {
         next[idx] = {
             ...next[idx],
             itemId: selectedItem.id,
-            itemSearch: selectedItem.name,
             gstPercent: selectedItem.gstPercent ?? 0,
         };
         setFormData(f => ({ ...f, items: next }));
@@ -473,41 +472,25 @@ export default function PurchaseOrders() {
                                     <label className="form-label">Line Items</label>
                                     <div className="po-line-items">
                                         {formData.items.map((item, idx) => {
-                                            const filtered = items.filter(i =>
-                                                i.name.toLowerCase().includes((item.itemSearch || '').toLowerCase()) ||
-                                                i.code?.toLowerCase().includes((item.itemSearch || '').toLowerCase())
-                                            );
                                             const lineBase = Number(item.quantity) * Number(item.unitPrice);
                                             const lineGst = lineBase * ((Number(item.gstPercent) || 0) / 100);
                                             return (
                                                 <div key={idx} className="po-line-item">
-                                                    <div style={{ position: 'relative', flex: 2 }}>
+                                                    <div style={{ flex: 2 }}>
                                                         <span className="po-line-item-label">Product</span>
-                                                        <input
-                                                            type="text"
-                                                            className="form-input"
-                                                            value={item.itemSearch || ''}
-                                                            onChange={e => handleItemChange(idx, 'itemSearch', e.target.value)}
+                                                        <SearchableSelect
+                                                            value={item.itemId}
+                                                            onChange={v => {
+                                                                const found = items.find(i => i.id === v);
+                                                                if (found) handleItemSelect(idx, found);
+                                                                else handleItemChange(idx, 'itemId', '');
+                                                            }}
+                                                            options={items}
+                                                            getId={i => i.id}
+                                                            getLabel={i => i.name}
                                                             placeholder="Search product..."
-                                                            autoComplete="off"
                                                             required={!item.itemId}
                                                         />
-                                                        {!item.itemId && filtered.length > 0 && (
-                                                            <div className="po-product-dropdown">
-                                                                {filtered.map(i => (
-                                                                    <div key={i.id} className="po-product-option"
-                                                                        onMouseDown={() => handleItemSelect(idx, i)}>
-                                                                        <span>{i.name}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                        {item.itemId && (
-                                                            <button type="button" className="po-clear-item"
-                                                                onClick={() => handleItemChange(idx, 'itemSearch', '') || handleItemChange(idx, 'itemId', '')}>
-                                                                ×
-                                                            </button>
-                                                        )}
                                                     </div>
                                                     <div>
                                                         <span className="po-line-item-label">GST %</span>
@@ -555,7 +538,7 @@ export default function PurchaseOrders() {
                                     <button
                                         type="button"
                                         className="btn btn-sm btn-secondary po-add-item"
-                                        onClick={() => setFormData(f => ({ ...f, items: [...f.items, { itemId: '', itemSearch: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] }))}
+                                        onClick={() => setFormData(f => ({ ...f, items: [...f.items, { itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] }))}
                                     >
                                         <Plus size={15} />
                                         Add Item
