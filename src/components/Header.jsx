@@ -1,8 +1,8 @@
-import { Menu, Bell, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/header.css';
 
-export default function Header({ onMenuClick }) {
+export default function Header() {
     const { user, logout } = useAuth();
 
     const displayName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User';
@@ -10,22 +10,9 @@ export default function Header({ onMenuClick }) {
 
     return (
         <header className="inv-header">
-            <button
-                onClick={onMenuClick}
-                className="inv-header-menu-btn"
-                aria-label="Toggle sidebar"
-            >
-                <Menu size={20} />
-            </button>
-
             <span className="inv-header-title">Inventory Management</span>
 
             <div className="inv-header-right">
-                <button className="inv-header-bell-btn" aria-label="Notifications">
-                    <Bell size={16} />
-                    <span className="inv-header-bell-dot" />
-                </button>
-
                 <div className="inv-header-divider" />
 
                 <div className="inv-header-user">
