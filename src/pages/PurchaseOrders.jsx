@@ -175,8 +175,10 @@ export default function PurchaseOrders() {
             );
 
             if (hasAssetItems) {
-                const assetsRes = await getAssets().catch(() => ({ data: [] }));
+                const assetsRes = await getAssets(user?.token);
                 const existingAssets = Array.isArray(assetsRes.data) ? assetsRes.data : [];
+                // Track codes generated in this run so same-prefix items don't collide
+                const generatedCodes = new Set();
 
                 for (const item of items) {
                     const poItem = receiptModal.items.find(i => i.id === item.poItemId);
@@ -184,13 +186,26 @@ export default function PurchaseOrders() {
                     if (inv?.billingGroup !== 'ASSET') continue;
 
                     const prefix = (inv.name || '').replace(/\s+/g, '').slice(0, 3).toUpperCase();
-                    const existingForItem = existingAssets.filter(a => a.assetCode?.startsWith(prefix + '-'));
+                    const existingForPrefix = existingAssets.filter(a => a.assetCode?.startsWith(prefix + '-'));
+                    // Find highest sequence number already used (DB + this run) to avoid gaps causing collisions
+                    const maxExisting = existingForPrefix.reduce((max, a) => {
+                        const n = parseInt(a.assetCode?.split('-').pop(), 10);
+                        return isNaN(n) ? max : Math.max(max, n);
+                    }, 0);
+                    const maxGenerated = [...generatedCodes]
+                        .filter(c => c.startsWith(prefix + '-'))
+                        .reduce((max, c) => {
+                            const n = parseInt(c.split('-').pop(), 10);
+                            return isNaN(n) ? max : Math.max(max, n);
+                        }, 0);
+                    const baseSeq = Math.max(maxExisting, maxGenerated);
                     const qty = item.receivedQty;
 
                     const poDate = receiptModal.createdAt ? receiptModal.createdAt.split('T')[0] : null;
                     const createPromises = [];
                     for (let i = 0; i < qty; i++) {
-                        const code = `${prefix}-${String(existingForItem.length + i + 1).padStart(3, '0')}`;
+                        const code = `${prefix}-${String(baseSeq + i + 1).padStart(3, '0')}`;
+                        generatedCodes.add(code);
                         createPromises.push(createAsset({
                             assetName: inv.name,
                             assetCode: code,
@@ -203,8 +218,8 @@ export default function PurchaseOrders() {
                     }
                     await Promise.all(createPromises);
 
-                    const startCode = `${prefix}-${String(existingForItem.length + 1).padStart(3, '0')}`;
-                    const endCode = `${prefix}-${String(existingForItem.length + qty).padStart(3, '0')}`;
+                    const startCode = `${prefix}-${String(baseSeq + 1).padStart(3, '0')}`;
+                    const endCode = `${prefix}-${String(baseSeq + qty).padStart(3, '0')}`;
                     await logStock({
                         movementType: 'ASSET_OUT',
                         storeId: receiptModal.store?.id,
