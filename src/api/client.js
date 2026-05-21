@@ -125,8 +125,8 @@ export const updatePurchaseOrder = (id, data) => api.put(`/api/inventory/purchas
 export const deletePurchaseOrder = (id) => api.delete(`/api/inventory/purchase-orders/${id}`);
 
 // ── PO Receipt Workflow ──
-export const recordPOReceipt = (poId, items) =>
-    api.post(`/api/inventory/po/${poId}/record-receipt`, { items });
+export const recordPOReceipt = (poId, items, storeId) =>
+    api.post(`/api/inventory/po/${poId}/record-receipt`, { items, storeId });
 
 export const convertPOToBill = (poId) =>
     api.post(`/api/inventory/po/${poId}/convert-to-bill`);
@@ -147,6 +147,12 @@ export const getPOBillById = (billId) => api.get(`/api/po-bills/${billId}`);
 // ── Pay Advance ──
 export const payAdvancePO = (poId, data) =>
     api.post(`/api/inventory/po/${poId}/pay-advance`, data);
+
+// ── HMS API (infrastructure — Buildings & Floors) ──
+export const HMS_API_URL = import.meta.env?.VITE_HMS_API_URL || 'https://api-hms.zenohosp.com';
+const hmsApi = axios.create({ baseURL: HMS_API_URL, withCredentials: true });
+export const getHmsInfrastructure = (hospitalId) =>
+    hmsApi.get(`/api/ipd/infrastructure?hospitalId=${hospitalId}`);
 
 // ── Finance API (bank accounts for Pay Advance modal) ──
 export const FINANCE_API_URL = import.meta.env?.VITE_FINANCE_API_URL || 'https://api-finance.zenohosp.com';
