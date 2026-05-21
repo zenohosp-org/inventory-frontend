@@ -1,0 +1,43 @@
+.grn-row {
+    cursor: pointer;
+}
+
+.grn-row:hover {
+    background: var(--bg-hover, #f8fafc);
+}
+
+.grn-chevron {
+    color: var(--text-muted, #94a3b8);
+}
+
+.grn-detail-row td {
+    background: var(--bg-subtle, #f8fafc);
+}
+
+.grn-detail {
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.grn-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.grn-items-table th {
+    text-align: left;
+    padding: 0.375rem 0.75rem;
+    color: var(--text-secondary, #64748b);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.grn-items-table td {
+    padding: 0.375rem 0.75rem;
+    border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.grn-items-table tr:last-child td {
+    border-bottom: none;
+}

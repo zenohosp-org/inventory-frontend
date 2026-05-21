@@ -20,7 +20,7 @@ const STATUS_MAP = {
     BILLED: { label: 'Billed', color: 'badge-secondary' },
 };
 
-const EMPTY_FORM = { vendorId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
+const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
 const EMPTY_PAY = { paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
@@ -39,7 +39,6 @@ export default function PurchaseOrders() {
 
     const [receiptModal, setReceiptModal] = useState(null);
     const [receiptQtys, setReceiptQtys] = useState({});
-    const [receiptStoreId, setReceiptStoreId] = useState('');
 
     const [payModal, setPayModal] = useState(null);
     const [payForm, setPayForm] = useState(EMPTY_PAY);
@@ -103,10 +102,12 @@ export default function PurchaseOrders() {
         e.preventDefault();
         const validItems = formData.items.filter(i => i.itemId && i.quantity > 0);
         if (!formData.vendorId) { alert('Please select a vendor'); return; }
+        if (!formData.storeId) { alert('Please select a store'); return; }
         if (validItems.length === 0) { alert('Please add at least one item'); return; }
         try {
             await createPurchaseOrder({
                 vendorId: formData.vendorId,
+                storeId: formData.storeId,
                 expectedDate: formData.expectedDate || null,
                 items: validItems.map(i => ({
                     itemId: i.itemId,
@@ -125,15 +126,14 @@ export default function PurchaseOrders() {
     // ── Record Receipt ──
     const openReceiptModal = (po) => {
         const init = {};
-        (po.items || []).forEach(item => { init[item.id] = { qty: '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' }; });
+        (po.items || []).forEach(item => {
+            init[item.id] = { qty: '', storeId: po.store?.id || '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' };
+        });
         setReceiptQtys(init);
-        setReceiptStoreId('');
         setReceiptModal(po);
     };
 
     const handleReceiptSubmit = async () => {
-        if (!receiptStoreId) { alert('Please select a store to receive into'); return; }
-
         const items = Object.entries(receiptQtys)
             .filter(([, val]) => val.qty !== '' && Number(val.qty) > 0)
             .map(([poItemId, val]) => {
@@ -141,6 +141,7 @@ export default function PurchaseOrders() {
                 const isPharmacy = poItem?.inventoryItem?.billingGroup === 'PHARMACY';
                 return {
                     poItemId,
+                    storeId: val.storeId || null,
                     receivedQty: Number(val.qty),
                     batchNumber: val.batchNumber || null,
                     expiryDate: val.expiryDate || null,
@@ -150,12 +151,15 @@ export default function PurchaseOrders() {
             });
         if (items.length === 0) return;
 
-        // Validate required batch/expiry fields
+        // Validate required fields per item
         const missingFields = [];
         for (const item of items) {
             const poItem = receiptModal.items.find(i => i.id === item.poItemId);
             const val = receiptQtys[item.poItemId];
             const isPharmacy = poItem?.inventoryItem?.billingGroup === 'PHARMACY';
+            if (!item.storeId) {
+                missingFields.push(`${poItem.inventoryItem.name}: Store required`);
+            }
             if ((poItem?.inventoryItem?.batchRequired || isPharmacy) && !val?.batchNumber?.trim()) {
                 missingFields.push(`${poItem.inventoryItem.name}: Batch No required`);
             }
@@ -169,7 +173,7 @@ export default function PurchaseOrders() {
         }
         setSubmitting(true);
         try {
-            await recordPOReceipt(receiptModal.id, items, receiptStoreId);
+            await recordPOReceipt(receiptModal.id, items);
 
             // Auto-create assets for items routed to Asset module (billingGroup === 'ASSET')
             const hasAssetItems = receiptModal?.items?.some(
@@ -224,7 +228,7 @@ export default function PurchaseOrders() {
                     const endCode = `${prefix}-${String(baseSeq + qty).padStart(3, '0')}`;
                     await logStock({
                         movementType: 'ASSET_OUT',
-                        storeId: receiptStoreId,
+                        storeId: items.find(i => i.poItemId === item.poItemId)?.storeId || null,
                         itemId: inv.id,
                         quantity: qty,
                         notes: `Auto-labeled from PO: ${receiptModal.poNumber} — ${qty > 1 ? `${startCode} to ${endCode}` : startCode}`,
@@ -453,6 +457,19 @@ export default function PurchaseOrders() {
                                 </div>
 
                                 <div className="form-group">
+                                    <label className="form-label required">Store</label>
+                                    <SearchableSelect
+                                        value={formData.storeId}
+                                        onChange={v => setFormData(f => ({ ...f, storeId: v }))}
+                                        options={activeStores}
+                                        getId={s => s.id}
+                                        getLabel={s => s.name}
+                                        placeholder="Select Store"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
                                     <label className="form-label">Expected Delivery Date</label>
                                     <input
                                         type="date"
@@ -586,24 +603,12 @@ export default function PurchaseOrders() {
                             ) : null;
                         })()}
                         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {/* Store selection */}
-                            <div className="form-group" style={{ marginBottom: '0.25rem' }}>
-                                <label className="form-label required">Receive into Store</label>
-                                <SearchableSelect
-                                    value={receiptStoreId}
-                                    onChange={v => setReceiptStoreId(v)}
-                                    options={activeStores}
-                                    getId={s => s.id}
-                                    getLabel={s => `${s.name}${s.type ? ` (${s.type})` : ''}${s.buildingName ? ` — ${s.buildingName}` : ''}${s.floorName ? `, ${s.floorName}` : ''}`}
-                                    placeholder="Select Store"
-                                />
-                            </div>
-
                             {(receiptModal.items || []).map(item => {
                                 const inv = item.inventoryItem;
                                 const dest = getDestination(inv);
-                                const val = receiptQtys[item.id] || { qty: '', batchNumber: '', expiryDate: '' };
+                                const val = receiptQtys[item.id] || { qty: '', storeId: '', batchNumber: '', expiryDate: '' };
                                 const remaining = Number(item.quantity) - Number(item.receivedQty ?? 0);
+                                const storeLabel = s => `${s.name}${s.type ? ` (${s.type})` : ''}`;
                                 return (
                                     <div key={item.id} style={{ border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '8px', padding: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                                         {/* Item header */}
@@ -626,6 +631,21 @@ export default function PurchaseOrders() {
                                             <span>Ordered: <strong>{item.quantity}</strong></span>
                                             <span>Received: <strong>{item.receivedQty ?? 0}</strong></span>
                                             <span>Remaining: <strong style={{ color: remaining > 0 ? 'inherit' : '#10b981' }}>{remaining}</strong></span>
+                                        </div>
+
+                                        {/* Store selector per item */}
+                                        <div>
+                                            <label className="form-label" style={{ fontSize: '0.75rem' }}>
+                                                Receive into Store <span style={{ color: '#ef4444' }}>*</span>
+                                            </label>
+                                            <SearchableSelect
+                                                value={val.storeId}
+                                                onChange={v => setReceiptQtys(prev => ({ ...prev, [item.id]: { ...prev[item.id], storeId: v } }))}
+                                                options={activeStores}
+                                                getId={s => s.id}
+                                                getLabel={storeLabel}
+                                                placeholder="Select store..."
+                                            />
                                         </div>
 
                                         {/* Inputs */}

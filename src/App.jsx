@@ -19,6 +19,7 @@ import StockLog from './pages/StockLog';
 // New pages
 import POBill from './pages/POBill';
 import StoreDetail from './pages/StoreDetail';
+import GRN from './pages/GRN';
 
 export default function App() {
     return (
@@ -45,6 +46,7 @@ export default function App() {
                 <Route path="/purchase-orders" element={<ProtectedRoute><Layout><PurchaseOrders /></Layout></ProtectedRoute>} />
                 <Route path="/stock-log" element={<ProtectedRoute><Layout><StockLog /></Layout></ProtectedRoute>} />
                 <Route path="/po-bill" element={<ProtectedRoute><Layout><POBill /></Layout></ProtectedRoute>} />
+                <Route path="/grn" element={<ProtectedRoute><Layout><GRN /></Layout></ProtectedRoute>} />
 
                 <Route path="/" element={<Navigate to="/dashboard" />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />

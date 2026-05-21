@@ -125,8 +125,10 @@ export const updatePurchaseOrder = (id, data) => api.put(`/api/inventory/purchas
 export const deletePurchaseOrder = (id) => api.delete(`/api/inventory/purchase-orders/${id}`);
 
 // ── PO Receipt Workflow ──
-export const recordPOReceipt = (poId, items, storeId) =>
-    api.post(`/api/inventory/po/${poId}/record-receipt`, { items, storeId });
+export const recordPOReceipt = (poId, items) =>
+    api.post(`/api/inventory/po/${poId}/record-receipt`, { items });
+
+export const getGrns = () => api.get('/api/inventory/grns');
 
 export const convertPOToBill = (poId) =>
     api.post(`/api/inventory/po/${poId}/convert-to-bill`);
