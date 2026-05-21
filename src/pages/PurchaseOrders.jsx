@@ -20,7 +20,7 @@ const STATUS_MAP = {
     BILLED: { label: 'Billed', color: 'badge-secondary' },
 };
 
-const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
+const EMPTY_FORM = { vendorId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
 const EMPTY_PAY = { paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
@@ -39,6 +39,7 @@ export default function PurchaseOrders() {
 
     const [receiptModal, setReceiptModal] = useState(null);
     const [receiptQtys, setReceiptQtys] = useState({});
+    const [receiptStoreId, setReceiptStoreId] = useState('');
 
     const [payModal, setPayModal] = useState(null);
     const [payForm, setPayForm] = useState(EMPTY_PAY);
@@ -101,12 +102,10 @@ export default function PurchaseOrders() {
     const handleCreate = async (e) => {
         e.preventDefault();
         const validItems = formData.items.filter(i => i.itemId && i.quantity > 0);
-        if (!formData.storeId) { alert('Please select a store'); return; }
         if (!formData.vendorId) { alert('Please select a vendor'); return; }
         if (validItems.length === 0) { alert('Please add at least one item'); return; }
         try {
             await createPurchaseOrder({
-                storeId: formData.storeId,
                 vendorId: formData.vendorId,
                 expectedDate: formData.expectedDate || null,
                 items: validItems.map(i => ({
@@ -128,10 +127,13 @@ export default function PurchaseOrders() {
         const init = {};
         (po.items || []).forEach(item => { init[item.id] = { qty: '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' }; });
         setReceiptQtys(init);
+        setReceiptStoreId('');
         setReceiptModal(po);
     };
 
     const handleReceiptSubmit = async () => {
+        if (!receiptStoreId) { alert('Please select a store to receive into'); return; }
+
         const items = Object.entries(receiptQtys)
             .filter(([, val]) => val.qty !== '' && Number(val.qty) > 0)
             .map(([poItemId, val]) => {
@@ -167,7 +169,7 @@ export default function PurchaseOrders() {
         }
         setSubmitting(true);
         try {
-            await recordPOReceipt(receiptModal.id, items);
+            await recordPOReceipt(receiptModal.id, items, receiptStoreId);
 
             // Auto-create assets for items routed to Asset module (billingGroup === 'ASSET')
             const hasAssetItems = receiptModal?.items?.some(
@@ -222,7 +224,7 @@ export default function PurchaseOrders() {
                     const endCode = `${prefix}-${String(baseSeq + qty).padStart(3, '0')}`;
                     await logStock({
                         movementType: 'ASSET_OUT',
-                        storeId: receiptModal.store?.id,
+                        storeId: receiptStoreId,
                         itemId: inv.id,
                         quantity: qty,
                         notes: `Auto-labeled from PO: ${receiptModal.poNumber} — ${qty > 1 ? `${startCode} to ${endCode}` : startCode}`,
@@ -317,8 +319,6 @@ export default function PurchaseOrders() {
                 <button
                     className="btn btn-primary"
                     onClick={() => setShowCreateModal(true)}
-                    disabled={activeStores.length === 0}
-                    title={activeStores.length === 0 ? 'Create a store first' : ''}
                 >
                     <Plus size={18} />
                     Create Purchase Order
@@ -335,15 +335,6 @@ export default function PurchaseOrders() {
                     <button className="po-error-retry" onClick={fetchData}>Retry</button>
                 </div>
             )}
-
-            <div className="page-actions">
-                {activeStores.length === 0 && (
-                    <div className="po-no-store-warn">
-                        <AlertCircle size={16} />
-                        <span>No active stores. <strong>Create a store first</strong> before making a purchase order.</span>
-                    </div>
-                )}
-            </div>
 
             <div className="table-container">
                 <div className="table-header">
@@ -448,19 +439,6 @@ export default function PurchaseOrders() {
                         </div>
                         <form onSubmit={handleCreate}>
                             <div className="modal-body">
-                                <div className="form-group">
-                                    <label className="form-label required">Store</label>
-                                    <SearchableSelect
-                                        value={formData.storeId}
-                                        onChange={v => setFormData(f => ({ ...f, storeId: v }))}
-                                        options={activeStores}
-                                        getId={s => s.id}
-                                        getLabel={s => `${s.name} (${s.type})`}
-                                        placeholder="Select Store"
-                                        required
-                                    />
-                                </div>
-
                                 <div className="form-group">
                                     <label className="form-label required">Vendor</label>
                                     <SearchableSelect
@@ -608,6 +586,19 @@ export default function PurchaseOrders() {
                             ) : null;
                         })()}
                         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {/* Store selection */}
+                            <div className="form-group" style={{ marginBottom: '0.25rem' }}>
+                                <label className="form-label required">Receive into Store</label>
+                                <SearchableSelect
+                                    value={receiptStoreId}
+                                    onChange={v => setReceiptStoreId(v)}
+                                    options={activeStores}
+                                    getId={s => s.id}
+                                    getLabel={s => `${s.name}${s.type ? ` (${s.type})` : ''}${s.buildingName ? ` — ${s.buildingName}` : ''}${s.floorName ? `, ${s.floorName}` : ''}`}
+                                    placeholder="Select Store"
+                                />
+                            </div>
+
                             {(receiptModal.items || []).map(item => {
                                 const inv = item.inventoryItem;
                                 const dest = getDestination(inv);

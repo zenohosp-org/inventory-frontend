@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Store, Plus, Edit2, Trash2, X, Eye, MoreVertical } from 'lucide-react';
-import { getStores, createStore, updateStore, deleteStore } from '../api/client';
+import { Store, Plus, Edit2, Trash2, Eye, MoreVertical } from 'lucide-react';
+import { getStores, createStore, updateStore, deleteStore, getHmsInfrastructure } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { invalidate } from '../cache';
 
 export default function Stores() {
+    const { user } = useAuth();
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [editingId, setEditingId] = useState(null);
+    const [editingStore, setEditingStore] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
-        description: '',
-        type: 'CENTRAL',
+        type: 'INVENTORY',
         isActive: true
     });
+    const [buildings, setBuildings] = useState([]);
+    const [selectedBuilding, setSelectedBuilding] = useState(null);
+    const [selectedFloor, setSelectedFloor] = useState(null);
+    const [hmsLoading, setHmsLoading] = useState(false);
+    const [hmsError, setHmsError] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
     useEffect(() => {
@@ -31,12 +37,9 @@ export default function Stores() {
         setLoading(true);
         try {
             const response = await getStores();
-            let storesData = response.data || response;
-            if (typeof storesData === 'string') {
-                storesData = JSON.parse(storesData);
-            }
-            storesData = Array.isArray(storesData) ? storesData : [];
-            setStores(storesData);
+            let data = response.data || response;
+            if (typeof data === 'string') data = JSON.parse(data);
+            setStores(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching stores:', error);
             setStores([]);
@@ -45,34 +48,48 @@ export default function Stores() {
         }
     };
 
-    const handleOpenModal = (store = null) => {
-        if (store) {
-            setEditingId(store.id);
-            setFormData({
-                name: store.name,
-                description: store.description || '',
-                type: store.type || 'CENTRAL',
-                isActive: store.isActive !== false
-            });
-        } else {
-            setEditingId(null);
-            setFormData({
-                name: '',
-                description: '',
-                type: 'CENTRAL',
-                isActive: true
-            });
+    const openCreateModal = async () => {
+        setEditingStore(null);
+        setFormData({ name: '', type: 'INVENTORY', isActive: true });
+        setSelectedBuilding(null);
+        setSelectedFloor(null);
+        setHmsError(false);
+        setShowModal(true);
+
+        setHmsLoading(true);
+        try {
+            const res = await getHmsInfrastructure(user.hospitalId);
+            const data = res.data || res;
+            setBuildings(Array.isArray(data) ? data : []);
+        } catch {
+            setHmsError(true);
+            setBuildings([]);
+        } finally {
+            setHmsLoading(false);
         }
+    };
+
+    const openEditModal = (store) => {
+        setEditingStore(store);
+        setFormData({ name: store.name, isActive: store.isActive !== false });
         setShowModal(true);
     };
 
     const handleSave = async (e) => {
         e.preventDefault();
         try {
-            if (editingId) {
-                await updateStore(editingId, formData);
+            if (editingStore) {
+                await updateStore(editingStore.id, { name: formData.name, isActive: formData.isActive });
             } else {
-                await createStore(formData);
+                await createStore({
+                    name: formData.name,
+                    type: formData.type,
+                    isActive: formData.isActive,
+                    buildingId: selectedBuilding?.id ?? null,
+                    buildingName: selectedBuilding?.name ?? null,
+                    floorId: selectedFloor?.id ?? null,
+                    floorName: selectedFloor?.name ?? null,
+                });
             }
             invalidate('stores');
             setShowModal(false);
@@ -97,17 +114,15 @@ export default function Stores() {
     };
 
     const getStoreTypeColor = (type) => {
-        const colors = {
-            'CENTRAL': 'badge-primary',
-            'DEPARTMENT': 'badge-info',
-            'EMERGENCY': 'badge-warning'
-        };
-        return colors[type] || 'badge-secondary';
+        if (type === 'PHARMACY') return 'badge-info';
+        if (type === 'INVENTORY') return 'badge-primary';
+        return 'badge-secondary';
     };
+
+    const floors = selectedBuilding?.floors ?? [];
 
     return (
         <div className="main-content">
-            {/* Page Header */}
             <div className="page-header">
                 <div className="page-header-left">
                     <h1 className="page-title">
@@ -119,14 +134,13 @@ export default function Stores() {
                     </p>
                 </div>
                 <div className="page-actions">
-                    <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                    <button className="btn btn-primary" onClick={openCreateModal}>
                         <Plus size={18} />
                         Add Store
                     </button>
                 </div>
             </div>
 
-            {/* Stores Table */}
             <div className="table-container">
                 <div className="table-header">
                     <h3 className="table-title">Stores ({stores.length})</h3>
@@ -142,34 +156,28 @@ export default function Stores() {
                             <thead>
                                 <tr>
                                     <th>Store Name</th>
-                                    <th>Location</th>
                                     <th>Type</th>
+                                    <th>Block</th>
+                                    <th>Floor</th>
                                     <th>Status</th>
-                                    <th>Description</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {stores.map((store) => (
                                     <tr key={store.id}>
-                                        <td>
-                                            <strong>{store.name}</strong>
-                                        </td>
-                                        <td className="text-muted">
-                                            {store.location || '-'}
-                                        </td>
+                                        <td><strong>{store.name}</strong></td>
                                         <td>
                                             <span className={`badge ${getStoreTypeColor(store.type)}`}>
-                                                {store.type || 'CENTRAL'}
+                                                {store.type || '—'}
                                             </span>
                                         </td>
+                                        <td className="text-muted">{store.buildingName || '—'}</td>
+                                        <td className="text-muted">{store.floorName || '—'}</td>
                                         <td>
                                             <span className={`badge ${store.isActive ? 'badge-success' : 'badge-gray'}`}>
                                                 {store.isActive ? 'Active' : 'Inactive'}
                                             </span>
-                                        </td>
-                                        <td className="text-muted">
-                                            {store.description || '-'}
                                         </td>
                                         <td style={{ position: 'relative' }}>
                                             <button
@@ -187,7 +195,7 @@ export default function Stores() {
                                                     >
                                                         <Eye size={16} style={{ color: '#10b981' }} /> View Details
                                                     </Link>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleOpenModal(store); }} className="assets-dropdown-item">
+                                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(store); }} className="assets-dropdown-item">
                                                         <Edit2 size={16} style={{ color: '#3b82f6' }} /> Edit
                                                     </button>
                                                     <div style={{ height: '1px', margin: '4px 0', background: '#f1f5f9' }} />
@@ -205,25 +213,92 @@ export default function Stores() {
                 </div>
 
                 <div className="table-footer">
-                    <span className="table-info">
-                        Total: {stores.length} stores
-                    </span>
+                    <span className="table-info">Total: {stores.length} stores</span>
                 </div>
             </div>
 
-            {/* Store Modal */}
             {showModal && (
                 <div className="modal-overlay active">
                     <div className="modal">
                         <div className="modal-header">
                             <h2 className="modal-title">
-                                {editingId ? 'Edit Store' : 'Add New Store'}
+                                {editingStore ? 'Edit Store' : 'Add New Store'}
                             </h2>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
 
                         <form onSubmit={handleSave}>
                             <div className="modal-body">
+                                {/* Create-only: Block & Floor from HMS */}
+                                {!editingStore && (
+                                    <>
+                                        {hmsLoading && (
+                                            <div className="form-group">
+                                                <p className="form-help">Loading infrastructure from HMS…</p>
+                                            </div>
+                                        )}
+                                        {hmsError && (
+                                            <div className="form-group">
+                                                <p className="form-help" style={{ color: '#f59e0b' }}>
+                                                    Could not load HMS infrastructure. You can still save without a location.
+                                                </p>
+                                            </div>
+                                        )}
+                                        {!hmsLoading && buildings.length > 0 && (
+                                            <>
+                                                <div className="form-group">
+                                                    <label className="form-label">Block (Building)</label>
+                                                    <select
+                                                        className="form-select"
+                                                        value={selectedBuilding?.id ?? ''}
+                                                        onChange={(e) => {
+                                                            const b = buildings.find(b => String(b.id) === e.target.value) || null;
+                                                            setSelectedBuilding(b);
+                                                            setSelectedFloor(null);
+                                                        }}
+                                                    >
+                                                        <option value="">— Select Block —</option>
+                                                        {buildings.map(b => (
+                                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label className="form-label">Floor</label>
+                                                    <select
+                                                        className="form-select"
+                                                        value={selectedFloor?.id ?? ''}
+                                                        onChange={(e) => {
+                                                            const f = floors.find(f => String(f.id) === e.target.value) || null;
+                                                            setSelectedFloor(f);
+                                                        }}
+                                                        disabled={!selectedBuilding}
+                                                    >
+                                                        <option value="">— Select Floor —</option>
+                                                        {floors.map(f => (
+                                                            <option key={f.id} value={f.id}>{f.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        <div className="form-group">
+                                            <label className="form-label required">Store Type</label>
+                                            <select
+                                                value={formData.type}
+                                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                                className="form-select"
+                                                required
+                                            >
+                                                <option value="INVENTORY">Inventory Store</option>
+                                                <option value="PHARMACY">Pharmacy Store</option>
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
+
                                 <div className="form-group">
                                     <label className="form-label required">Store Name</label>
                                     <input
@@ -231,34 +306,9 @@ export default function Stores() {
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         className="form-input"
-                                        placeholder="e.g., Central Pharmacy"
+                                        placeholder="e.g., Ground Floor Pharmacy"
                                         required
                                     />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Store Type</label>
-                                    <select
-                                        value={formData.type}
-                                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                        className="form-select"
-                                    >
-                                        <option value="GENERAL">General</option>
-                                        <option value="CENTRAL">Central</option>
-                                        <option value="DEPARTMENT">Department</option>
-                                        <option value="EMERGENCY">Emergency</option>
-                                    </select>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Description</label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="form-textarea"
-                                        placeholder="Any additional notes about this store"
-                                        rows="3"
-                                    ></textarea>
                                 </div>
 
                                 <div className="form-group">
@@ -268,7 +318,7 @@ export default function Stores() {
                                             checked={formData.isActive}
                                             onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                                         />
-                                        Active Store (Available for purchase orders)
+                                        Active Store
                                     </label>
                                 </div>
                             </div>
@@ -278,7 +328,7 @@ export default function Stores() {
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn btn-primary">
-                                    {editingId ? 'Update Store' : 'Create Store'}
+                                    {editingStore ? 'Update Store' : 'Create Store'}
                                 </button>
                             </div>
                         </form>
