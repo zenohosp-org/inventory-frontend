@@ -276,7 +276,7 @@ export default function InventoryKits() {
             </div>
 
             <div className="so-layout">
-            <div className="table-container so-table-wrap">
+            <div className="table-container so-table-wrap kits-table-wrap">
                 <div className="table-header">
                     <h3 className="table-title">Kits ({filteredKits.length})</h3>
                     <span className="text-muted so-hint">Click a row to see components</span>

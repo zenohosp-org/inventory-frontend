@@ -1,6 +1,12 @@
 /* Kits page reuses .so-layout / .so-table-wrap / .so-panel from StockOverview.css.
    Only kit-specific styles live here. */
 
+/* Let the actions-column dropdown escape the table box without being clipped. */
+.table-container.kits-table-wrap,
+.table-container.kits-table-wrap .table-body {
+    overflow: visible;
+}
+
 /* ── Misc ── */
 .action-group {
     display: flex;
