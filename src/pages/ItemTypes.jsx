@@ -132,18 +132,12 @@ export default function ItemTypes() {
                                     >
                                         <option value="">None (General Inventory)</option>
                                         <option value="PHARMACY">Pharmacy</option>
+                                        <option value="OT">OT</option>
                                         <option value="ASSET">Asset</option>
                                     </select>
-                                    {formData.defaultBillingGroup === 'PHARMACY' && (
-                                        <p style={{ fontSize: '0.75rem', color: 'var(--color-info, #0284c7)', marginTop: '0.25rem' }}>
-                                            Items added in this type will reflect in <strong>pharmacy.zenohosp.com</strong>
-                                        </p>
-                                    )}
-                                    {!formData.defaultBillingGroup && (
-                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                                            Items of this type will appear in the selected module.
-                                        </p>
-                                    )}
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                                        Items of this type will automatically appear in the selected module.
+                                    </p>
                                 </div>
                                 <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>

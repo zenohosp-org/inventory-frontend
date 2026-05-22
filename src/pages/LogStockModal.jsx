@@ -1,74 +1,70 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, ActivitySquare, Trash2 } from 'lucide-react';
-import { getVendors, getStores, logStock } from '../api/client';
+import { X, Plus, RotateCcw, ActivitySquare, Trash2 } from 'lucide-react';
+import { getVendors, logStock } from '../api/client';
 import SearchableSelect from '../components/SearchableSelect';
 
 
 export default function LogStockModal({ stock, onClose, onSuccess }) {
+    // Internal use is default
     const [movementType, setMovementType] = useState('INTERNAL_USE');
 
     const [quantity, setQuantity] = useState('');
-    const [notes, setNotes] = useState('');
 
     // "Purchase In" Specific
     const [vendorId, setVendorId] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [batchNo, setBatchNo] = useState('');
 
+    // "Return" Specific
+    const [reason, setReason] = useState('');
+    const [notes, setNotes] = useState('');
+
     // "Internal Use" Specific
-    const [locationStoreId, setLocationStoreId] = useState('');
-    const [staffName, setStaffName] = useState('');
-    const [department, setDepartment] = useState('');
+    const [assignPatientId, setAssignPatientId] = useState('');
+    const [assignStaffId, setAssignStaffId] = useState('');
 
     // Options
     const [vendors, setVendors] = useState([]);
-    const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (movementType === 'PURCHASE_IN') {
             fetchVendors();
         }
-        if (movementType === 'INTERNAL_USE') {
-            fetchStores();
-        }
     }, [movementType]);
 
     const fetchVendors = async () => {
         try {
             const res = await getVendors();
-            let data = res.data || res;
-            if (typeof data === 'string') data = JSON.parse(data);
-            setVendors(Array.isArray(data) ? data : []);
-        } catch {
+            let vendorsData = res.data || res;
+            if (typeof vendorsData === 'string') vendorsData = JSON.parse(vendorsData);
+            vendorsData = Array.isArray(vendorsData) ? vendorsData : [];
+            setVendors(vendorsData);
+        } catch (error) {
+            console.error('Failed to fetch vendors');
             setVendors([]);
-        }
-    };
-
-    const fetchStores = async () => {
-        try {
-            const res = await getStores();
-            let data = res.data || res;
-            if (typeof data === 'string') data = JSON.parse(data);
-            setStores(Array.isArray(data) ? data : []);
-        } catch {
-            setStores([]);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        
+        // Validation
         if (!quantity || quantity <= 0) {
             alert('Enter a valid quantity');
             return;
         }
-
+        
         if (movementType === 'PURCHASE_IN' && !vendorId) {
             alert('Please select a vendor for Purchase In transactions');
             return;
         }
-
+        
+        if (movementType === 'RETURN' && !reason) {
+            alert('Please enter a reason for returns');
+            return;
+        }
+        
         setLoading(true);
 
         const payload = {
@@ -77,15 +73,16 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
             itemId: stock.itemId,
             quantity: Number(quantity),
 
+            // conditional
             vendorId: movementType === 'PURCHASE_IN' ? vendorId : null,
             expiryDate: movementType === 'PURCHASE_IN' ? expiryDate : null,
-            batchNo: ['PURCHASE_IN', 'EXPIRED_DISPOSED'].includes(movementType) ? batchNo : null,
+            batchNo: ['PURCHASE_IN', 'RETURN', 'EXPIRED_DISPOSED'].includes(movementType) ? batchNo : null,
 
-            locationStoreId: movementType === 'INTERNAL_USE' ? locationStoreId || null : null,
-            staffName: movementType === 'INTERNAL_USE' ? staffName || null : null,
-            department: movementType === 'INTERNAL_USE' ? department || null : null,
-
+            reason: movementType === 'RETURN' ? reason : null,
             notes: notes || null,
+
+            assignPatientId: assignPatientId || null,
+            assignStaffId: assignStaffId || null
         };
 
         try {
@@ -93,6 +90,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
             alert('Stock transaction recorded successfully!');
             onSuccess();
         } catch (error) {
+            console.error('Error logging stock:', error);
             alert('Error logging stock: ' + (error.response?.data?.message || error.message || 'Unknown error'));
         } finally {
             setLoading(false);
@@ -102,6 +100,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
     const types = [
         { id: 'INTERNAL_USE', label: 'Internal Use', icon: ActivitySquare },
         { id: 'PURCHASE_IN', label: 'Purchase In', icon: Plus },
+        { id: 'RETURN', label: 'Return', icon: RotateCcw },
         { id: 'EXPIRED_DISPOSED', label: 'Expired / Disposed', icon: Trash2 },
     ];
 
@@ -122,7 +121,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                 </div>
 
                 <div className="p-6 overflow-y-auto">
-                    <div className="grid grid-cols-3 gap-3 mb-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
                         {types.map(t => (
                             <button
                                 key={t.id}
@@ -153,15 +152,15 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                                     placeholder="e.g. 50"
                                 />
-                                {movementType === 'PURCHASE_IN' && (
-                                    <p className="text-xs text-emerald-600 mt-1 italic">This will increase the stock</p>
-                                )}
-                                {movementType !== 'PURCHASE_IN' && (
+                                {movementType !== 'PURCHASE_IN' && movementType !== 'RETURN' && (
                                     <p className="text-xs text-rose-500 mt-1 italic">This will decrease the stock</p>
+                                )}
+                                {(movementType === 'PURCHASE_IN' || movementType === 'RETURN') && (
+                                    <p className="text-xs text-emerald-600 mt-1 italic">This will increase the stock</p>
                                 )}
                             </div>
 
-                            {['PURCHASE_IN', 'EXPIRED_DISPOSED'].includes(movementType) && (
+                            {['PURCHASE_IN', 'RETURN', 'EXPIRED_DISPOSED'].includes(movementType) && (
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Batch No</label>
                                     <input
@@ -201,43 +200,46 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                             </div>
                         )}
 
+                        {movementType === 'RETURN' && (
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Reason <span className="text-rose-500">*</span></label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={reason}
+                                    onChange={e => setReason(e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                                    placeholder="e.g. Defective part"
+                                />
+                            </div>
+                        )}
+
                         {movementType === 'INTERNAL_USE' && (
                             <div className="grid grid-cols-2 gap-5">
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Location (Store)</label>
-                                    <SearchableSelect
-                                        value={locationStoreId}
-                                        onChange={setLocationStoreId}
-                                        options={stores}
-                                        getId={s => s.id}
-                                        getLabel={s => s.name}
-                                        placeholder="Select store..."
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Assign Patient (UUID)</label>
+                                    <input
+                                        type="text"
+                                        value={assignPatientId}
+                                        onChange={e => setAssignPatientId(e.target.value)}
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-mono text-xs"
+                                        placeholder="Optional Patient ID"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Staff</label>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Assign Staff (UUID)</label>
                                     <input
                                         type="text"
-                                        value={staffName}
-                                        onChange={e => setStaffName(e.target.value)}
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                                        placeholder="Staff name"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Department</label>
-                                    <input
-                                        type="text"
-                                        value={department}
-                                        onChange={e => setDepartment(e.target.value)}
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                                        placeholder="e.g. ICU, OPD"
+                                        value={assignStaffId}
+                                        onChange={e => setAssignStaffId(e.target.value)}
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-mono text-xs"
+                                        placeholder="Optional Staff ID"
                                     />
                                 </div>
                             </div>
                         )}
 
-                        {['INTERNAL_USE', 'EXPIRED_DISPOSED'].includes(movementType) && (
+                        {['RETURN', 'INTERNAL_USE', 'EXPIRED_DISPOSED'].includes(movementType) && (
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Notes</label>
                                 <textarea
@@ -253,7 +255,11 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                 </div>
 
                 <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 mt-auto">
-                    <button type="button" onClick={onClose} className="btn btn-secondary">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="btn btn-secondary"
+                    >
                         Cancel
                     </button>
                     <button
@@ -261,6 +267,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                         form="log-stock-form"
                         disabled={loading || !quantity}
                         className="btn btn-success"
+                        title={loading ? "Processing..." : "Confirm and log this transaction"}
                     >
                         {loading ? 'Processing...' : 'Confirm Transaction'}
                     </button>

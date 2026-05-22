@@ -20,7 +20,7 @@ const STATUS_MAP = {
     BILLED: { label: 'Billed', color: 'badge-secondary' },
 };
 
-const EMPTY_FORM = { vendorId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
+const EMPTY_FORM = { vendorId: '', storeId: '', expectedDate: '', items: [{ itemId: '', quantity: 1, unitPrice: 0, gstPercent: 0 }] };
 const EMPTY_PAY = { paidAmount: '', bankAccountId: '', referenceNo: '' };
 
 export default function PurchaseOrders() {
@@ -102,10 +102,12 @@ export default function PurchaseOrders() {
         e.preventDefault();
         const validItems = formData.items.filter(i => i.itemId && i.quantity > 0);
         if (!formData.vendorId) { alert('Please select a vendor'); return; }
+        if (!formData.storeId) { alert('Please select a store'); return; }
         if (validItems.length === 0) { alert('Please add at least one item'); return; }
         try {
             await createPurchaseOrder({
                 vendorId: formData.vendorId,
+                storeId: formData.storeId,
                 expectedDate: formData.expectedDate || null,
                 items: validItems.map(i => ({
                     itemId: i.itemId,
@@ -125,7 +127,7 @@ export default function PurchaseOrders() {
     const openReceiptModal = (po) => {
         const init = {};
         (po.items || []).forEach(item => {
-            init[item.id] = { qty: '', storeId: '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' };
+            init[item.id] = { qty: '', storeId: po.store?.id || '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' };
         });
         setReceiptQtys(init);
         setReceiptModal(po);
@@ -136,7 +138,7 @@ export default function PurchaseOrders() {
             .filter(([, val]) => val.qty !== '' && Number(val.qty) > 0)
             .map(([poItemId, val]) => {
                 const poItem = receiptModal.items.find(i => i.id === poItemId);
-                const isPharmacy = poItem?.product?.billingGroup === 'PHARMACY';
+                const isPharmacy = poItem?.inventoryItem?.billingGroup === 'PHARMACY';
                 return {
                     poItemId,
                     storeId: val.storeId || null,
@@ -154,15 +156,15 @@ export default function PurchaseOrders() {
         for (const item of items) {
             const poItem = receiptModal.items.find(i => i.id === item.poItemId);
             const val = receiptQtys[item.poItemId];
-            const isPharmacy = poItem?.product?.billingGroup === 'PHARMACY';
+            const isPharmacy = poItem?.inventoryItem?.billingGroup === 'PHARMACY';
             if (!item.storeId) {
-                missingFields.push(`${poItem.product.name}: Store required`);
+                missingFields.push(`${poItem.inventoryItem.name}: Store required`);
             }
-            if ((poItem?.product?.batchRequired || isPharmacy) && !val?.batchNumber?.trim()) {
-                missingFields.push(`${poItem.product.name}: Batch No required`);
+            if ((poItem?.inventoryItem?.batchRequired || isPharmacy) && !val?.batchNumber?.trim()) {
+                missingFields.push(`${poItem.inventoryItem.name}: Batch No required`);
             }
-            if ((poItem?.product?.expiryRequired || isPharmacy) && !val?.expiryDate?.trim()) {
-                missingFields.push(`${poItem.product.name}: Expiry Date required`);
+            if ((poItem?.inventoryItem?.expiryRequired || isPharmacy) && !val?.expiryDate?.trim()) {
+                missingFields.push(`${poItem.inventoryItem.name}: Expiry Date required`);
             }
         }
         if (missingFields.length > 0) {
@@ -175,7 +177,7 @@ export default function PurchaseOrders() {
 
             // Auto-create assets for items routed to Asset module (billingGroup === 'ASSET')
             const hasAssetItems = receiptModal?.items?.some(
-                item => item.product?.billingGroup === 'ASSET'
+                item => item.inventoryItem?.billingGroup === 'ASSET'
             );
 
             if (hasAssetItems) {
@@ -186,7 +188,7 @@ export default function PurchaseOrders() {
 
                 for (const item of items) {
                     const poItem = receiptModal.items.find(i => i.id === item.poItemId);
-                    const inv = poItem?.product;
+                    const inv = poItem?.inventoryItem;
                     if (inv?.billingGroup !== 'ASSET') continue;
 
                     const prefix = (inv.name || '').replace(/\s+/g, '').slice(0, 3).toUpperCase();
@@ -247,6 +249,7 @@ export default function PurchaseOrders() {
         if (!inv) return null;
         if (inv.billingGroup === 'ASSET') return { label: 'Asset Register', color: '#8b5cf6' };
         if (inv.billingGroup === 'PHARMACY') return { label: 'Pharmacy Stock', color: '#10b981' };
+        if (inv.billingGroup === 'OT') return { label: 'OT Stock', color: '#f59e0b' };
         if (inv.billingGroup === 'ROOM') return { label: 'Room / Ward Stock', color: '#3b82f6' };
         return { label: 'Main Inventory', color: '#64748b' };
     };
@@ -352,6 +355,7 @@ export default function PurchaseOrders() {
                                 <tr>
                                     <th>PO #</th>
                                     <th>Vendor</th>
+                                    <th>Store</th>
                                     <th>Order Date</th>
                                     <th>Expected</th>
                                     <th>Items</th>
@@ -370,6 +374,7 @@ export default function PurchaseOrders() {
                                         <tr key={po.id}>
                                             <td><strong className="mono">{po.poNumber || po.id}</strong></td>
                                             <td>{po.vendor?.name || po.vendorName || '-'}</td>
+                                            <td className="po-store-col">{po.store?.name || '-'}</td>
                                             <td className="text-muted">{new Date(po.createdAt).toLocaleDateString()}</td>
                                             <td className="text-muted">
                                                 {po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '-'}
@@ -447,6 +452,19 @@ export default function PurchaseOrders() {
                                         getId={v => v.id}
                                         getLabel={v => v.name}
                                         placeholder="Select Vendor"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label required">Store</label>
+                                    <SearchableSelect
+                                        value={formData.storeId}
+                                        onChange={v => setFormData(f => ({ ...f, storeId: v }))}
+                                        options={activeStores}
+                                        getId={s => s.id}
+                                        getLabel={s => s.name}
+                                        placeholder="Select Store"
                                         required
                                     />
                                 </div>
@@ -569,7 +587,7 @@ export default function PurchaseOrders() {
                         </div>
                         {(() => {
                             const hasAssetItems = receiptModal?.items?.some(
-                                item => item.product?.billingGroup === 'ASSET'
+                                item => item.inventoryItem?.billingGroup === 'ASSET'
                             );
                             return hasAssetItems ? (
                                 <div style={{
@@ -586,7 +604,7 @@ export default function PurchaseOrders() {
                         })()}
                         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {(receiptModal.items || []).map(item => {
-                                const inv = item.product;
+                                const inv = item.inventoryItem;
                                 const dest = getDestination(inv);
                                 const val = receiptQtys[item.id] || { qty: '', storeId: '', batchNumber: '', expiryDate: '' };
                                 const remaining = Number(item.quantity) - Number(item.receivedQty ?? 0);
@@ -633,12 +651,7 @@ export default function PurchaseOrders() {
                                         {/* Inputs */}
                                         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                                             <div style={{ flex: '1', minWidth: '80px' }}>
-                                                <label className="form-label" style={{ fontSize: '0.75rem' }}>
-                                                    Qty to Receive
-                                                    {inv?.packSize > 1 && (
-                                                        <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '0.35rem' }}>(per box of {inv.packSize})</span>
-                                                    )}
-                                                </label>
+                                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Qty to Receive</label>
                                                 <input
                                                     type="number"
                                                     min="0"

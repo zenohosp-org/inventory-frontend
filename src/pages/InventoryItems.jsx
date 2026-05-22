@@ -3,7 +3,6 @@ import { Package, Plus, Edit2, Trash2, Search, MoreVertical } from 'lucide-react
 import { getItems, getCategories, createItem, updateItem, deleteItem, getItemTypes } from '../api/client';
 import { withCache, invalidate } from '../cache';
 import SearchableSelect from '../components/SearchableSelect';
-import { useAuth } from '../context/AuthContext';
 
 const GST_OPTIONS = [0, 5, 12, 18, 28];
 
@@ -32,16 +31,14 @@ const EMPTY_FORM = {
 };
 
 
-function generateCode(name, items, hospCode) {
+function generateCode(name, items) {
     const prefix = name.replace(/\s+/g, '').slice(0, 3).toUpperCase();
     if (!prefix) return '';
-    const fullPrefix = hospCode ? `${hospCode}-${prefix}` : prefix;
-    const count = items.filter(i => i.code?.startsWith(fullPrefix + '-')).length;
-    return `${fullPrefix}-${String(count + 1).padStart(3, '0')}`;
+    const count = items.filter(i => i.code?.startsWith(prefix + '-')).length;
+    return `${prefix}-${String(count + 1).padStart(3, '0')}`;
 }
 
 export default function InventoryItems() {
-    const { user } = useAuth();
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [itemTypes, setItemTypes] = useState([]);
@@ -83,7 +80,7 @@ export default function InventoryItems() {
         setFormData(prev => ({
             ...prev,
             name,
-            ...(editingItem ? {} : { code: generateCode(name, items, user?.hospitalCode) }),
+            ...(editingItem ? {} : { code: generateCode(name, items) }),
         }));
     };
 
@@ -378,7 +375,7 @@ export default function InventoryItems() {
                                                 </select>
                                             </div>
                                             <div className="form-group" style={{ margin: 0 }}>
-                                                <label className="form-label">Min Stock</label>
+                                                <label className="form-label">Min Stock (Reorder Level)</label>
                                                 <input type="number" name="reorderLevel" value={formData.reorderLevel} onChange={handleInputChange} className="form-input" min="0" />
                                             </div>
                                         </div>
@@ -448,7 +445,7 @@ export default function InventoryItems() {
 
 
                                         {/* Pharmacy Fields */}
-                                        {selectedType?.defaultBillingGroup === 'PHARMACY' && (
+                                        {formData.billingGroup === 'PHARMACY' && (
                                             <div>
                                                 <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>Pharmacy Details</div>
                                                 <div className="form-row" style={{ margin: 0, marginBottom: '0.75rem' }}>
@@ -528,7 +525,7 @@ export default function InventoryItems() {
                                         <div>
                                             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>Tracking</div>
                                             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                                                {[['batchRequired', 'Batch Required'], ['expiryRequired', 'Expiry Required']].map(([field, label]) => (
+                                                {[['batchRequired', 'Batch Required'], ['expiryRequired', 'Expiry Required'], ['serialRequired', 'Serial Required']].map(([field, label]) => (
                                                     <label key={field} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
                                                         <input type="checkbox" name={field} checked={formData[field]} onChange={handleCheckboxChange} />
                                                         {label}
