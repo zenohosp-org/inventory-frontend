@@ -62,17 +62,15 @@ export default function GRN() {
 
             <div className="table-container">
                 <div className="table-header">
-                    <span className="table-count">
-                        {groupedByPo.length} PO{groupedByPo.length !== 1 ? 's' : ''} · {grns.length} GRN{grns.length !== 1 ? 's' : ''}
-                    </span>
+                    <h3 className="table-title">GRNs ({grns.length})</h3>
                 </div>
-
+                <div className="table-body">
                 {loading ? (
-                    <div className="table-loading">Loading…</div>
+                    <div className="table-empty"><div className="spinner"></div></div>
                 ) : groupedByPo.length === 0 ? (
                     <div className="table-empty">No GRNs yet. Receive items from a Purchase Order to create the first GRN.</div>
                 ) : (
-                    <table className="data-table grn-table">
+                    <table className="table grn-table">
                         <thead>
                             <tr>
                                 <th className="grn-col-toggle"></th>
@@ -196,6 +194,7 @@ export default function GRN() {
                         </tbody>
                     </table>
                 )}
+                </div>
             </div>
         </div>
     );

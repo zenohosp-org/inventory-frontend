@@ -275,11 +275,11 @@ export default function InventoryKits() {
                 </div>
             </div>
 
-            <div className="kit-layout">
-            <div className="table-container kit-table-wrap">
+            <div className="so-layout">
+            <div className="table-container so-table-wrap">
                 <div className="table-header">
                     <h3 className="table-title">Kits ({filteredKits.length})</h3>
-                    <span className="text-muted kit-hint">Click a row to see components</span>
+                    <span className="text-muted so-hint">Click a row to see components</span>
                 </div>
                 <div className="table-body">
                     {loading ? (
@@ -341,77 +341,69 @@ export default function InventoryKits() {
                 </div>
             </div>
 
-            {/* Inline side panel for selected kit (matches StockOverview pattern) */}
-            {selectedKit && !showConsumeModal && (
-                <div className="kit-panel">
-                    <div className="kit-panel-header">
-                        <div>
-                            <div className="kit-panel-name">{selectedKit.name}</div>
-                            <div className="kit-panel-meta">
-                                {selectedKit.code ? <span className="mono-sm">{selectedKit.code}</span> : null}
-                                {selectedKit.code && (selectedKit.components?.length > 0) ? ' · ' : ''}
-                                {selectedKit.components?.length || 0} component{(selectedKit.components?.length || 0) !== 1 ? 's' : ''}
-                            </div>
-                            <div className="kit-panel-stats">
-                                <div>
-                                    <div className="kit-stat-label">Available</div>
-                                    <div
-                                        className="kit-stat-value"
-                                        style={{ color: getStatusColor(selectedKit.maxAssemblable) }}
-                                    >
-                                        {selectedKit.maxAssemblable || 0}
-                                    </div>
+            {/* Inline side panel for selected kit (same as StockOverview so-panel) */}
+            {selectedKit && !showConsumeModal && (() => {
+                const statusColor = getStatusColor(selectedKit.maxAssemblable);
+                const isLow = selectedKit.maxAssemblable === 0 || selectedKit.maxAssemblable <= 2;
+                return (
+                    <div className="so-panel">
+                        <div className="so-panel-header">
+                            <div>
+                                <div className="so-panel-name">{selectedKit.name}</div>
+                                <div className="so-panel-meta">
+                                    {selectedKit.code ? <span className="mono-sm">{selectedKit.code}</span> : null}
+                                    {selectedKit.code && (selectedKit.components?.length > 0) ? ' · ' : ''}
+                                    {selectedKit.components?.length || 0} component{(selectedKit.components?.length || 0) !== 1 ? 's' : ''}
                                 </div>
-                                <div>
-                                    <div className="kit-stat-label">Status</div>
-                                    <div
-                                        className="kit-stat-value-sm"
-                                        style={{ color: getStatusColor(selectedKit.maxAssemblable) }}
-                                    >
-                                        {getStatusLabel(selectedKit.maxAssemblable)}
+                                <div className="so-panel-stats">
+                                    <div>
+                                        <div className="so-stat-label">Available</div>
+                                        <div className={`so-stat-value ${isLow ? 'so-stat-value--low' : 'so-stat-value--ok'}`}>
+                                            {selectedKit.maxAssemblable || 0}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="so-stat-label">Status</div>
+                                        <div className="so-stat-value" style={{ color: statusColor, fontSize: 14 }}>
+                                            {getStatusLabel(selectedKit.maxAssemblable)}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <button className="so-panel-close" onClick={() => setSelectedKit(null)}>
+                                <X size={18} />
+                            </button>
                         </div>
-                        <button className="kit-panel-close" onClick={() => setSelectedKit(null)}>
-                            <X size={18} />
-                        </button>
+                        <div className="so-txn-heading">
+                            Components ({selectedKit.components?.length || 0})
+                        </div>
+                        <div className="so-txn-scroll">
+                            {selectedKit.components && selectedKit.components.length > 0 ? (
+                                selectedKit.components.map((comp, idx) => {
+                                    const ok = (comp.currentStock || 0) >= comp.quantity;
+                                    return (
+                                        <div key={idx} className="so-txn-row">
+                                            <div className="so-txn-body">
+                                                <div className="so-txn-top">
+                                                    <span className="so-txn-badge" style={{ color: ok ? '#16a34a' : '#dc2626', background: ok ? '#dcfce7' : '#fee2e2' }}>
+                                                        {ok ? 'OK' : 'Low'}
+                                                    </span>
+                                                    <span className={`so-txn-qty ${ok ? 'so-txn-qty--pos' : 'so-txn-qty--neg'}`}>
+                                                        {comp.currentStock || 0}/{comp.quantity}
+                                                    </span>
+                                                </div>
+                                                <div className="so-txn-date">{comp.itemName}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="so-txn-empty">No components</div>
+                            )}
+                        </div>
                     </div>
-                    <div className="kit-panel-section-title">Components</div>
-                    <div className="kit-panel-scroll">
-                        {selectedKit.components && selectedKit.components.length > 0 ? (
-                            <table className="detail-table">
-                                <thead>
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Per Kit</th>
-                                        <th>Stock</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {selectedKit.components.map((comp, idx) => (
-                                        <tr key={idx}>
-                                            <td>{comp.itemName}</td>
-                                            <td>{comp.quantity}</td>
-                                            <td>{comp.currentStock || 0}</td>
-                                            <td>
-                                                {comp.currentStock >= comp.quantity ? (
-                                                    <span className="badge kit-badge-ok">OK</span>
-                                                ) : (
-                                                    <span className="badge kit-badge-low">Low</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <p className="kit-panel-empty">No components</p>
-                        )}
-                    </div>
-                </div>
-            )}
+                );
+            })()}
             </div>
 
             {/* Create/Edit Modal */}
