@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Plus, X, Edit2, Trash2, Package, AlertCircle, MoreVertical } from 'lucide-react';
 import { getKits, createKit, updateKit, deleteKit, consumeKit, getItems, getStores } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import SearchableSelect from '../components/SearchableSelect';
 import './InventoryKits.css';
 
 const EMPTY_FORM = { name: '', code: '', description: '', patientBillingPrice: '', insuranceBillingPrice: '', components: [] };
 
+function generateKitCode(kits, hospCode) {
+    const prefix = hospCode ? `${hospCode}-KIT` : 'KIT';
+    const count = kits.filter(k => k.code?.startsWith(prefix + '-')).length;
+    return `${prefix}-${String(count + 1).padStart(3, '0')}`;
+}
+
 export default function InventoryKits() {
+    const { user } = useAuth();
     const [kits, setKits] = useState([]);
     const [items, setItems] = useState([]);
     const [stores, setStores] = useState([]);
@@ -57,7 +65,7 @@ export default function InventoryKits() {
 
     const openCreateModal = () => {
         setEditingKit(null);
-        setFormData(EMPTY_FORM);
+        setFormData({ ...EMPTY_FORM, code: generateKitCode(kits, user?.hospitalCode) });
         setShowModal(true);
     };
 
@@ -186,11 +194,18 @@ export default function InventoryKits() {
         }
     };
 
-    const openConsumeModal = (kit) => {
-        setSelectedKit(kit);
+    const openConsumeModal = async (kit) => {
         setConsumeForm({ storeId: '', quantity: '', force: false });
         setLowStockWarning(null);
         setShowConsumeModal(true);
+        try {
+            const res = await getKits();
+            const fresh = (Array.isArray(res.data) ? res.data : []).find(k => k.id === kit.id) || kit;
+            setKits(prev => prev.map(k => k.id === fresh.id ? fresh : k));
+            setSelectedKit(fresh);
+        } catch {
+            setSelectedKit(kit);
+        }
     };
 
     const handleConsumeSubmit = async () => {

@@ -171,6 +171,7 @@ function mapProfileToUser(profile) {
         lastName: raw.lastName || parts.slice(1).join(' ') || '',
         role: (raw.role ?? '').toLowerCase(),
         hospitalId: raw.hospitalId ?? '',
+        hospitalCode: raw.hospitalCode ?? '',
         modules: raw.modules ?? [],
     };
 }

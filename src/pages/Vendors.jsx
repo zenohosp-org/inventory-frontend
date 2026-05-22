@@ -21,7 +21,8 @@ const GST_STATE_MAP = {
 const EMPTY_FORM = {
     name: '', contactName: '', phone: '', email: '',
     address: '', city: '', state: '', pincode: '',
-    gstRegistrationType: '', gstNumber: '', panNumber: '', isActive: true,
+    gstRegistrationType: '', gstNumber: '', panNumber: '',
+    creditDays: 30,
 };
 
 export default function Vendors() {
@@ -70,7 +71,7 @@ export default function Vendors() {
                 gstRegistrationType: vendor.gstRegistrationType || '',
                 gstNumber: vendor.gstNumber || '',
                 panNumber: vendor.panNumber || '',
-                isActive: vendor.isActive !== false,
+                creditDays: vendor.creditDays ?? 30,
             });
             setStateAutoFilled(false);
         } else {
@@ -168,7 +169,7 @@ export default function Vendors() {
                                     <th>GST Type</th>
                                     <th>GST / PAN</th>
                                     <th>Location</th>
-                                    <th>Status</th>
+                                    <th>Credit Days</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -193,11 +194,7 @@ export default function Vendors() {
                                         <td className="text-muted">
                                             {[v.city, v.state, v.pincode].filter(Boolean).join(', ') || '-'}
                                         </td>
-                                        <td>
-                                            <span className={`badge ${v.isActive !== false ? 'badge-success' : 'badge-warning'}`}>
-                                                {v.isActive !== false ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </td>
+                                        <td className="text-muted">{v.creditDays ?? 30} days</td>
                                         <td style={{ position: 'relative' }}>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === v.id ? null : v.id); }}
@@ -256,10 +253,18 @@ export default function Vendors() {
                                     </div>
                                 </div>
 
-                                <div className="form-group">
-                                    <label className="form-label">Email ID</label>
-                                    <input type="email" className="form-input" value={formData.email}
-                                        onChange={set('email')} placeholder="vendor@example.com" />
+                                <div className="form-2col">
+                                    <div className="form-group">
+                                        <label className="form-label">Email ID</label>
+                                        <input type="email" className="form-input" value={formData.email}
+                                            onChange={set('email')} placeholder="vendor@example.com" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Credit Limit Days</label>
+                                        <input type="number" className="form-input" value={formData.creditDays}
+                                            onChange={e => setFormData(prev => ({ ...prev, creditDays: Number(e.target.value) }))}
+                                            min={0} placeholder="30" />
+                                    </div>
                                 </div>
 
                                 <div className="form-group">
@@ -311,19 +316,10 @@ export default function Vendors() {
                                     </div>
                                 </div>
 
-                                <div className="form-2col">
-                                    <div className="form-group">
-                                        <label className="form-label">Pincode</label>
-                                        <input type="text" className="form-input" value={formData.pincode}
-                                            onChange={set('pincode')} placeholder="600001" maxLength={6} />
-                                    </div>
-                                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <label className="checkbox-label">
-                                            <input type="checkbox" checked={formData.isActive}
-                                                onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))} />
-                                            Mark as Active
-                                        </label>
-                                    </div>
+                                <div className="form-group">
+                                    <label className="form-label">Pincode</label>
+                                    <input type="text" className="form-input" value={formData.pincode}
+                                        onChange={set('pincode')} placeholder="600001" maxLength={6} />
                                 </div>
                             </div>
                             <div className="modal-footer">
