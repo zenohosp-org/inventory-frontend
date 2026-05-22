@@ -682,7 +682,10 @@ export default function InventoryKits() {
                                                 return (
                                                     <tr key={idx}>
                                                         <td style={{ padding: '0.5rem 0' }}>{comp.itemName}</td>
-                                                        <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>{needed}</td>
+                                                        <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>
+                                                            {needed}
+                                                            <span className="kit-needed-per-kit">({comp.quantity}/kit)</span>
+                                                        </td>
                                                         <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>{available}</td>
                                                         <td style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                                                             {isOk ? (
