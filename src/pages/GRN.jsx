@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo, Fragment } from 'react';
-import { ClipboardList, ChevronDown, ChevronRight, FileText, Package } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ClipboardList, X, Package } from 'lucide-react';
 import { getGrns } from '../api/client';
 import './GRN.css';
 
 export default function GRN() {
     const [grns, setGrns] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [expandedPos, setExpandedPos] = useState({});
+    const [panelKey, setPanelKey] = useState(null);
     const [expandedGrns, setExpandedGrns] = useState({});
 
     useEffect(() => {
@@ -16,12 +16,10 @@ export default function GRN() {
             .finally(() => setLoading(false));
     }, []);
 
-    const togglePo = (key) => setExpandedPos(prev => ({ ...prev, [key]: !prev[key] }));
+    const fmt = (dt) => dt ? new Date(dt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
     const toggleGrn = (id) => setExpandedGrns(prev => ({ ...prev, [id]: !prev[id] }));
 
-    const fmt = (dt) => dt ? new Date(dt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
-
-    // Group GRNs by PO number.
+    // Group GRNs by PO.
     const groupedByPo = useMemo(() => {
         const groups = new Map();
         for (const grn of grns) {
@@ -42,7 +40,6 @@ export default function GRN() {
             const ts = grn.receivedAt ? new Date(grn.receivedAt).getTime() : 0;
             if (!g.latestAt || ts > g.latestAt) g.latestAt = ts;
         }
-        // Sort groups by latest receipt desc; sort GRNs in each group desc.
         const arr = Array.from(groups.values());
         arr.sort((a, b) => (b.latestAt || 0) - (a.latestAt || 0));
         for (const g of arr) {
@@ -51,150 +48,139 @@ export default function GRN() {
         return arr;
     }, [grns]);
 
+    const panelGroup = panelKey ? groupedByPo.find(g => g.key === panelKey) : null;
+
     return (
         <div>
             <div className="page-header">
                 <div>
                     <h1 className="page-title"><ClipboardList size={24} /> Goods Received Notes</h1>
-                    <p className="page-subtitle">Grouped by purchase order. Expand a PO to see all its GRN receipts.</p>
+                    <p className="page-subtitle">Click a PO row to see its GRN receipts.</p>
                 </div>
             </div>
 
-            <div className="table-container">
-                <div className="table-header">
-                    <h3 className="table-title">GRNs ({grns.length})</h3>
-                </div>
-                <div className="table-body">
-                {loading ? (
-                    <div className="table-empty"><div className="spinner"></div></div>
-                ) : groupedByPo.length === 0 ? (
-                    <div className="table-empty">No GRNs yet. Receive items from a Purchase Order to create the first GRN.</div>
-                ) : (
-                    <table className="table grn-table">
-                        <thead>
-                            <tr>
-                                <th className="grn-col-toggle"></th>
-                                <th>PO Number</th>
-                                <th>Vendor</th>
-                                <th>GRNs</th>
-                                <th>Last Received</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {groupedByPo.map(group => {
-                                const isPoOpen = !!expandedPos[group.key];
-                                return (
-                                    <Fragment key={group.key}>
-                                        <tr
-                                            className="grn-po-row"
-                                            onClick={() => togglePo(group.key)}
-                                        >
-                                            <td>
-                                                {isPoOpen
-                                                    ? <ChevronDown size={15} className="grn-chevron" />
-                                                    : <ChevronRight size={15} className="grn-chevron" />}
-                                            </td>
-                                            <td>
-                                                <span className="grn-po-icon"><FileText size={14} /></span>
-                                                <strong>{group.poNumber}</strong>
-                                            </td>
-                                            <td>{group.vendorName}</td>
-                                            <td>
-                                                <span className="grn-count-pill">
-                                                    {group.grns.length} GRN{group.grns.length !== 1 ? 's' : ''}
-                                                </span>
-                                            </td>
-                                            <td>{group.latestAt ? fmt(new Date(group.latestAt)) : '-'}</td>
-                                            <td>
-                                                {group.poStatus
-                                                    ? <span className={`grn-status grn-status-${group.poStatus.toLowerCase()}`}>{group.poStatus}</span>
-                                                    : '-'}
-                                            </td>
-                                        </tr>
-                                        {isPoOpen && (
-                                            <tr className="grn-detail-row">
-                                                <td colSpan={6} className="grn-detail-cell">
-                                                    <div className="grn-po-detail">
-                                                        <table className="grn-sub-table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th className="grn-col-toggle"></th>
-                                                                    <th>GRN No.</th>
-                                                                    <th>Received On</th>
-                                                                    <th>Items</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {group.grns.map(grn => {
-                                                                    const isGrnOpen = !!expandedGrns[grn.id];
-                                                                    const lineCount = grn.items?.length ?? 0;
-                                                                    return (
-                                                                        <Fragment key={grn.id}>
-                                                                            <tr
-                                                                                className="grn-row"
-                                                                                onClick={() => toggleGrn(grn.id)}
-                                                                            >
-                                                                                <td>
-                                                                                    {isGrnOpen
-                                                                                        ? <ChevronDown size={14} className="grn-chevron" />
-                                                                                        : <ChevronRight size={14} className="grn-chevron" />}
-                                                                                </td>
-                                                                                <td>
-                                                                                    <span className="grn-grn-icon"><Package size={13} /></span>
-                                                                                    <strong>{grn.grnNumber}</strong>
-                                                                                </td>
-                                                                                <td>{fmt(grn.receivedAt)}</td>
-                                                                                <td>{lineCount} line{lineCount !== 1 ? 's' : ''}</td>
-                                                                            </tr>
-                                                                            {isGrnOpen && (
-                                                                                <tr className="grn-items-row">
-                                                                                    <td colSpan={4} className="grn-detail-cell">
-                                                                                        <div className="grn-items-wrap">
-                                                                                            <table className="grn-items-table">
-                                                                                                <thead>
-                                                                                                    <tr>
-                                                                                                        <th>Item</th>
-                                                                                                        <th>Store</th>
-                                                                                                        <th>Qty</th>
-                                                                                                        <th>Unit Price</th>
-                                                                                                        <th>Batch</th>
-                                                                                                        <th>Expiry</th>
-                                                                                                    </tr>
-                                                                                                </thead>
-                                                                                                <tbody>
-                                                                                                    {(grn.items || []).map(line => (
-                                                                                                        <tr key={line.id}>
-                                                                                                            <td>{line.inventoryItem?.name || '-'}</td>
-                                                                                                            <td>{line.store?.name || '-'}</td>
-                                                                                                            <td>{line.receivedQty}</td>
-                                                                                                            <td>{line.unitPrice != null ? `₹${Number(line.unitPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}</td>
-                                                                                                            <td>{line.batchNumber || '-'}</td>
-                                                                                                            <td>{line.expiryDate || '-'}</td>
-                                                                                                        </tr>
-                                                                                                    ))}
-                                                                                                </tbody>
-                                                                                            </table>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            )}
-                                                                        </Fragment>
-                                                                    );
-                                                                })}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+            <div className="so-layout">
+                <div className="table-container so-table-wrap">
+                    <div className="table-header">
+                        <h3 className="table-title">GRNs ({grns.length})</h3>
+                        <span className="text-muted so-hint">Click a row to see receipts</span>
+                    </div>
+                    <div className="table-body">
+                        {loading ? (
+                            <div className="table-empty"><div className="spinner"></div></div>
+                        ) : groupedByPo.length === 0 ? (
+                            <div className="table-empty">No GRNs yet. Receive items from a Purchase Order to create the first GRN.</div>
+                        ) : (
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th>PO Number</th>
+                                        <th>Vendor</th>
+                                        <th>GRNs</th>
+                                        <th>Last Received</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {groupedByPo.map(group => {
+                                        const isSelected = panelKey === group.key;
+                                        return (
+                                            <tr
+                                                key={group.key}
+                                                className={`so-row${isSelected ? ' so-row-selected' : ''}`}
+                                                onClick={() => setPanelKey(isSelected ? null : group.key)}
+                                            >
+                                                <td><strong>{group.poNumber}</strong></td>
+                                                <td>{group.vendorName}</td>
+                                                <td>
+                                                    <span className="grn-count-pill">
+                                                        {group.grns.length} GRN{group.grns.length !== 1 ? 's' : ''}
+                                                    </span>
+                                                </td>
+                                                <td>{group.latestAt ? fmt(new Date(group.latestAt)) : '-'}</td>
+                                                <td>
+                                                    {group.poStatus
+                                                        ? <span className={`grn-status grn-status-${group.poStatus.toLowerCase()}`}>{group.poStatus}</span>
+                                                        : '-'}
                                                 </td>
                                             </tr>
-                                        )}
-                                    </Fragment>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+
+                {panelGroup && (
+                    <div className="so-panel">
+                        <div className="so-panel-header">
+                            <div>
+                                <div className="so-panel-name">{panelGroup.poNumber}</div>
+                                <div className="so-panel-meta">
+                                    {panelGroup.vendorName}
+                                    {panelGroup.poStatus ? ` · ${panelGroup.poStatus}` : ''}
+                                </div>
+                                <div className="so-panel-stats">
+                                    <div>
+                                        <div className="so-stat-label">GRNs</div>
+                                        <div className="so-stat-value so-stat-value--incoming">{panelGroup.grns.length}</div>
+                                    </div>
+                                    <div>
+                                        <div className="so-stat-label">Last Received</div>
+                                        <div className="so-stat-value" style={{ fontSize: 13 }}>
+                                            {panelGroup.latestAt ? fmt(new Date(panelGroup.latestAt)) : '-'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button className="so-panel-close" onClick={() => setPanelKey(null)}>
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="so-txn-heading">
+                            Receipts ({panelGroup.grns.length})
+                        </div>
+                        <div className="so-txn-scroll">
+                            {panelGroup.grns.map(grn => {
+                                const isOpen = !!expandedGrns[grn.id];
+                                const lineCount = grn.items?.length ?? 0;
+                                return (
+                                    <div
+                                        key={grn.id}
+                                        className="so-txn-row grn-receipt-row"
+                                        onClick={() => toggleGrn(grn.id)}
+                                    >
+                                        <div className="so-txn-body">
+                                            <div className="so-txn-top">
+                                                <span className="so-txn-badge grn-receipt-badge">
+                                                    <Package size={11} /> {grn.grnNumber}
+                                                </span>
+                                                <span className="so-txn-qty so-txn-qty--pos">+{lineCount}</span>
+                                            </div>
+                                            <div className="so-txn-date">{fmt(grn.receivedAt)}</div>
+                                            {isOpen && lineCount > 0 && (
+                                                <div className="grn-receipt-items">
+                                                    {(grn.items || []).map(line => (
+                                                        <div key={line.id} className="grn-receipt-line">
+                                                            <div className="grn-receipt-line-name">{line.inventoryItem?.name || '-'}</div>
+                                                            <div className="grn-receipt-line-meta">
+                                                                Qty {line.receivedQty}
+                                                                {line.store?.name ? ` · ${line.store.name}` : ''}
+                                                                {line.batchNumber ? ` · Batch ${line.batchNumber}` : ''}
+                                                                {line.expiryDate ? ` · Exp ${line.expiryDate}` : ''}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 );
                             })}
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 )}
-                </div>
             </div>
         </div>
     );
