@@ -13,7 +13,7 @@ const StockOverview = lazy(() => import('./pages/StockOverview'));
 const Stores = lazy(() => import('./pages/Stores'));
 const Vendors = lazy(() => import('./pages/Vendors'));
 const InventoryCategories = lazy(() => import('./pages/InventoryCategories'));
-const InventoryItems = lazy(() => import('./pages/InventoryItems'));
+const InventoryItems = lazy(() => import('./features/inventory-items/InventoryItemsPage'));
 const ItemTypes = lazy(() => import('./pages/ItemTypes'));
 const InventoryKits = lazy(() => import('./features/inventory-kits/InventoryKitsPage'));
 const PurchaseOrders = lazy(() => import('./features/purchase-orders/PurchaseOrdersPage'));
