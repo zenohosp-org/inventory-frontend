@@ -257,73 +257,36 @@
     padding: 2px 6px;
 }
 
-/* ── PO detail panel body ── */
-.po-detail-body {
-    padding: 0 var(--spacing-4) var(--spacing-4);
-    overflow-y: auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-4);
+/* ── PO detail panel: card content styles ──
+   Card chrome (background, border, shadow) is provided by shared .so-card / .so-panel-*
+   in src/styles/detail-panel.css. Only PO-specific bits live here. */
+
+.po-detail-items {
+    width: 100%;
+    font-size: var(--fs-sm);
+    border-collapse: collapse;
 }
 
-.po-detail-section {
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-3) var(--spacing-4);
-    background: #fff;
-}
-
-.po-detail-section--bill { border-left: 3px solid #3b82f6; }
-.po-detail-section--grn  { border-left: 3px solid #10b981; }
-
-.po-detail-section-title {
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    color: var(--color-gray-500);
+.po-detail-items th {
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-bottom: var(--spacing-2);
+    letter-spacing: 0.05em;
+    color: var(--color-gray-500);
+    padding: 8px 12px;
+    background: var(--color-gray-50);
+    border-bottom: 1px solid var(--color-gray-200);
 }
 
-.po-detail-items { font-size: var(--fs-sm); }
-.po-detail-items th { font-size: var(--fs-xs); }
+.po-detail-items td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-gray-100);
+}
+
+.po-detail-items tr:last-child td { border-bottom: none; }
 
 .po-detail-actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-2);
-}
-
-.po-detail-card-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-2) var(--spacing-3);
-    background: var(--color-gray-50);
-    border-radius: var(--radius-md);
-}
-
-.po-detail-card-row + .po-detail-card-row { margin-top: var(--spacing-2); }
-
-.po-detail-card-title {
-    font-weight: var(--fw-semibold);
-    font-size: var(--fs-sm);
-    color: var(--color-gray-900);
-}
-
-.po-detail-card-sub {
-    font-size: var(--fs-xs);
-    color: var(--color-gray-500);
-    margin-top: 2px;
-}
-
-.po-detail-grn-list {
-    display: flex;
-    flex-direction: column;
-}
-
-.po-detail-empty {
-    font-size: var(--fs-sm);
-    padding: var(--spacing-2) 0;
 }

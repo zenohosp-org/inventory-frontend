@@ -1,7 +1,8 @@
-import { ShoppingCart, Plus, X, AlertCircle, Search } from 'lucide-react';
+import { ShoppingCart, Plus, AlertCircle, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePurchaseOrders } from './hooks/usePurchaseOrders';
 import { STATUS_MAP } from './utils/poHelpers';
+import PODetailPanel from './components/PODetailPanel';
 import CreatePOModal from './modals/CreatePOModal';
 import ReceiveItemsModal from './modals/ReceiveItemsModal';
 import PayAdvanceModal from './modals/PayAdvanceModal';
@@ -10,10 +11,6 @@ import './PurchaseOrdersPage.css';
 export default function PurchaseOrdersPage() {
     const { user } = useAuth();
     const po = usePurchaseOrders(user);
-
-    const selectedStatus = po.selectedPO
-        ? (STATUS_MAP[po.selectedPO.status] || { label: po.selectedPO.status || '-', color: 'badge-secondary' })
-        : null;
 
     return (
         <div className="main-content">
@@ -152,118 +149,14 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 {po.selectedPO && (
-                    <div className="so-panel">
-                        <div className="so-panel-header">
-                            <div>
-                                <div className="so-panel-name">{po.selectedPO.poNumber || po.selectedPO.id}</div>
-                                <div className="so-panel-meta">
-                                    {po.selectedPO.vendor?.name || po.selectedPO.vendorName || '-'}
-                                    {po.selectedPO.store?.name ? ` · ${po.selectedPO.store.name}` : ''}
-                                </div>
-                                <div className="so-panel-stats">
-                                    <div>
-                                        <div className="so-stat-label">Status</div>
-                                        <div className="so-stat-value" style={{ fontSize: 13 }}>
-                                            <span className={`badge ${selectedStatus.color}`}>{selectedStatus.label}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="so-stat-label">Total</div>
-                                        <div className="so-stat-value">₹{Number(po.selectedPO.totalAmount || 0).toLocaleString()}</div>
-                                    </div>
-                                    <div>
-                                        <div className="so-stat-label">GRNs</div>
-                                        <div className="so-stat-value so-stat-value--incoming">{po.selectedGrns.length}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button className="so-panel-close" onClick={() => po.setSelectedPOId(null)}>
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        <div className="po-detail-body">
-                            <div className="po-detail-section">
-                                <div className="po-detail-section-title">Ordered Items</div>
-                                <table className="table po-detail-items">
-                                    <thead>
-                                        <tr>
-                                            <th>Item</th>
-                                            <th style={{ textAlign: 'center' }}>Ord</th>
-                                            <th style={{ textAlign: 'center' }}>Rcvd</th>
-                                            <th style={{ textAlign: 'right' }}>Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {(po.selectedPO.items || []).map(it => {
-                                            const recv = Number(it.receivedQty || 0);
-                                            const ord = Number(it.quantity || 0);
-                                            const amt = Number(it.unitPrice || 0) * ord;
-                                            return (
-                                                <tr key={it.id}>
-                                                    <td>{it.inventoryItem?.name || '-'}</td>
-                                                    <td style={{ textAlign: 'center' }}>{ord}</td>
-                                                    <td style={{ textAlign: 'center', color: recv >= ord ? '#16a34a' : '#f59e0b', fontWeight: 600 }}>{recv}</td>
-                                                    <td style={{ textAlign: 'right' }}>₹{amt.toLocaleString()}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="po-detail-section">
-                                <div className="po-detail-section-title">Actions</div>
-                                <div className="po-detail-actions">
-                                    {(po.selectedPO.status === 'ORDERED' || po.selectedPO.status === 'PARTIALLY_RECEIVED') && (
-                                        <button className="btn btn-sm btn-primary" onClick={() => po.openReceiptModal(po.selectedPO)}>Receive Items</button>
-                                    )}
-                                    {po.selectedBill?.paymentStatus !== 'PAID' && (
-                                        <button className="btn btn-sm btn-accent" onClick={() => po.openPayModal(po.selectedPO)}>Pay Advance</button>
-                                    )}
-                                    {po.selectedPO.status === 'BILLED' && <span className="text-muted">Already Billed</span>}
-                                </div>
-                            </div>
-
-                            {po.selectedBill && (
-                                <div className="po-detail-section po-detail-section--bill">
-                                    <div className="po-detail-section-title">Linked Bill</div>
-                                    <div className="po-detail-card-row">
-                                        <div>
-                                            <div className="po-detail-card-title">{po.selectedBill.billNumber || po.selectedBill.id}</div>
-                                            <div className="po-detail-card-sub">
-                                                Paid ₹{Number(po.selectedBill.paidAmount || 0).toLocaleString()} of ₹{Number(po.selectedBill.totalAmount || 0).toLocaleString()}
-                                            </div>
-                                        </div>
-                                        <span className={`badge ${po.selectedBill.paymentStatus === 'PAID' ? 'badge-success' : 'badge-warning'}`}>
-                                            {po.selectedBill.paymentStatus || '-'}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="po-detail-section po-detail-section--grn">
-                                <div className="po-detail-section-title">Goods Received Notes ({po.selectedGrns.length})</div>
-                                {po.selectedGrns.length === 0 ? (
-                                    <div className="text-muted po-detail-empty">No receipts yet.</div>
-                                ) : (
-                                    <div className="po-detail-grn-list">
-                                        {po.selectedGrns.map(g => (
-                                            <div key={g.id} className="po-detail-card-row">
-                                                <div>
-                                                    <div className="po-detail-card-title">{g.grnNumber}</div>
-                                                    <div className="po-detail-card-sub">
-                                                        {g.receivedAt ? new Date(g.receivedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-'}
-                                                        {` · ${g.items?.length || 0} line${g.items?.length === 1 ? '' : 's'}`}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                    <PODetailPanel
+                        po={po.selectedPO}
+                        bill={po.selectedBill}
+                        grns={po.selectedGrns}
+                        onClose={() => po.setSelectedPOId(null)}
+                        onReceive={() => po.openReceiptModal(po.selectedPO)}
+                        onPayAdvance={() => po.openPayModal(po.selectedPO)}
+                    />
                 )}
             </div>
 

@@ -36,30 +36,34 @@ export default function KitDetailPanel({ kit, onClose }) {
                 </button>
             </div>
 
-            <div className="so-txn-heading">Components ({componentCount})</div>
-            <div className="so-txn-scroll">
-                {componentCount > 0 ? (
-                    kit.components.map((comp, idx) => {
-                        const ok = (comp.currentStock || 0) >= comp.quantity;
-                        return (
-                            <div key={idx} className="so-txn-row">
-                                <div className="so-txn-body">
-                                    <div className="so-txn-top">
-                                        <span className="so-txn-badge" style={{ color: ok ? '#16a34a' : '#dc2626', background: ok ? '#dcfce7' : '#fee2e2' }}>
-                                            {ok ? 'OK' : 'Low'}
-                                        </span>
-                                        <span className={`so-txn-qty ${ok ? 'so-txn-qty--pos' : 'so-txn-qty--neg'}`}>
-                                            {comp.currentStock || 0}/{comp.quantity}
-                                        </span>
+            <div className="so-panel-body">
+                <div className="so-card">
+                    <div className="so-card-header">Components ({componentCount})</div>
+                    <div className="so-card-body is-flush">
+                        {componentCount > 0 ? (
+                            kit.components.map((comp, idx) => {
+                                const ok = (comp.currentStock || 0) >= comp.quantity;
+                                return (
+                                    <div key={idx} className="so-txn-row">
+                                        <div className="so-txn-body">
+                                            <div className="so-txn-top">
+                                                <span className="so-txn-badge" style={{ color: ok ? '#16a34a' : '#dc2626', background: ok ? '#dcfce7' : '#fee2e2' }}>
+                                                    {ok ? 'OK' : 'Low'}
+                                                </span>
+                                                <span className={`so-txn-qty ${ok ? 'so-txn-qty--pos' : 'so-txn-qty--neg'}`}>
+                                                    {comp.currentStock || 0}/{comp.quantity}
+                                                </span>
+                                            </div>
+                                            <div className="so-txn-date">{comp.itemName}</div>
+                                        </div>
                                     </div>
-                                    <div className="so-txn-date">{comp.itemName}</div>
-                                </div>
-                            </div>
-                        );
-                    })
-                ) : (
-                    <div className="so-txn-empty">No components</div>
-                )}
+                                );
+                            })
+                        ) : (
+                            <div className="so-txn-empty">No components</div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );
