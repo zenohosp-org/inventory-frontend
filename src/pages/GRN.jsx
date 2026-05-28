@@ -1,20 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { ClipboardList, X, Package } from 'lucide-react';
 import { getGrns } from '../api/client';
+import { useQuery } from '../hooks/useQuery';
 import './GRN.css';
 
 export default function GRN() {
-    const [grns, setGrns] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data: grns = [], loading } = useQuery('grns', () => getGrns().then(r => Array.isArray(r.data) ? r.data : []));
     const [panelKey, setPanelKey] = useState(null);
     const [expandedGrns, setExpandedGrns] = useState({});
-
-    useEffect(() => {
-        getGrns()
-            .then(res => setGrns(Array.isArray(res.data) ? res.data : []))
-            .catch(() => setGrns([]))
-            .finally(() => setLoading(false));
-    }, []);
 
     const fmt = (dt) => dt ? new Date(dt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
     const toggleGrn = (id) => setExpandedGrns(prev => ({ ...prev, [id]: !prev[id] }));

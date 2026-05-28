@@ -7,7 +7,7 @@ import {
     getPOBills, getGrns,
     createAsset, getAssets, logStock,
 } from '../../../api/client';
-import { withCache } from '../../../cache';
+import { query, invalidateKey } from '../../../lib/queryCache';
 import { EMPTY_PO_FORM, EMPTY_PAY_FORM, extractArray } from '../utils/poHelpers';
 
 export function usePurchaseOrders(user) {
@@ -38,46 +38,60 @@ export function usePurchaseOrders(user) {
     const [payForm, setPayForm] = useState(EMPTY_PAY_FORM);
     const [bankLoading, setBankLoading] = useState(false);
 
+    // Aggregator helpers — turn flat lists into the lookup maps the UI consumes.
+    const applyBills = useCallback((billsRes) => {
+        const map = {};
+        extractArray(billsRes).forEach(b => {
+            const poId = b.purchaseOrder?.id;
+            if (poId) map[poId] = b;
+        });
+        setBillsByPoId(map);
+    }, []);
+
+    const applyGrns = useCallback((grnsRes) => {
+        const map = {};
+        extractArray(grnsRes).forEach(g => {
+            const poId = g.purchaseOrder?.id;
+            if (!poId) return;
+            if (!map[poId]) map[poId] = [];
+            map[poId].push(g);
+        });
+        setGrnsByPoId(map);
+    }, []);
+
     const fetchData = useCallback(async () => {
-        setLoading(true);
         setError(null);
+
+        // SWR pattern: pull whatever the shared cache already has and render it now.
+        // Only show the loading spinner if EVERY slice is cold — otherwise the user
+        // sees data immediately while fresh copies stream in in the background.
+        const slices = [
+            { key: 'purchaseOrders', fetcher: getPurchaseOrders, apply: r => setPos(extractArray(r)) },
+            { key: 'vendors',        fetcher: getVendors,        apply: r => setVendors(extractArray(r)) },
+            { key: 'items',          fetcher: getItems,          apply: r => setItems(extractArray(r)) },
+            { key: 'stores',         fetcher: getStores,         apply: r => setActiveStores(extractArray(r).filter(s => s?.isActive)) },
+            { key: 'poBills',        fetcher: getPOBills,        apply: applyBills },
+            { key: 'grns',           fetcher: getGrns,           apply: applyGrns },
+        ];
+
+        const queries = slices.map(s => {
+            const result = query(s.key, s.fetcher);
+            if (result.data !== undefined) s.apply(result.data);  // hydrate from cache synchronously
+            return { ...s, result };
+        });
+
+        const anyCold = queries.some(q => q.result.data === undefined);
+        if (anyCold) setLoading(true);
+
         try {
-            const [posRes, vendsRes, itemsRes, storesRes, billsRes, grnsRes] = await Promise.all([
-                getPurchaseOrders(),
-                withCache('vendors', getVendors),
-                withCache('items', getItems),
-                withCache('stores', getStores),
-                getPOBills(),
-                getGrns(),
-            ]);
-            setPos(extractArray(posRes));
-            setVendors(extractArray(vendsRes));
-            setItems(extractArray(itemsRes));
-            setActiveStores(extractArray(storesRes).filter(s => s?.isActive));
-
-            const billMap = {};
-            extractArray(billsRes).forEach(b => {
-                const poId = b.purchaseOrder?.id;
-                if (poId) billMap[poId] = b;
-            });
-            setBillsByPoId(billMap);
-
-            const grnMap = {};
-            extractArray(grnsRes).forEach(g => {
-                const poId = g.purchaseOrder?.id;
-                if (!poId) return;
-                if (!grnMap[poId]) grnMap[poId] = [];
-                grnMap[poId].push(g);
-            });
-            setGrnsByPoId(grnMap);
+            const fresh = await Promise.all(queries.map(q => q.result.fresh));
+            queries.forEach((q, i) => q.apply(fresh[i]));
         } catch (e) {
             setError('Failed to load data. ' + (e.response?.data?.message || e.message));
-            setPos([]); setVendors([]); setItems([]); setActiveStores([]);
-            setBillsByPoId({}); setGrnsByPoId({});
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [applyBills, applyGrns]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -127,6 +141,7 @@ export function usePurchaseOrders(user) {
             });
             setShowCreateModal(false);
             setFormData(EMPTY_PO_FORM);
+            invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');
             await fetchData();
         } catch (e) {
             alert('Failed to create PO: ' + (e.response?.data?.message || e.message));
@@ -243,6 +258,7 @@ export function usePurchaseOrders(user) {
             }
 
             setReceiptModal(null);
+            invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');
             await fetchData();
         } catch (e) {
             alert('Failed: ' + (e.response?.data?.message || e.message));
@@ -293,6 +309,7 @@ export function usePurchaseOrders(user) {
                 bankAccountName: selectedAccount?.accountName || '',
             });
             setPayModal(null);
+            invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');
             await fetchData();
         } catch (e) {
             alert('Failed: ' + (e.response?.data?.message || e.message));

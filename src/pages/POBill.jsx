@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Receipt } from 'lucide-react';
 import { getPOBills } from '../api/client';
+import { useQuery } from '../hooks/useQuery';
 
 const STATUS_BADGE = {
     PENDING: 'badge-error',
@@ -13,19 +13,13 @@ function StatusBadge({ status }) {
 }
 
 export default function POBill() {
-    const [bills, setBills] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        getPOBills()
-            .then(res => {
-                const data = Array.isArray(res.data) ? res.data : [];
-                data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                setBills(data);
-            })
-            .catch(() => setBills([]))
-            .finally(() => setLoading(false));
-    }, []);
+    const { data: bills = [], loading } = useQuery('poBills', () =>
+        getPOBills().then(res => {
+            const data = Array.isArray(res.data) ? res.data : [];
+            data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            return data;
+        })
+    );
 
     return (
         <div>
