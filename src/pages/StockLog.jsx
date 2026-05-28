@@ -5,51 +5,55 @@ import { getStockLogs } from '../api/client';
 
 export default function StockLog() {
     const [transactions, setTransactions] = useState([]);
-    const [filteredTransactions, setFilteredTransactions] = useState([]);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState('all');
     const [pageIndex, setPageIndex] = useState(0);
     const pageSize = 20;
 
+    // Debounce the search input so we don't hammer the backend on every keystroke.
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     useEffect(() => {
+        const id = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+        return () => clearTimeout(id);
+    }, [searchQuery]);
+
+    // Reset to first page whenever filters change.
+    useEffect(() => { setPageIndex(0); }, [debouncedSearch, filterType]);
+
+    useEffect(() => {
+        let cancelled = false;
+        const fetchTransactions = async () => {
+            setLoading(true);
+            try {
+                const res = await getStockLogs({
+                    page: pageIndex,
+                    size: pageSize,
+                    search: debouncedSearch || undefined,
+                    type: filterType !== 'all' ? filterType : undefined,
+                });
+                if (cancelled) return;
+                let payload = res.data || res;
+                if (typeof payload === 'string') payload = JSON.parse(payload);
+                const content = Array.isArray(payload?.content) ? payload.content : [];
+                setTransactions(content);
+                setTotalElements(payload?.totalElements ?? content.length);
+                setTotalPages(payload?.totalPages ?? 1);
+            } catch (error) {
+                if (cancelled) return;
+                console.error('Error fetching stock log:', error);
+                setTransactions([]);
+                setTotalElements(0);
+                setTotalPages(0);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
         fetchTransactions();
-    }, []);
-
-    useEffect(() => {
-        // Apply filters
-        let filtered = transactions;
-
-        if (searchQuery) {
-            filtered = filtered.filter(t =>
-                t.itemName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                t.itemCode?.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        if (filterType !== 'all') {
-            filtered = filtered.filter(t => t.transactionType === filterType);
-        }
-
-        setFilteredTransactions(filtered);
-        setPageIndex(0);
-    }, [searchQuery, filterType, transactions]);
-
-    const fetchTransactions = async () => {
-        setLoading(true);
-        try {
-            const res = await getStockLogs();
-            let transData = res.data || res;
-            if (typeof transData === 'string') transData = JSON.parse(transData);
-            transData = Array.isArray(transData) ? transData : [];
-            setTransactions(transData);
-        } catch (error) {
-            console.error('Error fetching stock log:', error);
-            setTransactions([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+        return () => { cancelled = true; };
+    }, [pageIndex, debouncedSearch, filterType]);
 
     const getTransactionTypeColor = (type) => {
         switch (type) {
@@ -89,12 +93,8 @@ export default function StockLog() {
         }
     };
 
-    const paginatedTransactions = filteredTransactions.slice(
-        pageIndex * pageSize,
-        (pageIndex + 1) * pageSize
-    );
-
-    const totalPages = Math.ceil(filteredTransactions.length / pageSize);
+    const rangeStart = totalElements === 0 ? 0 : pageIndex * pageSize + 1;
+    const rangeEnd = Math.min((pageIndex + 1) * pageSize, totalElements);
 
     return (
         <div className="main-content">
@@ -146,13 +146,13 @@ export default function StockLog() {
             {/* Transactions Table */}
             <div className="table-container">
                 <div className="table-header">
-                    <h3 className="table-title">Transactions ({filteredTransactions.length})</h3>
+                    <h3 className="table-title">Transactions ({totalElements})</h3>
                 </div>
 
                 <div className="table-body">
                     {loading ? (
                         <div className="table-empty"><div className="spinner"></div></div>
-                    ) : filteredTransactions.length === 0 ? (
+                    ) : transactions.length === 0 ? (
                         <div className="table-empty">No transactions found.</div>
                     ) : (
                         <table className="table table-striped">
@@ -168,7 +168,7 @@ export default function StockLog() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginatedTransactions.map((txn, idx) => (
+                                {transactions.map((txn, idx) => (
                                     <tr key={txn.id || idx}>
                                         <td>
                                             <span className="text-xs text-muted">
@@ -201,7 +201,7 @@ export default function StockLog() {
 
                 <div className="table-footer">
                     <span className="table-info">
-                        Showing {filteredTransactions.length === 0 ? 0 : pageIndex * pageSize + 1} to {Math.min((pageIndex + 1) * pageSize, filteredTransactions.length)} of {filteredTransactions.length} transactions
+                        Showing {rangeStart} to {rangeEnd} of {totalElements} transactions
                     </span>
                     {totalPages > 1 && (
                         <div className="pagination">

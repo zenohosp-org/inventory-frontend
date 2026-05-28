@@ -29,23 +29,18 @@ const Dashboard = () => {
       console.log('Fetching dashboard data...');
       const [stockRes, transRes] = await Promise.all([
         getStockOverview(),
-        getStockLogs(),
+        getStockLogs({ page: 0, size: 10 }),
       ]);
 
-      console.log('Stock Response:', stockRes);
-      console.log('Transactions Response:', transRes);
-
-      // Parse JSON strings if necessary
       let stocks = stockRes.data || stockRes;
-      let transactions = transRes.data || transRes;
+      let transPayload = transRes.data || transRes;
       if (typeof stocks === 'string') stocks = JSON.parse(stocks);
-      if (typeof transactions === 'string') transactions = JSON.parse(transactions);
+      if (typeof transPayload === 'string') transPayload = JSON.parse(transPayload);
       stocks = Array.isArray(stocks) ? stocks : [];
-      transactions = Array.isArray(transactions) ? transactions : [];
-      const transactionSlice = transactions.slice(0, 10);
-
-      console.log('Parsed stocks:', stocks);
-      console.log('Parsed transactions:', transactions);
+      // Paginated endpoint returns { content, totalElements, ... }
+      const transactionSlice = Array.isArray(transPayload?.content) ? transPayload.content
+                              : Array.isArray(transPayload) ? transPayload.slice(0, 10)
+                              : [];
 
       // Calculate stats
       const lowStock = (stocks || []).filter(s => s.quantityAvail <= s.reorderLevel);
