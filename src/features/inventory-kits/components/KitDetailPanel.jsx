@@ -1,8 +1,7 @@
 import { X } from 'lucide-react';
-import { getStatusColor, getStatusLabel } from '../utils/kitHelpers';
+import { getStatusLabel } from '../utils/kitHelpers';
 
 export default function KitDetailPanel({ kit, onClose }) {
-    const statusColor = getStatusColor(kit.maxAssemblable);
     const isLow = kit.maxAssemblable === 0 || kit.maxAssemblable <= 2;
     const componentCount = kit.components?.length || 0;
 
@@ -25,8 +24,10 @@ export default function KitDetailPanel({ kit, onClose }) {
                         </div>
                         <div>
                             <div className="so-stat-label">Status</div>
-                            <div className="so-stat-value" style={{ color: statusColor, fontSize: 14 }}>
-                                {getStatusLabel(kit.maxAssemblable)}
+                            <div className="so-stat-pill-wrap">
+                                <span className={`kit-status-pill ${isLow ? 'is-low' : 'is-ok'}`}>
+                                    {getStatusLabel(kit.maxAssemblable)}
+                                </span>
                             </div>
                         </div>
                     </div>

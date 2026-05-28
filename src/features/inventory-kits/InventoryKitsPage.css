@@ -7,6 +7,48 @@
     overflow: visible;
 }
 
+/* ── Kits list table layout ── */
+.kits-table {
+    table-layout: auto;
+}
+
+.kits-table th.col-code    { width: 110px; }
+.kits-table th.col-num     { width: 90px;  text-align: right; }
+.kits-table td.col-num     { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kits-table th.col-status  { width: 110px; }
+.kits-table th.col-actions { width: 56px; text-align: center; }
+.kits-table td.col-actions { text-align: center; }
+
+/* The dropdown overlay anchors here. Pin to the right edge so it never
+   gets clipped when the panel is open and the column is narrow. */
+.kits-actions-cell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kits-actions-dropdown {
+    right: 0;
+    left: auto;
+}
+
+/* When the panel is open and the Kit Name column carries the code as a sub-line. */
+.kits-row-sub {
+    color: var(--color-gray-500);
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* ── Detail-panel status pill wrapper ──
+   The status sits inside .so-panel-stats > div alongside the Available number.
+   Keep it vertically aligned with the big number, but don't inherit the heavy 18px text. */
+.so-stat-pill-wrap {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+}
+
 /* ── Misc ── */
 .action-group {
     display: flex;

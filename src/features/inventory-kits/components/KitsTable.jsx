@@ -7,6 +7,8 @@ export default function KitsTable({
     activeDropdown, setActiveDropdown,
     onConsume, onEdit, onDelete,
 }) {
+    const panelOpen = !!selectedKit;
+
     return (
         <div className="table-container so-table-wrap kits-table-wrap">
             <div className="table-header">
@@ -21,15 +23,15 @@ export default function KitsTable({
                         <p>No kits yet. Click "Create Kit" to add one.</p>
                     </div>
                 ) : (
-                    <table className="table">
+                    <table className="table kits-table">
                         <thead>
                             <tr>
-                                <th>Code</th>
+                                {!panelOpen && <th className="col-code">Code</th>}
                                 <th>Kit Name</th>
-                                <th>Components</th>
-                                <th>Available</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                {!panelOpen && <th className="col-num">Components</th>}
+                                <th className="col-num">Available</th>
+                                {!panelOpen && <th className="col-status">Status</th>}
+                                <th className="col-actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -42,36 +44,44 @@ export default function KitsTable({
                                         onClick={() => setSelectedKit(isSelected ? null : kit)}
                                         className={`so-row${isSelected ? ' so-row-selected' : ''}`}
                                     >
-                                        <td><span className="mono-sm">{kit.code || '-'}</span></td>
-                                        <td><strong>{kit.name}</strong></td>
-                                        <td>{kit.components?.length || 0} items</td>
-                                        <td><strong style={{ color: statusColor }}>{kit.maxAssemblable || 0}</strong></td>
+                                        {!panelOpen && <td><span className="mono-sm">{kit.code || '-'}</span></td>}
                                         <td>
-                                            <span className="badge" style={{ background: statusColor + '20', color: statusColor }}>
-                                                {getStatusLabel(kit.maxAssemblable)}
-                                            </span>
+                                            <strong>{kit.name}</strong>
+                                            {panelOpen && kit.code && <div className="kits-row-sub mono-sm">{kit.code}</div>}
                                         </td>
-                                        <td onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === kit.id ? null : kit.id); }}
-                                                className="app-btn-icon"
-                                            >
-                                                <MoreVertical size={18} />
-                                            </button>
-                                            {activeDropdown === kit.id && (
-                                                <div className="assets-dropdown">
-                                                    <button onClick={(e) => { e.stopPropagation(); onConsume(kit); }} className="assets-dropdown-item">
-                                                        <Package size={16} style={{ color: '#8b5cf6' }} /> Consume
-                                                    </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); onEdit(kit); }} className="assets-dropdown-item">
-                                                        <Edit2 size={16} style={{ color: '#3b82f6' }} /> Edit
-                                                    </button>
-                                                    <div style={{ height: '1px', margin: '4px 0', background: '#f1f5f9' }} />
-                                                    <button onClick={(e) => { e.stopPropagation(); onDelete(kit); }} className="assets-dropdown-item--danger">
-                                                        <Trash2 size={16} /> Delete
-                                                    </button>
-                                                </div>
-                                            )}
+                                        {!panelOpen && <td className="col-num">{kit.components?.length || 0} items</td>}
+                                        <td className="col-num"><strong style={{ color: statusColor }}>{kit.maxAssemblable || 0}</strong></td>
+                                        {!panelOpen && (
+                                            <td>
+                                                <span className="badge" style={{ background: statusColor + '20', color: statusColor }}>
+                                                    {getStatusLabel(kit.maxAssemblable)}
+                                                </span>
+                                            </td>
+                                        )}
+                                        <td onClick={e => e.stopPropagation()} className="col-actions">
+                                            <div className="kits-actions-cell">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === kit.id ? null : kit.id); }}
+                                                    className="app-btn-icon"
+                                                    aria-label="Row actions"
+                                                >
+                                                    <MoreVertical size={18} />
+                                                </button>
+                                                {activeDropdown === kit.id && (
+                                                    <div className="assets-dropdown kits-actions-dropdown">
+                                                        <button onClick={(e) => { e.stopPropagation(); onConsume(kit); }} className="assets-dropdown-item">
+                                                            <Package size={16} style={{ color: '#8b5cf6' }} /> Consume
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); onEdit(kit); }} className="assets-dropdown-item">
+                                                            <Edit2 size={16} style={{ color: '#3b82f6' }} /> Edit
+                                                        </button>
+                                                        <div style={{ height: '1px', margin: '4px 0', background: '#f1f5f9' }} />
+                                                        <button onClick={(e) => { e.stopPropagation(); onDelete(kit); }} className="assets-dropdown-item--danger">
+                                                            <Trash2 size={16} /> Delete
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 );
