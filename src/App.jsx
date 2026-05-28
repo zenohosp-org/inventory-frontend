@@ -16,7 +16,7 @@ const InventoryCategories = lazy(() => import('./pages/InventoryCategories'));
 const InventoryItems = lazy(() => import('./pages/InventoryItems'));
 const ItemTypes = lazy(() => import('./pages/ItemTypes'));
 const InventoryKits = lazy(() => import('./pages/InventoryKits'));
-const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
+const PurchaseOrders = lazy(() => import('./features/purchase-orders/PurchaseOrdersPage'));
 const StockLog = lazy(() => import('./pages/StockLog'));
 
 // New pages
