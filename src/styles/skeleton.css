@@ -1,0 +1,57 @@
+/* ── Skeleton placeholders ──
+   Used by PageSkeleton (lazy chunk fallback) and any data-loading state
+   that wants to mimic real content rather than show a centered spinner. */
+
+@keyframes sk-shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.sk-line,
+.sk-input,
+.sk-button,
+.sk-row {
+    background: linear-gradient(
+        90deg,
+        var(--color-gray-100) 0%,
+        var(--color-gray-200) 50%,
+        var(--color-gray-100) 100%
+    );
+    background-size: 800px 100%;
+    animation: sk-shimmer 1.4s linear infinite;
+    border-radius: var(--radius-sm);
+}
+
+.sk-line             { height: 14px; width: 60%; margin-bottom: 8px; }
+.sk-line--title      { height: 22px; width: 280px; }
+.sk-line--subtitle   { height: 12px; width: 360px; margin-top: 10px; }
+.sk-line--label      { height: 14px; width: 140px; }
+
+.sk-button {
+    height: 38px;
+    width: 160px;
+    border-radius: var(--radius-md);
+}
+
+.sk-input {
+    height: 38px;
+    width: 100%;
+    max-width: 480px;
+    border-radius: var(--radius-md);
+}
+
+.sk-input--sm { max-width: 220px; }
+
+.sk-row {
+    height: 52px;
+    margin: 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--color-gray-100);
+    background: linear-gradient(
+        90deg,
+        rgba(241, 245, 249, 0.5) 0%,
+        rgba(226, 232, 240, 0.8) 50%,
+        rgba(241, 245, 249, 0.5) 100%
+    );
+    background-size: 800px 100%;
+}
