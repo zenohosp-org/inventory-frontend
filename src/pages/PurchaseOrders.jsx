@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, X, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ShoppingCart, Plus, X, AlertCircle, Search } from 'lucide-react';
 import {
     getPurchaseOrders, createPurchaseOrder,
     getVendors, getItems, getStores,
     recordPOReceipt,
     payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
-    getPOBills,
+    getPOBills, getGrns,
     createAsset, getAssets, logStock,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -30,9 +30,12 @@ export default function PurchaseOrders() {
     const [items, setItems] = useState([]);
     const [activeStores, setActiveStores] = useState([]);
     const [billsByPoId, setBillsByPoId] = useState({});
+    const [grnsByPoId, setGrnsByPoId] = useState({});
     const [bankAccounts, setBankAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedPOId, setSelectedPOId] = useState(null);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [formData, setFormData] = useState(EMPTY_FORM);
@@ -60,8 +63,8 @@ export default function PurchaseOrders() {
         setLoading(true);
         setError(null);
         try {
-            const [posRes, vendsRes, itemsRes, storesRes, billsRes] = await Promise.all([
-                getPurchaseOrders(), withCache('vendors', getVendors), withCache('items', getItems), withCache('stores', getStores), getPOBills(),
+            const [posRes, vendsRes, itemsRes, storesRes, billsRes, grnsRes] = await Promise.all([
+                getPurchaseOrders(), withCache('vendors', getVendors), withCache('items', getItems), withCache('stores', getStores), getPOBills(), getGrns(),
             ]);
             setPos(extractArray(posRes));
             setVendors(extractArray(vendsRes));
@@ -73,9 +76,17 @@ export default function PurchaseOrders() {
                 if (poId) billMap[poId] = b;
             });
             setBillsByPoId(billMap);
+            const grnMap = {};
+            extractArray(grnsRes).forEach(g => {
+                const poId = g.purchaseOrder?.id;
+                if (!poId) return;
+                if (!grnMap[poId]) grnMap[poId] = [];
+                grnMap[poId].push(g);
+            });
+            setGrnsByPoId(grnMap);
         } catch (e) {
             setError('Failed to load data. ' + (e.response?.data?.message || e.message));
-            setPos([]); setVendors([]); setItems([]); setActiveStores([]); setBillsByPoId({});
+            setPos([]); setVendors([]); setItems([]); setActiveStores([]); setBillsByPoId({}); setGrnsByPoId({});
         } finally {
             setLoading(false);
         }
@@ -307,8 +318,25 @@ export default function PurchaseOrders() {
         }
     };
 
-    const totalPages = Math.ceil(pos.length / pageSize);
-    const paginatedPos = pos.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+    const filteredPos = useMemo(() => {
+        if (!searchQuery.trim()) return pos;
+        const q = searchQuery.toLowerCase();
+        return pos.filter(po =>
+            (po.poNumber || '').toLowerCase().includes(q) ||
+            (po.vendor?.name || po.vendorName || '').toLowerCase().includes(q) ||
+            (po.store?.name || '').toLowerCase().includes(q)
+        );
+    }, [pos, searchQuery]);
+
+    const totalPages = Math.ceil(filteredPos.length / pageSize);
+    const paginatedPos = filteredPos.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+
+    useEffect(() => { setPageIndex(0); }, [searchQuery]);
+
+    const selectedPO = useMemo(() => pos.find(p => p.id === selectedPOId) || null, [pos, selectedPOId]);
+    const selectedStatus = selectedPO ? (STATUS_MAP[selectedPO.status] || { label: selectedPO.status || '-', color: 'badge-secondary' }) : null;
+    const selectedBill = selectedPO ? billsByPoId[selectedPO.id] : null;
+    const selectedGrns = selectedPO ? (grnsByPoId[selectedPO.id] || []) : [];
 
     return (
         <div className="main-content">
@@ -340,97 +368,229 @@ export default function PurchaseOrders() {
                 </div>
             )}
 
-            <div className="table-container">
-                <div className="table-header">
-                    <h3 className="table-title">Purchase Orders ({pos.length})</h3>
-                </div>
-                <div className="table-body">
-                    {loading ? (
-                        <div className="table-empty"><div className="spinner"></div></div>
-                    ) : pos.length === 0 ? (
-                        <div className="table-empty">No purchase orders found.</div>
-                    ) : (
-                        <table className="table">
-                            <thead>
-                                <tr>
-                                    <th>PO #</th>
-                                    <th>Vendor</th>
-                                    <th>Store</th>
-                                    <th>Order Date</th>
-                                    <th>Expected</th>
-                                    <th>Items</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginatedPos.map(po => {
-                                    const s = STATUS_MAP[po.status] || { label: po.status || '-', color: 'badge-secondary' };
-                                    const canReceive = po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED' || po.status === 'RECEIVED';
-                                    const bill = billsByPoId[po.id];
-                                    const canPay = bill?.paymentStatus !== 'PAID';
-                                    return (
-                                        <tr key={po.id}>
-                                            <td><strong className="mono">{po.poNumber || po.id}</strong></td>
-                                            <td>{po.vendor?.name || po.vendorName || '-'}</td>
-                                            <td className="po-store-col">{po.store?.name || '-'}</td>
-                                            <td className="text-muted">{new Date(po.createdAt).toLocaleDateString()}</td>
-                                            <td className="text-muted">
-                                                {po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '-'}
-                                            </td>
-                                            <td>
-                                                <span className="po-count-chip">{po.items?.length || 0}</span>
-                                            </td>
-                                            <td>₹{Number(po.totalAmount || 0).toLocaleString()}</td>
-                                            <td><span className={`badge ${s.color}`}>{s.label}</span></td>
-                                            <td>
-                                                <div className="po-action-group">
-                                                    {(po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED') && (
-                                                        <button className="btn btn-sm btn-primary" onClick={() => openReceiptModal(po)}>
-                                                            Receive
-                                                        </button>
-                                                    )}
-                                                    {canPay && (
-                                                        <button className="btn btn-sm btn-accent" onClick={() => openPayModal(po)}>
-                                                            Pay Advance
-                                                        </button>
-                                                    )}
-                                                    {po.status === 'BILLED' && (
-                                                        <span className="text-muted">Billed</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-                <div className="table-footer">
-                    <span className="table-info">
-                        Showing {pos.length === 0 ? 0 : pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, pos.length)} of {pos.length} purchase orders
-                    </span>
-                    {totalPages > 1 && (
-                        <div className="pagination">
-                            <button className="pagination-item" disabled={pageIndex === 0} onClick={() => setPageIndex(pageIndex - 1)}>← Previous</button>
-                            {(() => {
-                                const visible = Math.min(totalPages, 5);
-                                const start = Math.max(0, Math.min(pageIndex - 2, totalPages - visible));
-                                return Array.from({ length: visible }).map((_, i) => {
-                                    const page = start + i;
-                                    return (
-                                        <button key={page} className={`pagination-item ${pageIndex === page ? 'active' : ''}`} onClick={() => setPageIndex(page)}>
-                                            {page + 1}
-                                        </button>
-                                    );
-                                });
-                            })()}
-                            <button className="pagination-item" disabled={pageIndex >= totalPages - 1} onClick={() => setPageIndex(pageIndex + 1)}>Next →</button>
+            <div className="so-layout">
+                <div className="table-container so-table-wrap">
+                    <div className="table-header">
+                        <h3 className="table-title">Purchase Orders ({filteredPos.length})</h3>
+                        <div className="po-search">
+                            <Search size={14} className="po-search-icon" />
+                            <input
+                                type="text"
+                                placeholder="Search PO, vendor, store..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="po-search-input"
+                            />
+                            {searchQuery && (
+                                <button className="po-search-clear" onClick={() => setSearchQuery('')}>×</button>
+                            )}
                         </div>
-                    )}
+                    </div>
+                    <div className="table-body">
+                        {loading ? (
+                            <div className="table-empty"><div className="spinner"></div></div>
+                        ) : filteredPos.length === 0 ? (
+                            <div className="table-empty">{searchQuery ? 'No matching purchase orders.' : 'No purchase orders found.'}</div>
+                        ) : (
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th>PO #</th>
+                                        <th>Vendor</th>
+                                        {!selectedPOId && <th>Store</th>}
+                                        {!selectedPOId && <th>Order Date</th>}
+                                        {!selectedPOId && <th>Expected</th>}
+                                        {!selectedPOId && <th>Items</th>}
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        {!selectedPOId && <th>Action</th>}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedPos.map(po => {
+                                        const s = STATUS_MAP[po.status] || { label: po.status || '-', color: 'badge-secondary' };
+                                        const bill = billsByPoId[po.id];
+                                        const canPay = bill?.paymentStatus !== 'PAID';
+                                        const isSelected = selectedPOId === po.id;
+                                        return (
+                                            <tr
+                                                key={po.id}
+                                                className={`so-row${isSelected ? ' so-row-selected' : ''}`}
+                                                onClick={() => setSelectedPOId(isSelected ? null : po.id)}
+                                            >
+                                                <td><strong className="mono">{po.poNumber || po.id}</strong></td>
+                                                <td>{po.vendor?.name || po.vendorName || '-'}</td>
+                                                {!selectedPOId && <td className="po-store-col">{po.store?.name || '-'}</td>}
+                                                {!selectedPOId && <td className="text-muted">{new Date(po.createdAt).toLocaleDateString()}</td>}
+                                                {!selectedPOId && <td className="text-muted">{po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '-'}</td>}
+                                                {!selectedPOId && <td><span className="po-count-chip">{po.items?.length || 0}</span></td>}
+                                                <td>₹{Number(po.totalAmount || 0).toLocaleString()}</td>
+                                                <td><span className={`badge ${s.color}`}>{s.label}</span></td>
+                                                {!selectedPOId && (
+                                                    <td onClick={(e) => e.stopPropagation()}>
+                                                        <div className="po-action-group">
+                                                            {(po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED') && (
+                                                                <button className="btn btn-sm btn-primary" onClick={() => openReceiptModal(po)}>
+                                                                    Receive
+                                                                </button>
+                                                            )}
+                                                            {canPay && (
+                                                                <button className="btn btn-sm btn-accent" onClick={() => openPayModal(po)}>
+                                                                    Pay Advance
+                                                                </button>
+                                                            )}
+                                                            {po.status === 'BILLED' && (
+                                                                <span className="text-muted">Billed</span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                    <div className="table-footer">
+                        <span className="table-info">
+                            Showing {filteredPos.length === 0 ? 0 : pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, filteredPos.length)} of {filteredPos.length} purchase orders
+                        </span>
+                        {totalPages > 1 && (
+                            <div className="pagination">
+                                <button className="pagination-item" disabled={pageIndex === 0} onClick={() => setPageIndex(pageIndex - 1)}>← Previous</button>
+                                {(() => {
+                                    const visible = Math.min(totalPages, 5);
+                                    const start = Math.max(0, Math.min(pageIndex - 2, totalPages - visible));
+                                    return Array.from({ length: visible }).map((_, i) => {
+                                        const page = start + i;
+                                        return (
+                                            <button key={page} className={`pagination-item ${pageIndex === page ? 'active' : ''}`} onClick={() => setPageIndex(page)}>
+                                                {page + 1}
+                                            </button>
+                                        );
+                                    });
+                                })()}
+                                <button className="pagination-item" disabled={pageIndex >= totalPages - 1} onClick={() => setPageIndex(pageIndex + 1)}>Next →</button>
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                {selectedPO && (
+                    <div className="so-panel">
+                        <div className="so-panel-header">
+                            <div>
+                                <div className="so-panel-name">{selectedPO.poNumber || selectedPO.id}</div>
+                                <div className="so-panel-meta">
+                                    {selectedPO.vendor?.name || selectedPO.vendorName || '-'}
+                                    {selectedPO.store?.name ? ` · ${selectedPO.store.name}` : ''}
+                                </div>
+                                <div className="so-panel-stats">
+                                    <div>
+                                        <div className="so-stat-label">Status</div>
+                                        <div className="so-stat-value" style={{ fontSize: 13 }}>
+                                            <span className={`badge ${selectedStatus.color}`}>{selectedStatus.label}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="so-stat-label">Total</div>
+                                        <div className="so-stat-value">₹{Number(selectedPO.totalAmount || 0).toLocaleString()}</div>
+                                    </div>
+                                    <div>
+                                        <div className="so-stat-label">GRNs</div>
+                                        <div className="so-stat-value so-stat-value--incoming">{selectedGrns.length}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button className="so-panel-close" onClick={() => setSelectedPOId(null)}>
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="po-detail-body">
+                            <div className="po-detail-section">
+                                <div className="po-detail-section-title">Ordered Items</div>
+                                <table className="table po-detail-items">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th style={{ textAlign: 'center' }}>Ord</th>
+                                            <th style={{ textAlign: 'center' }}>Rcvd</th>
+                                            <th style={{ textAlign: 'right' }}>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(selectedPO.items || []).map(it => {
+                                            const recv = Number(it.receivedQty || 0);
+                                            const ord = Number(it.quantity || 0);
+                                            const amt = Number(it.unitPrice || 0) * ord;
+                                            return (
+                                                <tr key={it.id}>
+                                                    <td>{it.inventoryItem?.name || '-'}</td>
+                                                    <td style={{ textAlign: 'center' }}>{ord}</td>
+                                                    <td style={{ textAlign: 'center', color: recv >= ord ? '#16a34a' : '#f59e0b', fontWeight: 600 }}>{recv}</td>
+                                                    <td style={{ textAlign: 'right' }}>₹{amt.toLocaleString()}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="po-detail-section">
+                                <div className="po-detail-section-title">Actions</div>
+                                <div className="po-detail-actions">
+                                    {(selectedPO.status === 'ORDERED' || selectedPO.status === 'PARTIALLY_RECEIVED') && (
+                                        <button className="btn btn-sm btn-primary" onClick={() => openReceiptModal(selectedPO)}>Receive Items</button>
+                                    )}
+                                    {selectedBill?.paymentStatus !== 'PAID' && (
+                                        <button className="btn btn-sm btn-accent" onClick={() => openPayModal(selectedPO)}>Pay Advance</button>
+                                    )}
+                                    {selectedPO.status === 'BILLED' && <span className="text-muted">Already Billed</span>}
+                                </div>
+                            </div>
+
+                            {selectedBill && (
+                                <div className="po-detail-section po-detail-section--bill">
+                                    <div className="po-detail-section-title">Linked Bill</div>
+                                    <div className="po-detail-card-row">
+                                        <div>
+                                            <div className="po-detail-card-title">{selectedBill.billNumber || selectedBill.id}</div>
+                                            <div className="po-detail-card-sub">
+                                                Paid ₹{Number(selectedBill.paidAmount || 0).toLocaleString()} of ₹{Number(selectedBill.totalAmount || 0).toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <span className={`badge ${selectedBill.paymentStatus === 'PAID' ? 'badge-success' : 'badge-warning'}`}>
+                                            {selectedBill.paymentStatus || '-'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="po-detail-section po-detail-section--grn">
+                                <div className="po-detail-section-title">Goods Received Notes ({selectedGrns.length})</div>
+                                {selectedGrns.length === 0 ? (
+                                    <div className="text-muted po-detail-empty">No receipts yet.</div>
+                                ) : (
+                                    <div className="po-detail-grn-list">
+                                        {selectedGrns.map(g => (
+                                            <div key={g.id} className="po-detail-card-row">
+                                                <div>
+                                                    <div className="po-detail-card-title">{g.grnNumber}</div>
+                                                    <div className="po-detail-card-sub">
+                                                        {g.receivedAt ? new Date(g.receivedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-'}
+                                                        {` · ${g.items?.length || 0} line${g.items?.length === 1 ? '' : 's'}`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Create PO Modal */}
