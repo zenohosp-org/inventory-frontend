@@ -15,7 +15,7 @@ const Vendors = lazy(() => import('./pages/Vendors'));
 const InventoryCategories = lazy(() => import('./pages/InventoryCategories'));
 const InventoryItems = lazy(() => import('./pages/InventoryItems'));
 const ItemTypes = lazy(() => import('./pages/ItemTypes'));
-const InventoryKits = lazy(() => import('./pages/InventoryKits'));
+const InventoryKits = lazy(() => import('./features/inventory-kits/InventoryKitsPage'));
 const PurchaseOrders = lazy(() => import('./features/purchase-orders/PurchaseOrdersPage'));
 const StockLog = lazy(() => import('./pages/StockLog'));
 
