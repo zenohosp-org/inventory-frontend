@@ -1,4 +1,5 @@
-import { MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
+import RowActionsMenu from '../../../components/RowActionsMenu';
 
 const BILLABLE_BADGE = {
     YES: { className: 'badge-success', label: 'Yes' },
@@ -64,26 +65,16 @@ export default function ItemsTable({
                                                 : <span className="text-muted">—</span>}
                                         </td>
                                         <td className="col-actions">
-                                            <div className="items-actions-cell">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === item.id ? null : item.id); }}
-                                                    className="app-btn-icon"
-                                                    aria-label="Row actions"
-                                                >
-                                                    <MoreVertical size={18} />
-                                                </button>
-                                                {activeDropdown === item.id && (
-                                                    <div className="assets-dropdown items-actions-dropdown">
-                                                        <button onClick={(e) => { e.stopPropagation(); onEdit(item); }} className="assets-dropdown-item">
-                                                            <Edit2 size={16} style={{ color: '#3b82f6' }} /> Edit
-                                                        </button>
-                                                        <div className="items-dropdown-divider" />
-                                                        <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="assets-dropdown-item--danger">
-                                                            <Trash2 size={16} /> Delete
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <RowActionsMenu
+                                                id={item.id}
+                                                activeId={activeDropdown}
+                                                onToggle={setActiveDropdown}
+                                                actions={[
+                                                    { label: 'Edit', icon: <Edit2 size={16} />, color: '#3b82f6', onClick: () => onEdit(item) },
+                                                    { divider: true },
+                                                    { label: 'Delete', icon: <Trash2 size={16} />, danger: true, onClick: () => onDelete(item.id) },
+                                                ]}
+                                            />
                                         </td>
                                     </tr>
                                 );

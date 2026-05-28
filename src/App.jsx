@@ -10,8 +10,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const StockOverview = lazy(() => import('./pages/StockOverview'));
 
 // Masters
-const Stores = lazy(() => import('./pages/Stores'));
-const Vendors = lazy(() => import('./pages/Vendors'));
+const Stores = lazy(() => import('./features/stores/StoresPage'));
+const Vendors = lazy(() => import('./features/vendors/VendorsPage'));
 const InventoryCategories = lazy(() => import('./pages/InventoryCategories'));
 const InventoryItems = lazy(() => import('./features/inventory-items/InventoryItemsPage'));
 const ItemTypes = lazy(() => import('./pages/ItemTypes'));

@@ -1201,3 +1201,30 @@
 .assets-dropdown-item--danger:hover {
   background: #fef2f2;
 }
+
+/* ── Shared row-actions menu (RowActionsMenu component) ── */
+.row-actions-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row-actions-dropdown.is-right { right: 0; left: auto; }
+.row-actions-dropdown.is-left  { left: 0; right: auto; }
+
+.row-actions-dropdown .assets-dropdown-item,
+.row-actions-dropdown .assets-dropdown-item--danger {
+  text-decoration: none;
+}
+
+.row-actions-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.row-actions-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--color-gray-100);
+}

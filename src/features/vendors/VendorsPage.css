@@ -1,0 +1,29 @@
+/* Let the row dropdown overlay escape the table chrome. */
+.table-container.vendors-table-wrap,
+.table-container.vendors-table-wrap .table-body {
+    overflow: visible;
+}
+
+.vendors-table-wrap th.col-actions,
+.vendors-table-wrap td.col-actions {
+    width: 56px;
+    text-align: center;
+}
+
+/* Form-modal helpers (centered checkbox row, readonly state input, label hint). */
+.form-group--center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-label-hint {
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--color-gray-500);
+}
+
+.form-input.is-readonly {
+    background: var(--color-gray-50);
+    cursor: default;
+}

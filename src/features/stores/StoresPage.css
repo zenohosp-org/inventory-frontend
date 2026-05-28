@@ -1,0 +1,14 @@
+.table-container.stores-table-wrap,
+.table-container.stores-table-wrap .table-body {
+    overflow: visible;
+}
+
+.stores-table-wrap th.col-actions,
+.stores-table-wrap td.col-actions {
+    width: 56px;
+    text-align: center;
+}
+
+.form-help--warning {
+    color: var(--color-warning-dark, #d97706);
+}

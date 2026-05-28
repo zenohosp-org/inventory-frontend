@@ -19,20 +19,6 @@
 .kits-table th.col-actions { width: 56px; text-align: center; }
 .kits-table td.col-actions { text-align: center; }
 
-/* The dropdown overlay anchors here. Pin to the right edge so it never
-   gets clipped when the panel is open and the column is narrow. */
-.kits-actions-cell {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.kits-actions-dropdown {
-    right: 0;
-    left: auto;
-}
-
 /* When the panel is open and the Kit Name column carries the code as a sub-line. */
 .kits-row-sub {
     color: var(--color-gray-500);

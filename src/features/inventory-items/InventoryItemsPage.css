@@ -10,24 +10,6 @@
     text-align: center;
 }
 
-.items-actions-cell {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.items-actions-dropdown {
-    right: 0;
-    left: auto;
-}
-
-.items-dropdown-divider {
-    height: 1px;
-    margin: 4px 0;
-    background: var(--color-gray-100);
-}
-
 /* ── Item form modal ── */
 .item-form-modal {
     max-width: 680px;
