@@ -49,7 +49,13 @@ export default function PODetailPanel({
                 <div className="so-card">
                     <div className="so-card-header">Ordered Items</div>
                     <div className="so-card-body is-flush">
-                        <table className="table po-detail-items">
+                        <table className="po-detail-items">
+                            <colgroup>
+                                <col className="col-item" />
+                                <col className="col-ord" />
+                                <col className="col-rcvd" />
+                                <col className="col-amount" />
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Item</th>
@@ -65,10 +71,10 @@ export default function PODetailPanel({
                                     const amt = Number(it.unitPrice || 0) * ord;
                                     return (
                                         <tr key={it.id}>
-                                            <td>{it.inventoryItem?.name || '-'}</td>
-                                            <td style={{ textAlign: 'center' }}>{ord}</td>
-                                            <td style={{ textAlign: 'center', color: recv >= ord ? '#16a34a' : '#f59e0b', fontWeight: 600 }}>{recv}</td>
-                                            <td style={{ textAlign: 'right' }}>₹{amt.toLocaleString()}</td>
+                                            <td title={it.inventoryItem?.name || '-'}>{it.inventoryItem?.name || '-'}</td>
+                                            <td className="is-num" style={{ textAlign: 'center' }}>{ord}</td>
+                                            <td className="is-num" style={{ textAlign: 'center', color: recv >= ord ? '#16a34a' : '#f59e0b', fontWeight: 600 }}>{recv}</td>
+                                            <td className="is-num" style={{ textAlign: 'right' }}>₹{amt.toLocaleString()}</td>
                                         </tr>
                                     );
                                 })}

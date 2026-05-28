@@ -40,27 +40,44 @@ export default function KitDetailPanel({ kit, onClose }) {
                 <div className="so-card">
                     <div className="so-card-header">Components ({componentCount})</div>
                     <div className="so-card-body is-flush">
-                        {componentCount > 0 ? (
-                            kit.components.map((comp, idx) => {
-                                const ok = (comp.currentStock || 0) >= comp.quantity;
-                                return (
-                                    <div key={idx} className="so-txn-row">
-                                        <div className="so-txn-body">
-                                            <div className="so-txn-top">
-                                                <span className="so-txn-badge" style={{ color: ok ? '#16a34a' : '#dc2626', background: ok ? '#dcfce7' : '#fee2e2' }}>
-                                                    {ok ? 'OK' : 'Low'}
-                                                </span>
-                                                <span className={`so-txn-qty ${ok ? 'so-txn-qty--pos' : 'so-txn-qty--neg'}`}>
-                                                    {comp.currentStock || 0}/{comp.quantity}
-                                                </span>
-                                            </div>
-                                            <div className="so-txn-date">{comp.itemName}</div>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        ) : (
+                        {componentCount === 0 ? (
                             <div className="so-txn-empty">No components</div>
+                        ) : (
+                            <table className="kit-components-table">
+                                <colgroup>
+                                    <col className="col-item" />
+                                    <col className="col-need" />
+                                    <col className="col-have" />
+                                    <col className="col-status" />
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th style={{ textAlign: 'right' }}>Need</th>
+                                        <th style={{ textAlign: 'right' }}>Have</th>
+                                        <th style={{ textAlign: 'center' }}>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {kit.components.map((comp, idx) => {
+                                        const have = comp.currentStock || 0;
+                                        const need = Number(comp.quantity) || 0;
+                                        const ok = have >= need;
+                                        return (
+                                            <tr key={idx}>
+                                                <td title={comp.itemName}>{comp.itemName}</td>
+                                                <td className="is-num" style={{ textAlign: 'right' }}>{need}</td>
+                                                <td className={`is-num ${ok ? 'is-ok' : 'is-low'}`} style={{ textAlign: 'right' }}>{have}</td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <span className={`kit-status-pill ${ok ? 'is-ok' : 'is-low'}`}>
+                                                        {ok ? 'OK' : 'Low'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         )}
                     </div>
                 </div>
