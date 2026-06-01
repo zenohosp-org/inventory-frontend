@@ -2,6 +2,7 @@ import { ShoppingCart, Plus, AlertCircle, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePurchaseOrders } from './hooks/usePurchaseOrders';
 import { STATUS_MAP } from './utils/poHelpers';
+import { stripHospitalPrefix } from '../../utils/format';
 import PODetailPanel from './components/PODetailPanel';
 import CreatePOModal from './modals/CreatePOModal';
 import ReceiveItemsModal from './modals/ReceiveItemsModal';
@@ -89,7 +90,7 @@ export default function PurchaseOrdersPage() {
                                                 className={`so-row${isSelected ? ' so-row-selected' : ''}`}
                                                 onClick={() => po.setSelectedPOId(isSelected ? null : row.id)}
                                             >
-                                                <td><strong className="mono">{row.poNumber || row.id}</strong></td>
+                                                <td><strong className="mono">{stripHospitalPrefix(row.poNumber) || row.id}</strong></td>
                                                 <td>{row.vendor?.name || row.vendorName || '-'}</td>
                                                 {!po.selectedPOId && <td className="po-store-col">{row.store?.name || '-'}</td>}
                                                 {!po.selectedPOId && <td className="text-muted">{new Date(row.createdAt).toLocaleDateString()}</td>}

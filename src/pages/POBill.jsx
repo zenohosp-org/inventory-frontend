@@ -1,6 +1,7 @@
 import { Receipt } from 'lucide-react';
 import { getPOBills } from '../api/client';
 import { useQuery } from '../hooks/useQuery';
+import { stripHospitalPrefix } from '../utils/format';
 
 const STATUS_BADGE = {
     PENDING: 'badge-error',
@@ -61,8 +62,8 @@ export default function POBill() {
                                     const paid = Number(bill.paidAmount || 0);
                                     return (
                                         <tr key={bill.id}>
-                                            <td><strong className="mono">{bill.billNumber}</strong></td>
-                                            <td className="mono text-muted">{bill.poNumber || bill.purchaseOrder?.poNumber || '—'}</td>
+                                            <td><strong className="mono">{stripHospitalPrefix(bill.billNumber)}</strong></td>
+                                            <td className="mono text-muted">{stripHospitalPrefix(bill.poNumber || bill.purchaseOrder?.poNumber) || '—'}</td>
                                             <td>{bill.vendorName || bill.purchaseOrder?.vendor?.name || '—'}</td>
                                             <td className="text-muted">{bill.storeName || '—'}</td>
                                             <td className="text-muted">

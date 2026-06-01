@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { History, Search } from 'lucide-react';
 import { getStockLogs } from '../api/client';
+import { stripHospitalPrefix } from '../utils/format';
 
 
 export default function StockLog() {
@@ -177,7 +178,7 @@ export default function StockLog() {
                                         </td>
                                         <td>
                                             <strong>{txn.itemName}</strong>
-                                            <span className="subtext">{txn.itemCode ? `Code: ${txn.itemCode}` : '-'}</span>
+                                            <span className="subtext">{txn.itemCode ? `Code: ${stripHospitalPrefix(txn.itemCode)}` : '-'}</span>
                                         </td>
                                         <td>
                                             <span className={`badge ${getTransactionTypeColor(txn.transactionType)}`}>

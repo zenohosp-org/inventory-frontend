@@ -4,6 +4,7 @@ import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
 import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors } from '../api/client';
 import { withCache } from '../cache';
+import { stripHospitalPrefix } from '../utils/format';
 import './StockOverview.css';
 
 const TXN_TYPE = {
@@ -168,7 +169,7 @@ export default function StockOverview() {
                                                     className={`so-row${isSelected ? ' so-row-selected' : ''}`}
                                                     onClick={() => setPanelStock(isSelected ? null : stock)}
                                                 >
-                                                    <td><span className="mono-sm">{stock.itemCode || '-'}</span></td>
+                                                    <td><span className="mono-sm">{stripHospitalPrefix(stock.itemCode) || '-'}</span></td>
                                                     <td><strong>{stock.itemName}</strong></td>
                                                     <td>
                                                         {stock.categoryName
@@ -223,7 +224,7 @@ export default function StockOverview() {
                                 <div className="so-panel-header">
                                     <div>
                                         <div className="so-panel-name">{panelStock.itemName}</div>
-                                        <div className="so-panel-meta">{panelStock.storeName || 'Store'} · {panelStock.itemCode || ''}</div>
+                                        <div className="so-panel-meta">{panelStock.storeName || 'Store'} · {stripHospitalPrefix(panelStock.itemCode) || ''}</div>
                                         <div className="so-panel-stats">
                                             <div>
                                                 <div className="so-stat-label">In Stock</div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { logStock } from '../api/client';
+import { stripHospitalPrefix } from '../utils/format';
 
 export default function LogStockModal({ stock, onClose, onSuccess }) {
     const [transactionType, setTransactionType] = useState('INTERNAL_USE');
@@ -74,7 +75,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                 <div className="modal-header">
                     <div>
                         <h2 className="modal-title">Log Stock Transaction</h2>
-                        <p className="modal-subtitle">{stock.itemName} ({stock.itemCode})</p>
+                        <p className="modal-subtitle">{stock.itemName} ({stripHospitalPrefix(stock.itemCode)})</p>
                     </div>
                     <button onClick={() => onClose()} className="modal-close" aria-label="Close modal">
                         <X size={20} />

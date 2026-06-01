@@ -3,6 +3,7 @@ import { TrendingUp, Package, AlertCircle, Clock, Plus } from 'lucide-react';
 import axios from 'axios';
 import LogStockModal from '../components/LogStockModal';
 import { getStockOverview, getStockLogs } from '../api/client';
+import { stripHospitalPrefix } from '../utils/format';
 
 
 const Dashboard = () => {
@@ -209,7 +210,7 @@ const Dashboard = () => {
                     <tr key={idx}>
                       <td>
                         <strong>{item.itemName}</strong>
-                        <span className="subtext">Code: {item.itemCode || 'N/A'}</span>
+                        <span className="subtext">Code: {stripHospitalPrefix(item.itemCode) || 'N/A'}</span>
                       </td>
                       <td><strong>{item.quantityAvail} {item.unit}</strong></td>
                       <td>{item.reorderLevel} {item.unit}</td>

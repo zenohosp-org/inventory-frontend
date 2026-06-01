@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { ClipboardList, X, Package } from 'lucide-react';
 import { getGrns } from '../api/client';
 import { useQuery } from '../hooks/useQuery';
+import { stripHospitalPrefix } from '../utils/format';
 import './GRN.css';
 
 export default function GRN() {
@@ -83,7 +84,7 @@ export default function GRN() {
                                                 className={`so-row${isSelected ? ' so-row-selected' : ''}`}
                                                 onClick={() => setPanelKey(isSelected ? null : group.key)}
                                             >
-                                                <td><strong>{group.poNumber}</strong></td>
+                                                <td><strong>{stripHospitalPrefix(group.poNumber)}</strong></td>
                                                 <td>{group.vendorName}</td>
                                                 <td>
                                                     <span className="grn-count-pill">
@@ -109,7 +110,7 @@ export default function GRN() {
                     <div className="so-panel">
                         <div className="so-panel-header">
                             <div>
-                                <div className="so-panel-name">{panelGroup.poNumber}</div>
+                                <div className="so-panel-name">{stripHospitalPrefix(panelGroup.poNumber)}</div>
                                 <div className="so-panel-meta">
                                     {panelGroup.vendorName}
                                     {panelGroup.poStatus ? ` · ${panelGroup.poStatus}` : ''}
@@ -147,7 +148,7 @@ export default function GRN() {
                                         <div className="so-txn-body">
                                             <div className="so-txn-top">
                                                 <span className="so-txn-badge grn-receipt-badge">
-                                                    <Package size={11} /> {grn.grnNumber}
+                                                    <Package size={11} /> {stripHospitalPrefix(grn.grnNumber)}
                                                 </span>
                                                 <span className="so-txn-qty so-txn-qty--pos">+{lineCount}</span>
                                             </div>

@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { STATUS_MAP } from '../utils/poHelpers';
+import { stripHospitalPrefix } from '../../../utils/format';
 
 export default function PODetailPanel({
     po,
@@ -17,7 +18,7 @@ export default function PODetailPanel({
         <div className="so-panel">
             <div className="so-panel-header">
                 <div>
-                    <div className="so-panel-name">{po.poNumber || po.id}</div>
+                    <div className="so-panel-name">{stripHospitalPrefix(po.poNumber) || po.id}</div>
                     <div className="so-panel-meta">
                         {po.vendor?.name || po.vendorName || '-'}
                         {po.store?.name ? ` · ${po.store.name}` : ''}
@@ -106,7 +107,7 @@ export default function PODetailPanel({
                         <div className="so-card-body is-flush">
                             <div className="so-row-kv">
                                 <div>
-                                    <div className="so-row-kv-title">{bill.billNumber || bill.id}</div>
+                                    <div className="so-row-kv-title">{stripHospitalPrefix(bill.billNumber) || bill.id}</div>
                                     <div className="so-row-kv-sub">
                                         Paid ₹{Number(bill.paidAmount || 0).toLocaleString()} of ₹{Number(bill.totalAmount || 0).toLocaleString()}
                                     </div>
@@ -129,7 +130,7 @@ export default function PODetailPanel({
                             grns.map(g => (
                                 <div key={g.id} className="so-row-kv">
                                     <div>
-                                        <div className="so-row-kv-title">{g.grnNumber}</div>
+                                        <div className="so-row-kv-title">{stripHospitalPrefix(g.grnNumber)}</div>
                                         <div className="so-row-kv-sub">
                                             {g.receivedAt ? new Date(g.receivedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-'}
                                             {` · ${g.items?.length || 0} line${g.items?.length === 1 ? '' : 's'}`}

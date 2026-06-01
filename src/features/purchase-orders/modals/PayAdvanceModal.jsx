@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import SearchableSelect from '../../../components/SearchableSelect';
+import { stripHospitalPrefix } from '../../../utils/format';
 
 export default function PayAdvanceModal({
     po,
@@ -16,7 +17,7 @@ export default function PayAdvanceModal({
         <div className="modal-overlay active">
             <div className="modal modal-sm">
                 <div className="modal-header">
-                    <h2 className="modal-title">Pay Advance — {po.poNumber}</h2>
+                    <h2 className="modal-title">Pay Advance — {stripHospitalPrefix(po.poNumber)}</h2>
                     <button className="modal-close" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div className="modal-body">

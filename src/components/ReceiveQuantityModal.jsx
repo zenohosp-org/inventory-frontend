@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../api/client';
 import { AlertCircle, Check } from 'lucide-react';
+import { stripHospitalPrefix } from '../utils/format';
 
 export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
     const [items, setItems] = useState(po.items.map(item => ({
@@ -80,7 +81,7 @@ export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-screen overflow-y-auto">
-                <h2 className="text-xl font-semibold mb-4">Record Receipt - {po.poNumber}</h2>
+                <h2 className="text-xl font-semibold mb-4">Record Receipt - {stripHospitalPrefix(po.poNumber)}</h2>
 
                 {error && (
                     <div className="alert alert-error mb-4">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Plus, RotateCcw, ActivitySquare, Trash2 } from 'lucide-react';
 import { getVendors, logStock } from '../api/client';
 import SearchableSelect from '../components/SearchableSelect';
+import { stripHospitalPrefix } from '../utils/format';
 
 
 export default function LogStockModal({ stock, onClose, onSuccess }) {
@@ -111,7 +112,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                     <div>
                         <h2 className="text-xl font-bold text-slate-800">Log Stock: {stock.itemName}</h2>
                         <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{stock.itemCode}</span>
+                            <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{stripHospitalPrefix(stock.itemCode)}</span>
                             <span className="text-sm text-slate-500">Current Stock: <strong className="text-slate-700">{stock.quantityAvail}</strong></span>
                         </div>
                     </div>

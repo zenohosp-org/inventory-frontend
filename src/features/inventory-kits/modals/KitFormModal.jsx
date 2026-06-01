@@ -1,4 +1,5 @@
 import { X, Plus, Trash2 } from 'lucide-react';
+import { stripHospitalPrefix } from '../../../utils/format';
 
 export default function KitFormModal({
     editingKit, formData, setFormData,
@@ -135,7 +136,7 @@ export default function KitFormModal({
                                                                 >
                                                                     <div>
                                                                         <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>{item.name}</div>
-                                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{item.code}</div>
+                                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{stripHospitalPrefix(item.code)}</div>
                                                                     </div>
                                                                     <div style={{ fontSize: '0.75rem', color: '#64748b', minWidth: '60px', textAlign: 'right' }}>
                                                                         {usedElsewhere ? '⚠️ Used' : '✓'}

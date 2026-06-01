@@ -209,6 +209,22 @@ export default function ItemFormModal({
                                                 />
                                             </div>
                                         </div>
+                                        <div className="form-row form-row--flush">
+                                            <div className="form-group form-group--flush">
+                                                <label className="form-label">
+                                                    Units per strip <span className="form-label-note">(for loose-unit sale)</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="unitsPerStrip"
+                                                    value={formData.unitsPerStrip}
+                                                    onChange={handleInputChange}
+                                                    className="form-input"
+                                                    placeholder="e.g. 10"
+                                                    min="1"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 

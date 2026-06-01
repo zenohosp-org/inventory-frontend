@@ -1,6 +1,7 @@
 import { Package, Edit2, Trash2 } from 'lucide-react';
 import { getStatusColor, getStatusLabel } from '../utils/kitHelpers';
 import RowActionsMenu from '../../../components/RowActionsMenu';
+import { stripHospitalPrefix } from '../../../utils/format';
 
 export default function KitsTable({
     kits, filteredKits, loading,
@@ -45,10 +46,10 @@ export default function KitsTable({
                                         onClick={() => setSelectedKit(isSelected ? null : kit)}
                                         className={`so-row${isSelected ? ' so-row-selected' : ''}`}
                                     >
-                                        {!panelOpen && <td><span className="mono-sm">{kit.code || '-'}</span></td>}
+                                        {!panelOpen && <td><span className="mono-sm">{stripHospitalPrefix(kit.code) || '-'}</span></td>}
                                         <td>
                                             <strong>{kit.name}</strong>
-                                            {panelOpen && kit.code && <div className="kits-row-sub mono-sm">{kit.code}</div>}
+                                            {panelOpen && kit.code && <div className="kits-row-sub mono-sm">{stripHospitalPrefix(kit.code)}</div>}
                                         </td>
                                         {!panelOpen && <td className="col-num">{kit.components?.length || 0} items</td>}
                                         <td className="col-num"><strong style={{ color: statusColor }}>{kit.maxAssemblable || 0}</strong></td>

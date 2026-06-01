@@ -1,5 +1,6 @@
 import { Edit2, Trash2 } from 'lucide-react';
 import RowActionsMenu from '../../../components/RowActionsMenu';
+import { stripHospitalPrefix } from '../../../utils/format';
 
 const BILLABLE_BADGE = {
     YES: { className: 'badge-success', label: 'Yes' },
@@ -50,7 +51,7 @@ export default function ItemsTable({
                                 const categoryName = categories.find(c => c.id === item.categoryId)?.name || 'N/A';
                                 return (
                                     <tr key={item.id}>
-                                        <td><span className="mono-sm">{item.code || '-'}</span></td>
+                                        <td><span className="mono-sm">{stripHospitalPrefix(item.code) || '-'}</span></td>
                                         <td><strong>{item.name}</strong></td>
                                         <td>
                                             {item.itemTypeName

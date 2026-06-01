@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import SearchableSelect from '../../../components/SearchableSelect';
 import { getDestination } from '../utils/poHelpers';
+import { stripHospitalPrefix } from '../../../utils/format';
 
 export default function ReceiveItemsModal({
     po, activeStores,
@@ -15,7 +16,7 @@ export default function ReceiveItemsModal({
         <div className="modal-overlay active">
             <div className="modal" style={{ maxWidth: '580px', width: '100%' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">Receive Items — {po.poNumber}</h2>
+                    <h2 className="modal-title">Receive Items — {stripHospitalPrefix(po.poNumber)}</h2>
                     <button className="modal-close" onClick={onClose}><X size={18} /></button>
                 </div>
                 {hasAssetItems && (

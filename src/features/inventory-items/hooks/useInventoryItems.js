@@ -132,6 +132,7 @@ export function useInventoryItems() {
         const payload = {
             ...formData,
             packSize: formData.packSize !== '' ? Number(formData.packSize) : null,
+            unitsPerStrip: formData.unitsPerStrip !== '' ? Number(formData.unitsPerStrip) : null,
             purchasePrice: formData.purchasePrice !== '' ? Number(formData.purchasePrice) : null,
             sellingPrice: formData.sellingPrice !== '' ? Number(formData.sellingPrice) : null,
             drugReorderQty: formData.drugReorderQty !== '' ? Number(formData.drugReorderQty) : null,

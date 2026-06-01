@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Store as StoreIcon, Package, ShoppingCart, X, ArrowLeftRight } from 'lucide-react';
 import { getStores, getStockOverview, getPOsByStore, recordPOReceipt, convertPOToBill } from '../api/client';
 import TransferStockModal from '../components/TransferStockModal';
+import { stripHospitalPrefix } from '../utils/format';
 
 const STATUS_BADGE = {
     ORDERED: 'badge-primary',
@@ -174,7 +175,7 @@ export default function StoreDetail() {
                                 <tbody>
                                     {pos.map(po => (
                                         <tr key={po.id}>
-                                            <td><strong className="mono">{po.poNumber}</strong></td>
+                                            <td><strong className="mono">{stripHospitalPrefix(po.poNumber)}</strong></td>
                                             <td>{po.vendor?.name || '-'}</td>
                                             <td className="text-muted">
                                                 {po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '-'}
@@ -235,7 +236,7 @@ export default function StoreDetail() {
                                         return (
                                             <tr key={s.id}>
                                                 <td><strong>{s.itemName}</strong></td>
-                                                <td className="mono text-muted">{s.itemCode || '-'}</td>
+                                                <td className="mono text-muted">{stripHospitalPrefix(s.itemCode) || '-'}</td>
                                                 <td className="text-muted">{s.categoryName || '-'}</td>
                                                 <td><strong>{s.quantityAvail}</strong></td>
                                                 <td className="text-muted">{s.reorderLevel ?? '-'}</td>
@@ -277,7 +278,7 @@ export default function StoreDetail() {
                 <div className="modal-overlay active">
                     <div className="modal">
                         <div className="modal-header">
-                            <h2 className="modal-title">Record Receipt — {receiptModal.poNumber}</h2>
+                            <h2 className="modal-title">Record Receipt — {stripHospitalPrefix(receiptModal.poNumber)}</h2>
                             <button className="modal-close" onClick={() => setReceiptModal(null)}><X size={18} /></button>
                         </div>
                         <div className="modal-body">

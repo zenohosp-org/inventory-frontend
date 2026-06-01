@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { getStatusLabel } from '../utils/kitHelpers';
+import { stripHospitalPrefix } from '../../../utils/format';
 
 export default function KitDetailPanel({ kit, onClose }) {
     const isLow = kit.maxAssemblable === 0 || kit.maxAssemblable <= 2;
@@ -11,7 +12,7 @@ export default function KitDetailPanel({ kit, onClose }) {
                 <div>
                     <div className="so-panel-name">{kit.name}</div>
                     <div className="so-panel-meta">
-                        {kit.code ? <span className="mono-sm">{kit.code}</span> : null}
+                        {kit.code ? <span className="mono-sm">{stripHospitalPrefix(kit.code)}</span> : null}
                         {kit.code && componentCount > 0 ? ' · ' : ''}
                         {componentCount} component{componentCount !== 1 ? 's' : ''}
                     </div>
