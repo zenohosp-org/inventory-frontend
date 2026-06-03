@@ -4,7 +4,7 @@ import {
     LayoutDashboard, Package, ShoppingCart, History,
     ChevronDown, ChevronRight, Layers, Store as StoreIcon,
     Globe, Inbox, FileText, Truck, Receipt, Tag,
-    Activity, BarChart2, Box, ArrowUpRight, ClipboardList
+    Activity, BarChart2, Box, ArrowUpRight, ClipboardList, Settings
 } from 'lucide-react';
 import Header from './Header';
 
@@ -18,8 +18,8 @@ export default function Layout({ children }) {
     const [purchaseOpen, setPurchaseOpen] = useState(
         ['/vendors', '/purchase-orders', '/po-bill', '/grn'].includes(location.pathname)
     );
-    const [productsOpen, setProductsOpen] = useState(
-        ['/inventory-items', '/inventory-categories', '/item-types', '/inventory-kits'].includes(location.pathname)
+    const [settingsOpen, setSettingsOpen] = useState(
+        ['/item-types', '/inventory-categories', '/stores'].includes(location.pathname)
     );
 
     const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -69,43 +69,20 @@ export default function Layout({ children }) {
                             </Link>
                         </li>
 
-                        {/* Inventory Section */}
+                        {/* Inventory Section — ordered to mirror the workflow:
+                            Items → Purchase → Stock → Kits */}
                         <li className="sidebar-section">
                             <div className="sidebar-section-title">Inventory</div>
 
-                            {/* Products collapsible */}
-                            <div className="sidebar-subsection">
-                                <CollapseToggle
-                                    open={productsOpen}
-                                    onToggle={() => setProductsOpen(o => !o)}
-                                    icon={Package}
-                                    label="Products"
-                                />
-                                {productsOpen && (
-                                    <div className="sidebar-submenu">
-                                        <NavLink to="/inventory-items" icon={Package} label="Items" />
-                                        <NavLink to="/item-types" icon={Tag} label="Item Types" />
-                                        <NavLink to="/inventory-categories" icon={Layers} label="Categories" />
-                                        <NavLink to="/inventory-kits" icon={Package} label="Kits" />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Inv collapsible */}
-                            <div className="sidebar-subsection">
-                                <CollapseToggle
-                                    open={invOpen}
-                                    onToggle={() => setInvOpen(o => !o)}
-                                    icon={Inbox}
-                                    label="Inventory"
-                                />
-                                {invOpen && (
-                                    <div className="sidebar-submenu">
-                                        <NavLink to="/stock-overview" icon={Inbox} label="Stock Overview" />
-                                        <NavLink to="/stock-log" icon={History} label="Stock Log" />
-                                    </div>
-                                )}
-                            </div>
+                            {/* Items — the anchor, direct link */}
+                            <Link
+                                to="/inventory-items"
+                                className={`sidebar-link ${isActive('/inventory-items') ? 'active' : ''}`}
+                                onClick={() => setSidebarOpen(false)}
+                            >
+                                <Package className="sidebar-icon" size={18} />
+                                Items
+                            </Link>
 
                             {/* Purchase collapsible */}
                             <div className="sidebar-subsection">
@@ -125,15 +102,50 @@ export default function Layout({ children }) {
                                 )}
                             </div>
 
-                            {/* Stores — direct link */}
+                            {/* Stock collapsible */}
+                            <div className="sidebar-subsection">
+                                <CollapseToggle
+                                    open={invOpen}
+                                    onToggle={() => setInvOpen(o => !o)}
+                                    icon={Inbox}
+                                    label="Stock"
+                                />
+                                {invOpen && (
+                                    <div className="sidebar-submenu">
+                                        <NavLink to="/stock-overview" icon={Inbox} label="Stock Overview" />
+                                        <NavLink to="/stock-log" icon={History} label="Stock Log" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Kits — operational, direct link */}
                             <Link
-                                to="/stores"
-                                className={`sidebar-link ${isActive('/stores') ? 'active' : ''}`}
+                                to="/inventory-kits"
+                                className={`sidebar-link ${isActive('/inventory-kits') ? 'active' : ''}`}
                                 onClick={() => setSidebarOpen(false)}
                             >
-                                <StoreIcon className="sidebar-icon" size={18} />
-                                Stores
+                                <Layers className="sidebar-icon" size={18} />
+                                Kits
                             </Link>
+                        </li>
+
+                        {/* Settings Section — one-time setup, demoted to the bottom */}
+                        <li className="sidebar-section">
+                            <div className="sidebar-subsection">
+                                <CollapseToggle
+                                    open={settingsOpen}
+                                    onToggle={() => setSettingsOpen(o => !o)}
+                                    icon={Settings}
+                                    label="Settings"
+                                />
+                                {settingsOpen && (
+                                    <div className="sidebar-submenu">
+                                        <NavLink to="/item-types" icon={Tag} label="Item Types" />
+                                        <NavLink to="/inventory-categories" icon={Layers} label="Categories" />
+                                        <NavLink to="/stores" icon={StoreIcon} label="Stores" />
+                                    </div>
+                                )}
+                            </div>
                         </li>
 
                         {/* Other Apps */}
