@@ -1,5 +1,4 @@
 import { ShoppingCart, Plus, AlertCircle, Search } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import { usePurchaseOrders } from './hooks/usePurchaseOrders';
 import { STATUS_MAP } from './utils/poHelpers';
 import { stripHospitalPrefix } from '../../utils/format';
@@ -10,8 +9,7 @@ import PayAdvanceModal from './modals/PayAdvanceModal';
 import './PurchaseOrdersPage.css';
 
 export default function PurchaseOrdersPage() {
-    const { user } = useAuth();
-    const po = usePurchaseOrders(user);
+    const po = usePurchaseOrders();
 
     return (
         <div className="main-content">

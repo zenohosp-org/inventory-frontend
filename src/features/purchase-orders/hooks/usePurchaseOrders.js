@@ -5,14 +5,13 @@ import {
     recordPOReceipt,
     payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
     getPOBills, getGrns,
-    createAsset, getAssets, logStock,
     getAssetSyncLogs, retryAssetSync,
 } from '../../../api/client';
 import { query, invalidateKey } from '../../../lib/queryCache';
 import { EMPTY_PO_FORM, EMPTY_PAY_FORM, extractArray } from '../utils/poHelpers';
 import { useToast } from '../../../context/ToastContext';
 
-export function usePurchaseOrders(user) {
+export function usePurchaseOrders() {
     const { toast } = useToast();
     // ── Server data ──
     const [pos, setPos] = useState([]);
@@ -211,64 +210,8 @@ export function usePurchaseOrders(user) {
         setSubmitting(true);
         try {
             await recordPOReceipt(receiptModal.id, items);
-
-            const hasAssetItems = receiptModal?.items?.some(
-                item => item.inventoryItem?.billingGroup === 'ASSET'
-            );
-
-            if (hasAssetItems) {
-                const assetsRes = await getAssets(user?.token);
-                const existingAssets = Array.isArray(assetsRes.data) ? assetsRes.data : [];
-                const generatedCodes = new Set();
-
-                for (const item of items) {
-                    const poItem = receiptModal.items.find(i => i.id === item.poItemId);
-                    const inv = poItem?.inventoryItem;
-                    if (inv?.billingGroup !== 'ASSET') continue;
-
-                    const prefix = (inv.name || '').replace(/\s+/g, '').slice(0, 3).toUpperCase();
-                    const existingForPrefix = existingAssets.filter(a => a.assetCode?.startsWith(prefix + '-'));
-                    const maxExisting = existingForPrefix.reduce((max, a) => {
-                        const n = parseInt(a.assetCode?.split('-').pop(), 10);
-                        return isNaN(n) ? max : Math.max(max, n);
-                    }, 0);
-                    const maxGenerated = [...generatedCodes]
-                        .filter(c => c.startsWith(prefix + '-'))
-                        .reduce((max, c) => {
-                            const n = parseInt(c.split('-').pop(), 10);
-                            return isNaN(n) ? max : Math.max(max, n);
-                        }, 0);
-                    const baseSeq = Math.max(maxExisting, maxGenerated);
-                    const qty = item.receivedQty;
-
-                    const poDate = receiptModal.createdAt ? receiptModal.createdAt.split('T')[0] : null;
-                    const createPromises = [];
-                    for (let i = 0; i < qty; i++) {
-                        const code = `${prefix}-${String(baseSeq + i + 1).padStart(3, '0')}`;
-                        generatedCodes.add(code);
-                        createPromises.push(createAsset({
-                            assetName: inv.name,
-                            assetCode: code,
-                            description: `Auto-created from PO receipt: ${receiptModal.poNumber}`,
-                            status: 'ACTIVE',
-                            vendor: receiptModal.vendor?.id ? { id: receiptModal.vendor.id } : null,
-                            purchaseDate: poDate,
-                            purchasePrice: poItem?.unitPrice || null,
-                        }, user?.token));
-                    }
-                    await Promise.all(createPromises);
-
-                    const startCode = `${prefix}-${String(baseSeq + 1).padStart(3, '0')}`;
-                    const endCode = `${prefix}-${String(baseSeq + qty).padStart(3, '0')}`;
-                    await logStock({
-                        movementType: 'ASSET_OUT',
-                        storeId: items.find(i => i.poItemId === item.poItemId)?.storeId || null,
-                        itemId: inv.id,
-                        quantity: qty,
-                        notes: `Auto-labeled from PO: ${receiptModal.poNumber} — ${qty > 1 ? `${startCode} to ${endCode}` : startCode}`,
-                    });
-                }
-            }
+            // Asset creation and stock logging for ASSET items is handled server-side
+            // by AssetInventoryBridgeService via the inventory backend's recordReceipt flow.
 
             setReceiptModal(null);
             invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns'); invalidateKey('assetSyncLogs');
