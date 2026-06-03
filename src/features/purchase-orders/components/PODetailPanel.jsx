@@ -1,18 +1,27 @@
-import { X } from 'lucide-react';
+import { X, RefreshCw } from 'lucide-react';
 import { STATUS_MAP } from '../utils/poHelpers';
 import { stripHospitalPrefix } from '../../../utils/format';
+
+const SYNC_META = {
+    SUCCESS: { label: 'Asset Sync: Synced',  cls: 'badge-success' },
+    FAILED:  { label: 'Asset Sync: Failed',   cls: 'badge-error'   },
+    PENDING: { label: 'Asset Sync: Pending',  cls: 'badge-warning'  },
+};
 
 export default function PODetailPanel({
     po,
     bill,
     grns,
+    syncLog,
     onClose,
     onReceive,
     onPayAdvance,
+    onRetrySync,
 }) {
     const status = STATUS_MAP[po.status] || { label: po.status || '-', color: 'badge-secondary' };
     const total = Number(po.totalAmount || 0);
     const orderedItems = po.items || [];
+    const hasAssetItems = orderedItems.some(it => it.inventoryItem?.billingGroup === 'ASSET');
 
     return (
         <div className="so-panel">
@@ -26,7 +35,7 @@ export default function PODetailPanel({
                     <div className="so-panel-stats">
                         <div>
                             <div className="so-stat-label">Status</div>
-                            <div className="so-stat-value" style={{ fontSize: 13 }}>
+                            <div className="so-stat-value so-stat-value--badge">
                                 <span className={`badge ${status.color}`}>{status.label}</span>
                             </div>
                         </div>
@@ -60,9 +69,9 @@ export default function PODetailPanel({
                             <thead>
                                 <tr>
                                     <th>Item</th>
-                                    <th style={{ textAlign: 'center' }}>Ord</th>
-                                    <th style={{ textAlign: 'center' }}>Rcvd</th>
-                                    <th style={{ textAlign: 'right' }}>Amount</th>
+                                    <th className="is-center">Ord</th>
+                                    <th className="is-center">Rcvd</th>
+                                    <th className="is-right">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,9 +82,9 @@ export default function PODetailPanel({
                                     return (
                                         <tr key={it.id}>
                                             <td title={it.inventoryItem?.name || '-'}>{it.inventoryItem?.name || '-'}</td>
-                                            <td className="is-num" style={{ textAlign: 'center' }}>{ord}</td>
-                                            <td className="is-num" style={{ textAlign: 'center', color: recv >= ord ? '#16a34a' : '#f59e0b', fontWeight: 600 }}>{recv}</td>
-                                            <td className="is-num" style={{ textAlign: 'right' }}>₹{amt.toLocaleString()}</td>
+                                            <td className="is-num is-center">{ord}</td>
+                                            <td className={`is-num is-center ${recv >= ord ? 'rcvd-done' : 'rcvd-partial'}`}>{recv}</td>
+                                            <td className="is-num is-right">₹{amt.toLocaleString()}</td>
                                         </tr>
                                     );
                                 })}
@@ -99,6 +108,43 @@ export default function PODetailPanel({
                         </div>
                     </div>
                 </div>
+
+                {/* Asset Sync Status */}
+                {hasAssetItems && (
+                    <div className="so-card so-card--sync">
+                        <div className="so-card-header">Asset Sync</div>
+                        <div className="so-card-body">
+                            {!syncLog ? (
+                                <span className="badge badge-secondary">No sync record</span>
+                            ) : (
+                                <div className="po-sync-row">
+                                    <div className="po-sync-info">
+                                        <span className={`badge ${SYNC_META[syncLog.status]?.cls || 'badge-secondary'}`}>
+                                            {SYNC_META[syncLog.status]?.label || syncLog.status}
+                                        </span>
+                                        {syncLog.attemptCount > 0 && (
+                                            <span className="po-sync-attempts">{syncLog.attemptCount} attempt{syncLog.attemptCount !== 1 ? 's' : ''}</span>
+                                        )}
+                                        {syncLog.lastError && (
+                                            <span className="po-sync-error" title={syncLog.lastError}>
+                                                {syncLog.lastError.length > 60 ? syncLog.lastError.slice(0, 60) + '…' : syncLog.lastError}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {syncLog.status === 'FAILED' && onRetrySync && (
+                                        <button
+                                            className="btn btn-sm btn-outline po-sync-retry"
+                                            onClick={() => onRetrySync(po.id)}
+                                        >
+                                            <RefreshCw size={13} />
+                                            Retry
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Linked Bill */}
                 {bill && (

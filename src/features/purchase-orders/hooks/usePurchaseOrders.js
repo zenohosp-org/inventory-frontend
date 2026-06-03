@@ -6,6 +6,7 @@ import {
     payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
     getPOBills, getGrns,
     createAsset, getAssets, logStock,
+    getAssetSyncLogs, retryAssetSync,
 } from '../../../api/client';
 import { query, invalidateKey } from '../../../lib/queryCache';
 import { EMPTY_PO_FORM, EMPTY_PAY_FORM, extractArray } from '../utils/poHelpers';
@@ -20,6 +21,7 @@ export function usePurchaseOrders(user) {
     const [activeStores, setActiveStores] = useState([]);
     const [billsByPoId, setBillsByPoId] = useState({});
     const [grnsByPoId, setGrnsByPoId] = useState({});
+    const [syncLogByPoId, setSyncLogByPoId] = useState({});
     const [bankAccounts, setBankAccounts] = useState([]);
 
     // ── UI state ──
@@ -61,6 +63,13 @@ export function usePurchaseOrders(user) {
         setGrnsByPoId(map);
     }, []);
 
+    const applySyncLogs = useCallback((res) => {
+        const map = {};
+        const logs = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+        logs.forEach(l => { if (l.poId) map[l.poId] = l; });
+        setSyncLogByPoId(map);
+    }, []);
+
     const fetchData = useCallback(async () => {
         setError(null);
 
@@ -68,12 +77,13 @@ export function usePurchaseOrders(user) {
         // Only show the loading spinner if EVERY slice is cold — otherwise the user
         // sees data immediately while fresh copies stream in in the background.
         const slices = [
-            { key: 'purchaseOrders', fetcher: getPurchaseOrders, apply: r => setPos(extractArray(r)) },
-            { key: 'vendors',        fetcher: getVendors,        apply: r => setVendors(extractArray(r)) },
-            { key: 'items',          fetcher: getItems,          apply: r => setItems(extractArray(r)) },
-            { key: 'stores',         fetcher: getStores,         apply: r => setActiveStores(extractArray(r).filter(s => s?.isActive)) },
-            { key: 'poBills',        fetcher: getPOBills,        apply: applyBills },
-            { key: 'grns',           fetcher: getGrns,           apply: applyGrns },
+            { key: 'purchaseOrders', fetcher: getPurchaseOrders,   apply: r => setPos(extractArray(r)) },
+            { key: 'vendors',        fetcher: getVendors,           apply: r => setVendors(extractArray(r)) },
+            { key: 'items',          fetcher: getItems,             apply: r => setItems(extractArray(r)) },
+            { key: 'stores',         fetcher: getStores,            apply: r => setActiveStores(extractArray(r).filter(s => s?.isActive)) },
+            { key: 'poBills',        fetcher: getPOBills,           apply: applyBills },
+            { key: 'grns',           fetcher: getGrns,             apply: applyGrns },
+            { key: 'assetSyncLogs',  fetcher: getAssetSyncLogs,    apply: applySyncLogs },
         ];
 
         const queries = slices.map(s => {
@@ -261,13 +271,26 @@ export function usePurchaseOrders(user) {
             }
 
             setReceiptModal(null);
-            invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');
+            invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns'); invalidateKey('assetSyncLogs');
             await fetchData();
             toast.success('Receipt recorded successfully');
         } catch (e) {
             toast.error(e.response?.data?.message || e.message || 'Failed to record receipt');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const retrySync = async (poId) => {
+        try {
+            const res = await retryAssetSync(poId);
+            const log = res?.data;
+            if (log) {
+                setSyncLogByPoId(prev => ({ ...prev, [poId]: log }));
+            }
+            toast.success('Asset sync retried successfully');
+        } catch (e) {
+            toast.error(e.response?.data?.message || e.message || 'Retry failed');
         }
     };
 
@@ -325,7 +348,7 @@ export function usePurchaseOrders(user) {
 
     return {
         // data
-        pos, vendors, items, activeStores, billsByPoId, grnsByPoId, bankAccounts,
+        pos, vendors, items, activeStores, billsByPoId, grnsByPoId, syncLogByPoId, bankAccounts,
         // derived
         filteredPos, paginatedPos, totalPages, selectedPO, selectedBill, selectedGrns,
         // ui state
@@ -346,6 +369,6 @@ export function usePurchaseOrders(user) {
         payForm, setPayForm,
         openPayModal, handlePaySubmit,
         // misc
-        fetchData,
+        fetchData, retrySync,
     };
 }

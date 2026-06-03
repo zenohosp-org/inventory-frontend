@@ -403,6 +403,9 @@
     border-bottom: 1px solid var(--color-gray-200);
 }
 
+.po-detail-items th.is-center { text-align: center; }
+.po-detail-items th.is-right  { text-align: right;  }
+
 .po-detail-items td {
     border-bottom: 1px solid var(--color-gray-100);
     font-size: 13px;
@@ -414,10 +417,52 @@
     white-space: nowrap;
 }
 
+.po-detail-items td.is-center { text-align: center; }
+.po-detail-items td.is-right  { text-align: right;  }
+
+.po-detail-items td.rcvd-done    { color: var(--color-success); font-weight: 600; }
+.po-detail-items td.rcvd-partial { color: var(--color-warning, #f59e0b); font-weight: 600; }
+
 .po-detail-items tr:last-child td { border-bottom: none; }
+
+/* ── so-stat-value badge variant ── */
+.so-stat-value--badge { font-size: var(--fs-sm); }
 
 .po-detail-actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-2);
+}
+
+/* ── Asset sync status card ── */
+.po-sync-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    justify-content: space-between;
+}
+
+.po-sync-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+.po-sync-attempts {
+    font-size: var(--fs-xs, 11px);
+    color: var(--color-gray-500);
+}
+
+.po-sync-error {
+    font-size: var(--fs-xs, 11px);
+    color: var(--color-error, #dc2626);
+    word-break: break-word;
+}
+
+.po-sync-retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }

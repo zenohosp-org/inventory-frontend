@@ -154,9 +154,11 @@ export default function PurchaseOrdersPage() {
                         po={po.selectedPO}
                         bill={po.selectedBill}
                         grns={po.selectedGrns}
+                        syncLog={po.syncLogByPoId[po.selectedPO.id] || null}
                         onClose={() => po.setSelectedPOId(null)}
                         onReceive={() => po.openReceiptModal(po.selectedPO)}
                         onPayAdvance={() => po.openPayModal(po.selectedPO)}
+                        onRetrySync={po.retrySync}
                     />
                 )}
             </div>
