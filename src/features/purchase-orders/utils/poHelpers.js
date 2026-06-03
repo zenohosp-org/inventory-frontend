@@ -22,9 +22,9 @@ export function extractArray(res) {
 
 export function getDestination(inv) {
     if (!inv) return null;
-    if (inv.billingGroup === 'ASSET') return { label: 'Asset Register', color: '#8b5cf6' };
-    if (inv.billingGroup === 'PHARMACY') return { label: 'Pharmacy Stock', color: '#10b981' };
-    if (inv.billingGroup === 'OT') return { label: 'OT Stock', color: '#f59e0b' };
-    if (inv.billingGroup === 'ROOM') return { label: 'Room / Ward Stock', color: '#3b82f6' };
-    return { label: 'Main Inventory', color: '#64748b' };
+    if (inv.billingGroup === 'ASSET')    return { label: 'Asset Register',     mod: 'asset' };
+    if (inv.billingGroup === 'PHARMACY') return { label: 'Pharmacy Stock',     mod: 'pharmacy' };
+    if (inv.billingGroup === 'OT')       return { label: 'OT Stock',           mod: 'ot' };
+    if (inv.billingGroup === 'ROOM')     return { label: 'Room / Ward Stock',  mod: 'room' };
+    return { label: 'Main Inventory', mod: 'default' };
 }

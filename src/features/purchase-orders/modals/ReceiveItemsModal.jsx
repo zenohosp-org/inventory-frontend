@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import SearchableSelect from '../../../components/SearchableSelect';
 import { getDestination } from '../utils/poHelpers';
 import { stripHospitalPrefix } from '../../../utils/format';
@@ -9,142 +9,168 @@ export default function ReceiveItemsModal({
     submitting,
     onSubmit, onClose,
 }) {
-    const hasAssetItems = po?.items?.some(item => item.inventoryItem?.billingGroup === 'ASSET');
+    const hasAssetItems = po?.items?.some(i => i.inventoryItem?.billingGroup === 'ASSET');
     const storeLabel = s => `${s.name}${s.type ? ` (${s.type})` : ''}`;
+
+    const updateField = (itemId, field, value) =>
+        setReceiptQtys(prev => ({ ...prev, [itemId]: { ...prev[itemId], [field]: value } }));
 
     return (
         <div className="modal-overlay active">
-            <div className="modal" style={{ maxWidth: '580px', width: '100%' }}>
+            <div className="modal po-receive-modal">
                 <div className="modal-header">
                     <h2 className="modal-title">Receive Items — {stripHospitalPrefix(po.poNumber)}</h2>
-                    <button className="modal-close" onClick={onClose}><X size={18} /></button>
+                    <button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
                 </div>
+
                 {hasAssetItems && (
-                    <div style={{ background: '#fef3c7', borderBottom: '1px solid #fcd34d', padding: '0.75rem 1.25rem' }}>
-                        <div style={{ fontSize: '0.9rem', color: '#92400e' }}>
-                            <strong>Asset items in this order</strong><br />
-                            Items routed to the Asset Register will be <strong>automatically registered as assets</strong> upon receipt.
-                        </div>
+                    <div className="po-receive-asset-notice">
+                        <AlertTriangle size={16} />
+                        <span>
+                            <strong>Asset items in this order.</strong>{' '}
+                            Items routed to the Asset Register will be automatically registered as assets upon receipt.
+                        </span>
                     </div>
                 )}
-                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {(po.items || []).map(item => {
-                        const inv = item.inventoryItem;
-                        const dest = getDestination(inv);
-                        const val = receiptQtys[item.id] || { qty: '', storeId: '', batchNumber: '', expiryDate: '' };
-                        const remaining = Number(item.quantity) - Number(item.receivedQty ?? 0);
-                        const updateField = (field, value) =>
-                            setReceiptQtys(prev => ({ ...prev, [item.id]: { ...prev[item.id], [field]: value } }));
 
-                        return (
-                            <div key={item.id} style={{ border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '8px', padding: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                    <div>
-                                        <strong style={{ fontSize: '0.9375rem' }}>{inv?.name || '-'}</strong>
-                                        {inv?.itemTypeName && (
-                                            <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted, #94a3b8)' }}>{inv.itemTypeName}</span>
+                <div className="modal-body">
+                    <div className="po-receive-items">
+                        {(po.items || []).map(item => {
+                            const inv = item.inventoryItem;
+                            const dest = getDestination(inv);
+                            const val = receiptQtys[item.id] || { qty: '', storeId: '', batchNumber: '', expiryDate: '', mrp: '', sellingPrice: '' };
+                            const ordered = Number(item.quantity || 0);
+                            const alreadyReceived = Number(item.receivedQty ?? 0);
+                            const remaining = ordered - alreadyReceived;
+                            const pct = ordered > 0 ? Math.min((alreadyReceived / ordered) * 100, 100) : 0;
+                            const isDone = remaining <= 0;
+                            const isPharmacy = inv?.billingGroup === 'PHARMACY';
+
+                            return (
+                                <div key={item.id} className="po-receive-item-card">
+                                    <div className="po-receive-item-top">
+                                        <div>
+                                            <span className="po-receive-item-name">{inv?.name || '-'}</span>
+                                            {inv?.itemTypeName && (
+                                                <span className="po-receive-item-type">{inv.itemTypeName}</span>
+                                            )}
+                                        </div>
+                                        {dest && (
+                                            <span className={`po-receive-dest-tag po-receive-dest-tag--${dest.mod}`}>
+                                                → {dest.label}
+                                            </span>
                                         )}
                                     </div>
-                                    {dest && (
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: '999px', background: dest.color + '18', color: dest.color, whiteSpace: 'nowrap' }}>
-                                            → {dest.label}
-                                        </span>
-                                    )}
-                                </div>
 
-                                <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-secondary, #64748b)' }}>
-                                    <span>Ordered: <strong>{item.quantity}</strong></span>
-                                    <span>Received: <strong>{item.receivedQty ?? 0}</strong></span>
-                                    <span>Remaining: <strong style={{ color: remaining > 0 ? 'inherit' : '#10b981' }}>{remaining}</strong></span>
-                                </div>
+                                    <div className="po-receive-item-body">
+                                        <div className="po-receive-progress">
+                                            <div className="po-receive-progress-meta">
+                                                <span>Ordered: <strong>{ordered}</strong> · Received: <strong>{alreadyReceived}</strong></span>
+                                                <span className={isDone ? 'po-receive-remaining--done' : 'po-receive-remaining--pending'}>
+                                                    {isDone ? 'Fully received' : `${remaining} remaining`}
+                                                </span>
+                                            </div>
+                                            <div className="po-receive-progress-bar">
+                                                <div
+                                                    className={`po-receive-progress-fill ${pct >= 100 ? 'po-receive-progress-fill--done' : 'po-receive-progress-fill--partial'}`}
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                        </div>
 
-                                <div>
-                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>
-                                        Receive into Store <span style={{ color: '#ef4444' }}>*</span>
-                                    </label>
-                                    <SearchableSelect
-                                        value={val.storeId}
-                                        onChange={v => updateField('storeId', v)}
-                                        options={activeStores}
-                                        getId={s => s.id}
-                                        getLabel={storeLabel}
-                                        placeholder="Select store..."
-                                    />
-                                </div>
+                                        <div className="po-receive-field po-receive-field--full">
+                                            <label className="po-receive-field-label">
+                                                Receive into Store <span className="text-danger">*</span>
+                                            </label>
+                                            <SearchableSelect
+                                                value={val.storeId}
+                                                onChange={v => updateField(item.id, 'storeId', v)}
+                                                options={activeStores}
+                                                getId={s => s.id}
+                                                getLabel={storeLabel}
+                                                placeholder="Select store..."
+                                            />
+                                        </div>
 
-                                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                    <div style={{ flex: '1', minWidth: '80px' }}>
-                                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Qty to Receive</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max={remaining}
-                                            step="any"
-                                            className="form-input"
-                                            value={val.qty}
-                                            onChange={e => updateField('qty', e.target.value)}
-                                            placeholder="0"
-                                        />
+                                        <div className="po-receive-fields">
+                                            <div className="po-receive-field po-receive-field--sm">
+                                                <label className="po-receive-field-label">Qty</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max={remaining}
+                                                    step="any"
+                                                    className="form-input"
+                                                    value={val.qty}
+                                                    onChange={e => updateField(item.id, 'qty', e.target.value)}
+                                                    placeholder="0"
+                                                    disabled={isDone}
+                                                />
+                                            </div>
+
+                                            <div className="po-receive-field po-receive-field--md">
+                                                <label className="po-receive-field-label">
+                                                    Batch No {(inv?.batchRequired || isPharmacy) ? <span className="text-danger">*</span> : <span className="text-muted">(opt)</span>}
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="form-input"
+                                                    value={val.batchNumber}
+                                                    onChange={e => updateField(item.id, 'batchNumber', e.target.value)}
+                                                    placeholder="e.g. BT-2024-001"
+                                                    disabled={isDone}
+                                                />
+                                            </div>
+
+                                            <div className="po-receive-field po-receive-field--md">
+                                                <label className="po-receive-field-label">
+                                                    Expiry {(inv?.expiryRequired || isPharmacy) ? <span className="text-danger">*</span> : <span className="text-muted">(opt)</span>}
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    className="form-input"
+                                                    value={val.expiryDate}
+                                                    onChange={e => updateField(item.id, 'expiryDate', e.target.value)}
+                                                    disabled={isDone}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {isPharmacy && (
+                                            <div className="po-receive-fields">
+                                                <div className="po-receive-field po-receive-field--md">
+                                                    <label className="po-receive-field-label">MRP (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        className="form-input"
+                                                        value={val.mrp}
+                                                        onChange={e => updateField(item.id, 'mrp', e.target.value)}
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                                <div className="po-receive-field po-receive-field--md">
+                                                    <label className="po-receive-field-label">Selling Price (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        className="form-input"
+                                                        value={val.sellingPrice}
+                                                        onChange={e => updateField(item.id, 'sellingPrice', e.target.value)}
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-
-                                    {(inv?.batchRequired || inv?.billingGroup === 'PHARMACY') && (
-                                        <div style={{ flex: '2', minWidth: '120px' }}>
-                                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Batch No <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                value={val.batchNumber}
-                                                onChange={e => updateField('batchNumber', e.target.value)}
-                                                placeholder="e.g. BT-2024-001"
-                                            />
-                                        </div>
-                                    )}
-
-                                    {(inv?.expiryRequired || inv?.billingGroup === 'PHARMACY') && (
-                                        <div style={{ flex: '2', minWidth: '130px' }}>
-                                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Expiry Date <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="date"
-                                                className="form-input"
-                                                value={val.expiryDate}
-                                                onChange={e => updateField('expiryDate', e.target.value)}
-                                            />
-                                        </div>
-                                    )}
                                 </div>
-
-                                {inv?.billingGroup === 'PHARMACY' && (
-                                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                        <div style={{ flex: '1', minWidth: '110px' }}>
-                                            <label className="form-label" style={{ fontSize: '0.75rem' }}>MRP (₹)</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                className="form-input"
-                                                value={val.mrp}
-                                                onChange={e => updateField('mrp', e.target.value)}
-                                                placeholder="0.00"
-                                            />
-                                        </div>
-                                        <div style={{ flex: '1', minWidth: '110px' }}>
-                                            <label className="form-label" style={{ fontSize: '0.75rem' }}>Selling Price (₹)</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                className="form-input"
-                                                value={val.sellingPrice}
-                                                onChange={e => updateField('sellingPrice', e.target.value)}
-                                                placeholder="0.00"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
+
                 <div className="modal-footer">
                     <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
                     <button className="btn btn-primary" onClick={onSubmit} disabled={submitting}>
