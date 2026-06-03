@@ -33,6 +33,8 @@ export default function StoreDetail() {
     const [loading, setLoading] = useState(true);
     const [receiptModal, setReceiptModal] = useState(null);
     const [receiptQtys, setReceiptQtys] = useState({});
+    const [receiptBatches, setReceiptBatches] = useState({});
+    const [receiptExpiries, setReceiptExpiries] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [transferModal, setTransferModal] = useState(null);
 
@@ -83,13 +85,20 @@ export default function StoreDetail() {
         const initial = {};
         (po.items || []).forEach(item => { initial[item.id] = ''; });
         setReceiptQtys(initial);
+        setReceiptBatches({});
+        setReceiptExpiries({});
         setReceiptModal(po);
     };
 
     const handleReceiptSubmit = async () => {
         const items = Object.entries(receiptQtys)
             .filter(([, qty]) => qty !== '' && Number(qty) > 0)
-            .map(([poItemId, receivedQty]) => ({ poItemId, receivedQty: Number(receivedQty) }));
+            .map(([poItemId, receivedQty]) => ({
+                poItemId,
+                receivedQty: Number(receivedQty),
+                batchNumber: receiptBatches[poItemId] || null,
+                expiryDate: receiptExpiries[poItemId] || null,
+            }));
 
         if (items.length === 0) return;
         setSubmitting(true);
@@ -274,19 +283,22 @@ export default function StoreDetail() {
 
             {receiptModal && (
                 <div className="modal-overlay active">
-                    <div className="modal">
+                    <div className="modal modal-lg">
                         <div className="modal-header">
                             <h2 className="modal-title">Record Receipt — {stripHospitalPrefix(receiptModal.poNumber)}</h2>
                             <button className="modal-close" onClick={() => setReceiptModal(null)}><X size={18} /></button>
                         </div>
                         <div className="modal-body">
+                            <p className="text-muted" style={undefined}>Batch No and Expiry are optional — filling them enables expiry tracking on the dashboard.</p>
                             <table className="table">
                                 <thead>
                                     <tr>
                                         <th>Item</th>
                                         <th>Ordered</th>
-                                        <th>Already Received</th>
-                                        <th>Enter Qty</th>
+                                        <th>Received</th>
+                                        <th>Qty</th>
+                                        <th>Batch No</th>
+                                        <th>Expiry Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -304,6 +316,23 @@ export default function StoreDetail() {
                                                     value={receiptQtys[item.id] ?? ''}
                                                     onChange={e => setReceiptQtys(prev => ({ ...prev, [item.id]: e.target.value }))}
                                                     placeholder="0"
+                                                />
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="text"
+                                                    className="form-input"
+                                                    value={receiptBatches[item.id] ?? ''}
+                                                    onChange={e => setReceiptBatches(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                                    placeholder="e.g. B-001"
+                                                />
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="date"
+                                                    className="form-input"
+                                                    value={receiptExpiries[item.id] ?? ''}
+                                                    onChange={e => setReceiptExpiries(prev => ({ ...prev, [item.id]: e.target.value }))}
                                                 />
                                             </td>
                                         </tr>
