@@ -109,6 +109,8 @@ export const getKitConsumptions = () => api.get('/api/inventory/kits/consumption
 
 // ── Stock Overview ──
 export const getStockOverview = () => api.get('/api/inventory/stock-overview');
+export const getExpiryAlerts = () => api.get('/api/inventory/expiry-alerts');
+export const getStockBatches = (storeId, itemId) => api.get('/api/inventory/stock-batches', { params: { storeId, itemId } });
 
 // ── Stock Transfer ──
 export const transferStock = (data) => api.post('/api/inventory/stock-transfer', data);

@@ -1,3 +1,60 @@
+/* ── Panel tabs ── */
+.so-panel-tabs {
+    display: flex;
+    border-bottom: 1px solid #f3f4f6;
+    padding: 0 12px;
+    gap: 4px;
+}
+
+.so-panel-tab {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.so-panel-tab--active {
+    color: #111827;
+    border-bottom-color: #111827;
+}
+
+/* ── Batch row items ── */
+.so-batch-no {
+    font-size: 12px;
+    font-weight: 600;
+    font-family: monospace;
+    color: #374151;
+}
+
+.so-batch-qty {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.so-batch-expiry-tag {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 100px;
+}
+
+.so-batch-expiry-tag--expired { background: #fee2e2; color: #dc2626; }
+.so-batch-expiry-tag--critical { background: #fee2e2; color: #dc2626; }
+.so-batch-expiry-tag--warn { background: #fef3c7; color: #d97706; }
+.so-batch-expiry-tag--ok { background: #dcfce7; color: #16a34a; }
+
 /* ── View toggle ── */
 .so-view-toggle {
     display: flex;

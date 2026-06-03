@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Package, Search, X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, RotateCcw, Trash2, Wrench } from 'lucide-react';
+import { Package, Search, X, Layers } from 'lucide-react';
 import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
-import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors } from '../api/client';
+import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors, getStockBatches } from '../api/client';
 import { withCache } from '../cache';
 import { stripHospitalPrefix } from '../utils/format';
 import './StockOverview.css';
@@ -38,7 +38,10 @@ export default function StockOverview() {
 
     // Stock detail panel
     const [panelStock, setPanelStock] = useState(null);
+    const [panelTab, setPanelTab] = useState('txns');
     const [stockLogs, setStockLogs] = useState([]);
+    const [panelBatches, setPanelBatches] = useState([]);
+    const [batchesLoading, setBatchesLoading] = useState(false);
 
     useEffect(() => { fetchData(); }, []);
 
@@ -83,6 +86,26 @@ export default function StockOverview() {
     const handleLogStockClick = (stock) => { setSelectedStock(stock); setIsModalOpen(true); };
     const handleReleaseClick = (po) => { setSelectedPO(po); setShowReceiveModal(true); };
     const handleModalClose = (refresh) => { setIsModalOpen(false); setSelectedStock(null); if (refresh) fetchData(); };
+
+    const openPanel = (stock) => {
+        const isSelected = panelStock?.itemId === stock.itemId && panelStock?.storeId === stock.storeId;
+        if (isSelected) { setPanelStock(null); return; }
+        setPanelStock(stock);
+        setPanelTab('txns');
+        setPanelBatches([]);
+    };
+
+    const handlePanelTab = async (tab) => {
+        setPanelTab(tab);
+        if (tab === 'batches' && panelStock && panelBatches.length === 0) {
+            setBatchesLoading(true);
+            try {
+                const res = await getStockBatches(panelStock.storeId, panelStock.itemId);
+                setPanelBatches(Array.isArray(res.data) ? res.data : []);
+            } catch { setPanelBatches([]); }
+            finally { setBatchesLoading(false); }
+        }
+    };
 
     const filteredStocks = stocks.filter(s => {
         const matchesSearch = (s.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
@@ -182,7 +205,7 @@ export default function StockOverview() {
                                                 <tr
                                                     key={idx}
                                                     className={`so-row${isSelected ? ' so-row-selected' : ''}`}
-                                                    onClick={() => setPanelStock(isSelected ? null : stock)}
+                                                    onClick={() => openPanel(stock)}
                                                 >
                                                     <td><span className="mono-sm">{stripHospitalPrefix(stock.itemCode) || '-'}</span></td>
                                                     <td>
@@ -260,39 +283,75 @@ export default function StockOverview() {
                                         <X size={18} />
                                     </button>
                                 </div>
-                                <div className="so-txn-heading">
-                                    Transactions ({panelLogs.length})
+
+                                <div className="so-panel-tabs">
+                                    <button className={`so-panel-tab${panelTab === 'txns' ? ' so-panel-tab--active' : ''}`} onClick={() => handlePanelTab('txns')}>
+                                        Transactions
+                                    </button>
+                                    <button className={`so-panel-tab${panelTab === 'batches' ? ' so-panel-tab--active' : ''}`} onClick={() => handlePanelTab('batches')}>
+                                        <Layers size={13} /> Batches
+                                    </button>
                                 </div>
-                                <div className="so-txn-scroll">
-                                    {panelLogs.length === 0 ? (
-                                        <div className="so-txn-empty">No transactions yet</div>
-                                    ) : panelLogs.map((log, i) => {
-                                        const t = TXN_TYPE[log.transactionType] || { label: log.transactionType, color: '#6b7280', bg: '#f3f4f6' };
-                                        const qty = Number(log.quantity);
-                                        return (
-                                            <div key={log.id || i} className="so-txn-row">
-                                                <div className="so-txn-body">
-                                                    <div className="so-txn-top">
-                                                        <span
-                                                            className="so-txn-badge"
-                                                            style={{ color: t.color, background: t.bg }}
-                                                        >
-                                                            {t.label}
-                                                        </span>
-                                                        <span className={`so-txn-qty ${qty >= 0 ? 'so-txn-qty--pos' : 'so-txn-qty--neg'}`}>
-                                                            {qty >= 0 ? '+' : ''}{qty}
-                                                        </span>
+
+                                {panelTab === 'txns' && (
+                                    <div className="so-txn-scroll">
+                                        {panelLogs.length === 0 ? (
+                                            <div className="so-txn-empty">No transactions yet</div>
+                                        ) : panelLogs.map((log, i) => {
+                                            const t = TXN_TYPE[log.transactionType] || { label: log.transactionType, color: '#6b7280', bg: '#f3f4f6' };
+                                            const qty = Number(log.quantity);
+                                            return (
+                                                <div key={log.id || i} className="so-txn-row">
+                                                    <div className="so-txn-body">
+                                                        <div className="so-txn-top">
+                                                            <span className="so-txn-badge" style={{ color: t.color, background: t.bg }}>{t.label}</span>
+                                                            <span className={`so-txn-qty ${qty >= 0 ? 'so-txn-qty--pos' : 'so-txn-qty--neg'}`}>
+                                                                {qty >= 0 ? '+' : ''}{qty}
+                                                            </span>
+                                                        </div>
+                                                        <div className="so-txn-date">
+                                                            {new Date(log.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            {log.balanceAfter != null && <span> · Bal: {log.balanceAfter}</span>}
+                                                        </div>
+                                                        {log.remarks && <div className="so-txn-remarks">{log.remarks}</div>}
                                                     </div>
-                                                    <div className="so-txn-date">
-                                                        {new Date(log.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                        {log.balanceAfter != null && <span> · Bal: {log.balanceAfter}</span>}
-                                                    </div>
-                                                    {log.remarks && <div className="so-txn-remarks">{log.remarks}</div>}
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {panelTab === 'batches' && (
+                                    <div className="so-txn-scroll">
+                                        {batchesLoading ? (
+                                            <div className="so-txn-empty"><div className="spinner"></div></div>
+                                        ) : panelBatches.length === 0 ? (
+                                            <div className="so-txn-empty">No batch data recorded yet</div>
+                                        ) : panelBatches.map(b => {
+                                            const days = b.expiryDate ? Math.ceil((new Date(b.expiryDate) - new Date()) / 86400000) : null;
+                                            return (
+                                                <div key={b.id} className="so-txn-row">
+                                                    <div className="so-txn-body">
+                                                        <div className="so-txn-top">
+                                                            <span className="so-batch-no">{b.batchNumber || 'No Batch'}</span>
+                                                            <span className="so-batch-qty">Qty: {Number(b.quantityAvailable).toLocaleString()}</span>
+                                                        </div>
+                                                        {b.expiryDate && (
+                                                            <div className="so-txn-date">
+                                                                Expiry: {new Date(b.expiryDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                {days !== null && (
+                                                                    <span className={`so-batch-expiry-tag ${days < 0 ? 'so-batch-expiry-tag--expired' : days <= 30 ? 'so-batch-expiry-tag--critical' : days <= 60 ? 'so-batch-expiry-tag--warn' : 'so-batch-expiry-tag--ok'}`}>
+                                                                        {days < 0 ? `Expired` : days <= 30 ? `${days}d left` : days <= 60 ? `${days}d` : 'OK'}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         );
                     })()}
