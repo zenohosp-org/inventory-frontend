@@ -1,0 +1,119 @@
+/* ── StoreDetail: two-column layout (table + asset panel) ── */
+.sd-stock-layout {
+    display: flex;
+    gap: var(--spacing-4);
+    align-items: flex-start;
+}
+
+.sd-stock-table {
+    flex: 1;
+    min-width: 0;
+}
+
+.sd-asset-panel {
+    width: 320px;
+    flex-shrink: 0;
+    position: sticky;
+    top: var(--spacing-4);
+}
+
+/* ── Asset badge inline with item name ── */
+.sd-asset-badge {
+    margin-left: var(--spacing-2);
+    vertical-align: middle;
+    font-size: 10px;
+}
+
+/* ── Unit count cell ── */
+.sd-unit-count {
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    color: var(--color-gray-700);
+}
+
+/* ── View Units button ── */
+.sd-view-units-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ── Asset unit row in side panel ── */
+.sd-unit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px var(--spacing-3);
+    border-bottom: 1px solid var(--color-gray-100);
+    gap: var(--spacing-2);
+}
+
+.sd-unit-row:last-child {
+    border-bottom: none;
+}
+
+.sd-unit-code {
+    font-family: var(--font-mono, monospace);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--color-gray-800);
+    white-space: nowrap;
+}
+
+.sd-unit-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* ── Asset status pill ── */
+.sd-asset-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.asset-status--store  { background: var(--color-gray-100);  color: var(--color-gray-600); }
+.asset-status--inuse  { background: #dbeafe;                 color: #1d4ed8; }
+.asset-status--maint  { background: #fef3c7;                 color: #92400e; }
+.asset-status--retired{ background: #fee2e2;                 color: #991b1b; }
+
+/* ── Unit location tag ── */
+.sd-unit-location {
+    font-size: 11px;
+    color: var(--color-gray-500);
+    white-space: nowrap;
+}
+
+/* ── Summary grid in side panel ── */
+.sd-summary-grid {
+    display: flex;
+    gap: var(--spacing-4);
+}
+
+.sd-summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+}
+
+.sd-summary-val {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-gray-800);
+    line-height: 1;
+}
+
+.sd-summary-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-gray-500);
+}
