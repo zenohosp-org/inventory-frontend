@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
                 role: import.meta.env.VITE_MOCK_USER_ROLE || 'super_admin',
                 hospitalId: import.meta.env.VITE_MOCK_HOSPITAL_ID || '1',
                 modules: [],
+                token: import.meta.env.VITE_MOCK_JWT,
             });
             setLoading(false);
             return;

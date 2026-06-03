@@ -25,6 +25,7 @@ export default function StockOverview() {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
     const [filterVendor, setFilterVendor] = useState('all');
+    const [filterType, setFilterType] = useState('all');
     const [categories, setCategories] = useState([]);
 
     // Log stock modal
@@ -88,7 +89,9 @@ export default function StockOverview() {
             (s.itemCode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
         const matchesCategory = filterCategory === 'all' || s.categoryId === filterCategory;
         const matchesVendor = filterVendor === 'all' || s.vendorId === filterVendor;
-        return matchesSearch && matchesCategory && matchesVendor;
+        const isAsset = s.billingGroup === 'ASSET';
+        const matchesType = filterType === 'all' || (filterType === 'asset' ? isAsset : !isAsset);
+        return matchesSearch && matchesCategory && matchesVendor && matchesType;
     });
 
     return (
@@ -102,6 +105,14 @@ export default function StockOverview() {
 
             {/* Filter Bar */}
             <div className="filter-bar">
+                <div className="filter-group">
+                    <label className="filter-label">Type</label>
+                    <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="filter-select">
+                        <option value="consumable">Consumables</option>
+                        <option value="asset">Assets</option>
+                        <option value="all">All Types</option>
+                    </select>
+                </div>
                 <div className="filter-group">
                     <label className="filter-label">Category</label>
                     <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
@@ -135,7 +146,11 @@ export default function StockOverview() {
                     <div className="table-container so-table-wrap">
                         <div className="table-header">
                             <h3 className="table-title">Products ({filteredStocks.length})</h3>
-                            <span className="text-muted so-hint">Click a row to see transactions</span>
+                            <span className="text-muted so-hint">
+                                {filterType === 'asset'
+                                    ? 'Quantities are received totals — individual units are tracked in the Asset module'
+                                    : 'Click a row to see transactions'}
+                            </span>
                         </div>
                         <div className="table-body">
                             {loading ? (
@@ -170,7 +185,10 @@ export default function StockOverview() {
                                                     onClick={() => setPanelStock(isSelected ? null : stock)}
                                                 >
                                                     <td><span className="mono-sm">{stripHospitalPrefix(stock.itemCode) || '-'}</span></td>
-                                                    <td><strong>{stock.itemName}</strong></td>
+                                                    <td>
+                                                        <strong>{stock.itemName}</strong>
+                                                        {stock.billingGroup === 'ASSET' && <span className="badge badge-primary so-asset-badge">Asset</span>}
+                                                    </td>
                                                     <td>
                                                         {stock.categoryName
                                                             ? <span className="badge badge-primary">{stock.categoryName}</span>
