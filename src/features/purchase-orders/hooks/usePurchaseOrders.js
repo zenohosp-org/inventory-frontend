@@ -9,8 +9,10 @@ import {
 } from '../../../api/client';
 import { query, invalidateKey } from '../../../lib/queryCache';
 import { EMPTY_PO_FORM, EMPTY_PAY_FORM, extractArray } from '../utils/poHelpers';
+import { useToast } from '../../../context/ToastContext';
 
 export function usePurchaseOrders(user) {
+    const { toast } = useToast();
     // ── Server data ──
     const [pos, setPos] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -125,9 +127,9 @@ export function usePurchaseOrders(user) {
     // ── Actions ──
     const handleCreate = async () => {
         const validItems = formData.items.filter(i => i.itemId && i.quantity > 0);
-        if (!formData.vendorId) { alert('Please select a vendor'); return; }
-        if (!formData.storeId) { alert('Please select a store'); return; }
-        if (validItems.length === 0) { alert('Please add at least one item'); return; }
+        if (!formData.vendorId) { toast.warn('Please select a vendor'); return; }
+        if (!formData.storeId) { toast.warn('Please select a store'); return; }
+        if (validItems.length === 0) { toast.warn('Please add at least one item'); return; }
         try {
             await createPurchaseOrder({
                 vendorId: formData.vendorId,
@@ -143,8 +145,9 @@ export function usePurchaseOrders(user) {
             setFormData(EMPTY_PO_FORM);
             invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');
             await fetchData();
+            toast.success('Purchase order created');
         } catch (e) {
-            alert('Failed to create PO: ' + (e.response?.data?.message || e.message));
+            toast.error(e.response?.data?.message || e.message || 'Failed to create purchase order');
         }
     };
 
@@ -191,7 +194,7 @@ export function usePurchaseOrders(user) {
             }
         }
         if (missingFields.length > 0) {
-            alert('Please fill in required fields:\n\n' + missingFields.join('\n'));
+            toast.warn('Missing required fields: ' + missingFields.join(', '));
             return;
         }
 
@@ -260,8 +263,9 @@ export function usePurchaseOrders(user) {
             setReceiptModal(null);
             invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');
             await fetchData();
+            toast.success('Receipt recorded successfully');
         } catch (e) {
-            alert('Failed: ' + (e.response?.data?.message || e.message));
+            toast.error(e.response?.data?.message || e.message || 'Failed to record receipt');
         } finally {
             setSubmitting(false);
         }
@@ -283,7 +287,7 @@ export function usePurchaseOrders(user) {
 
     const handlePaySubmit = async () => {
         if (!payForm.paidAmount || Number(payForm.paidAmount) <= 0) {
-            alert('Enter a valid amount'); return;
+            toast.warn('Enter a valid payment amount'); return;
         }
         setSubmitting(true);
         const selectedAccount = bankAccounts.find(a => a.id === payForm.bankAccountId);
@@ -311,8 +315,9 @@ export function usePurchaseOrders(user) {
             setPayModal(null);
             invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');
             await fetchData();
+            toast.success('Payment recorded');
         } catch (e) {
-            alert('Failed: ' + (e.response?.data?.message || e.message));
+            toast.error(e.response?.data?.message || e.message || 'Failed to record payment');
         } finally {
             setSubmitting(false);
         }

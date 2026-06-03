@@ -2,10 +2,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getItems, getCategories, createItem, updateItem, deleteItem, getItemTypes } from '../../../api/client';
 import { withCache, invalidate } from '../../../cache';
 import { EMPTY_ITEM_FORM, generateItemCode, itemFromExisting } from '../utils/itemHelpers';
+import { useToast } from '../../../context/ToastContext';
 
 const PAGE_SIZE = 20;
 
 export function useInventoryItems() {
+    const { toast } = useToast();
     // ── Server data ──
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -148,8 +150,9 @@ export function useInventoryItems() {
             invalidate('items');
             closeModal();
             fetchData();
+            toast.success(editingItem ? 'Product updated' : 'Product created');
         } catch {
-            alert(editingItem ? 'Failed to update product' : 'Failed to create product');
+            toast.error(editingItem ? 'Failed to update product' : 'Failed to create product');
         }
     };
 
@@ -159,8 +162,9 @@ export function useInventoryItems() {
             await deleteItem(id);
             invalidate('items');
             fetchData();
+            toast.success('Product deleted');
         } catch {
-            alert('Failed to delete product');
+            toast.error('Failed to delete product');
         }
     };
 

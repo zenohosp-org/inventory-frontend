@@ -1,0 +1,112 @@
+/* ── Ziranly-style pill toast notifications ── */
+
+.inv-toast-container {
+    position: fixed;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.inv-toast {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px 10px 16px;
+    background: #ffffff;
+    border-radius: 100px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    min-width: 240px;
+    max-width: 520px;
+    pointer-events: auto;
+    animation: inv-toast-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.inv-toast.is-exiting {
+    animation: inv-toast-out 0.25s ease forwards;
+}
+
+.inv-toast.is-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.inv-toast.is-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.inv-toast.is-warning {
+    background: #fffbeb;
+    border-color: #fef3c7;
+}
+
+.inv-toast-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.inv-toast.is-success .inv-toast-icon { color: #10b981; }
+.inv-toast.is-error   .inv-toast-icon { color: #ef4444; }
+.inv-toast.is-warning .inv-toast-icon { color: #f59e0b; }
+
+.inv-toast-message {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    flex: 1;
+    line-height: 1.4;
+}
+
+.inv-toast-close {
+    background: none;
+    border: none;
+    padding: 4px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 150ms ease, background 150ms ease;
+}
+
+.inv-toast-close:hover {
+    color: #475569;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+@keyframes inv-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-14px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes inv-toast-out {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+    }
+}

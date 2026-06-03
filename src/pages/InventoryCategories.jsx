@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Layers, Plus, Edit2, Trash2, X, MoreVertical } from 'lucide-react';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../api/client';
 import { invalidate } from '../cache';
+import { useToast } from '../context/ToastContext';
 
 
 export default function InventoryCategories() {
+    const { toast } = useToast();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -69,9 +71,9 @@ export default function InventoryCategories() {
             invalidate('categories');
             setShowModal(false);
             fetchCategories();
+            toast.success(editingId ? 'Category updated' : 'Category created');
         } catch (error) {
-            console.error('Error saving category:', error);
-            alert('Failed to save category');
+            toast.error('Failed to save category');
         }
     };
 
@@ -81,9 +83,9 @@ export default function InventoryCategories() {
                 await deleteCategory(id);
                 invalidate('categories');
                 fetchCategories();
+                toast.success('Category deleted');
             } catch (error) {
-                console.error('Error deleting category:', error);
-                alert('Failed to delete category');
+                toast.error('Failed to delete category');
             }
         }
     };

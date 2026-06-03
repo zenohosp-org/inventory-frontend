@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getKits, createKit, updateKit, deleteKit, consumeKit, getItems, getStores } from '../../../api/client';
 import { EMPTY_KIT_FORM, EMPTY_CONSUME_FORM } from '../utils/kitHelpers';
+import { useToast } from '../../../context/ToastContext';
 
 export function useInventoryKits() {
+    const { toast } = useToast();
     // ── Server data ──
     const [kits, setKits] = useState([]);
     const [items, setItems] = useState([]);
@@ -102,10 +104,10 @@ export function useInventoryKits() {
 
     // ── Actions ──
     const handleSubmit = async () => {
-        if (!formData.name.trim()) { alert('Kit name is required'); return; }
-        if (formData.components.length === 0) { alert('Add at least one component'); return; }
+        if (!formData.name.trim()) { toast.warn('Kit name is required'); return; }
+        if (formData.components.length === 0) { toast.warn('Add at least one component'); return; }
         if (formData.components.some(c => !c.itemId || !c.quantity)) {
-            alert('All components must have an item and quantity');
+            toast.warn('All components must have an item and quantity');
             return;
         }
 
@@ -130,8 +132,9 @@ export function useInventoryKits() {
             }
             closeFormModal();
             await fetchData();
+            toast.success(editingKit ? 'Kit updated' : 'Kit created');
         } catch (err) {
-            alert('Failed: ' + (err.response?.data?.message || err.message));
+            toast.error(err.response?.data?.message || err.message || 'Failed to save kit');
         } finally {
             setSubmitting(false);
         }
@@ -142,14 +145,15 @@ export function useInventoryKits() {
         try {
             await deleteKit(kit.id);
             await fetchData();
+            toast.success('Kit deleted');
         } catch (err) {
-            alert('Failed: ' + (err.response?.data?.message || err.message));
+            toast.error(err.response?.data?.message || err.message || 'Failed to delete kit');
         }
     };
 
     const handleConsumeSubmit = async () => {
         if (!consumeForm.storeId || !consumeForm.quantity) {
-            alert('Select store and enter quantity');
+            toast.warn('Select store and enter quantity');
             return;
         }
 
@@ -176,7 +180,7 @@ export function useInventoryKits() {
                 setLowStockWarning(err.response.data?.lowStockItems);
                 setConsumeForm(prev => ({ ...prev, force: false }));
             } else {
-                alert('Failed: ' + (err.response?.data?.message || err.message));
+                toast.error(err.response?.data?.message || err.message || 'Failed to consume kit');
             }
         } finally {
             setSubmitting(false);

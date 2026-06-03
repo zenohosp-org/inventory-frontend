@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, RotateCcw, ActivitySquare, Trash2 } from 'lucide-react';
 import { getVendors, logStock } from '../api/client';
+import { useToast } from '../context/ToastContext';
 import SearchableSelect from '../components/SearchableSelect';
 import { stripHospitalPrefix } from '../utils/format';
 
 
 export default function LogStockModal({ stock, onClose, onSuccess }) {
+    const { toast } = useToast();
     // Internal use is default
     const [movementType, setMovementType] = useState('INTERNAL_USE');
 
@@ -52,17 +54,17 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
         
         // Validation
         if (!quantity || quantity <= 0) {
-            alert('Enter a valid quantity');
+            toast.warn('Enter a valid quantity');
             return;
         }
-        
+
         if (movementType === 'PURCHASE_IN' && !vendorId) {
-            alert('Please select a vendor for Purchase In transactions');
+            toast.warn('Please select a vendor for Purchase In transactions');
             return;
         }
-        
+
         if (movementType === 'RETURN' && !reason) {
-            alert('Please enter a reason for returns');
+            toast.warn('Please enter a reason for returns');
             return;
         }
         
@@ -88,11 +90,10 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
 
         try {
             await logStock(payload);
-            alert('Stock transaction recorded successfully!');
+            toast.success('Stock transaction recorded');
             onSuccess();
         } catch (error) {
-            console.error('Error logging stock:', error);
-            alert('Error logging stock: ' + (error.response?.data?.message || error.message || 'Unknown error'));
+            toast.error(error.response?.data?.message || error.message || 'Failed to log stock transaction');
         } finally {
             setLoading(false);
         }

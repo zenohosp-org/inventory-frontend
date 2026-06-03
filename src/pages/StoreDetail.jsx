@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Store as StoreIcon, Package, ShoppingCart, X, ArrowLeftRight } from 'lucide-react';
 import { getStores, getStockOverview, getPOsByStore, recordPOReceipt, convertPOToBill } from '../api/client';
 import TransferStockModal from '../components/TransferStockModal';
+import { useToast } from '../context/ToastContext';
 import { stripHospitalPrefix } from '../utils/format';
 
 const STATUS_BADGE = {
@@ -21,6 +22,7 @@ function StatusBadge({ status }) {
 }
 
 export default function StoreDetail() {
+    const { toast } = useToast();
     const { storeId } = useParams();
     const [store, setStore] = useState(null);
     const [allStores, setAllStores] = useState([]);
@@ -96,10 +98,9 @@ export default function StoreDetail() {
             console.log('Receipt recorded for PO:', receiptModal.id);
             setReceiptModal(null);
             await loadPOs();
-            alert('✓ Receipt recorded! Check the PO status below. If fully received, click "Convert to Bill".');
+            toast.success('Receipt recorded — update PO status and convert to bill when ready');
         } catch (e) {
-            console.error('Record receipt error:', e);
-            alert('Failed to record receipt: ' + (e.response?.data?.message || e.message));
+            toast.error(e.response?.data?.message || e.message || 'Failed to record receipt');
         } finally {
             setSubmitting(false);
         }
@@ -107,15 +108,12 @@ export default function StoreDetail() {
 
     const handleConvertToBill = async (poId) => {
         if (!window.confirm('Convert this fully received PO to a bill?')) return;
-        console.log('Converting PO to bill:', poId);
         try {
             await convertPOToBill(poId);
-            console.log('Bill created successfully');
             await loadPOs();
-            alert('✓ Bill created! Check the PO Bills page (/po-bill) to see and manage the invoice.');
+            toast.success('Bill created — view it on the PO Bills page');
         } catch (e) {
-            console.error('Convert to bill error:', e);
-            alert('Failed to convert: ' + (e.response?.data?.message || e.message));
+            toast.error(e.response?.data?.message || e.message || 'Failed to convert to bill');
         }
     };
 

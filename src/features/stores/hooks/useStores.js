@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { getStores, createStore, updateStore, deleteStore, getHmsInfrastructure } from '../../../api/client';
 import { useAuth } from '../../../context/AuthContext';
 import { invalidate } from '../../../cache';
+import { useToast } from '../../../context/ToastContext';
 
 const EMPTY_STORE_FORM = { name: '', type: 'INVENTORY', isActive: true };
 
 export function useStores() {
+    const { toast } = useToast();
     const { user } = useAuth();
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -101,8 +103,9 @@ export function useStores() {
             invalidate('stores');
             closeModal();
             fetchStores();
+            toast.success(editingStore ? 'Store updated' : 'Store created');
         } catch {
-            alert('Failed to save store');
+            toast.error('Failed to save store');
         }
     };
 
@@ -112,8 +115,9 @@ export function useStores() {
             await deleteStore(id);
             invalidate('stores');
             fetchStores();
+            toast.success('Store deleted');
         } catch {
-            alert('Failed to delete store');
+            toast.error('Failed to delete store');
         }
     };
 

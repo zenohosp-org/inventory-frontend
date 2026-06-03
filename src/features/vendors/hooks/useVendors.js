@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { getVendors, createVendor, updateVendor, deleteVendor } from '../../../api/client';
 import { withCache, invalidate } from '../../../cache';
 import { EMPTY_VENDOR_FORM, vendorFromExisting, deriveStateFromGst } from '../utils/vendorHelpers';
+import { useToast } from '../../../context/ToastContext';
 
 export function useVendors() {
+    const { toast } = useToast();
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeDropdown, setActiveDropdown] = useState(null);
@@ -72,21 +74,23 @@ export function useVendors() {
         if (formData.gstNumber) {
             const duplicate = vendors.find(v => v.gstNumber === formData.gstNumber && v.id !== editingId);
             if (duplicate) {
-                alert(`GST number is already used by "${duplicate.name}"`);
+                toast.warn(`GST number is already used by "${duplicate.name}"`);
                 return;
             }
         }
         try {
             if (editingId) {
                 await updateVendor(editingId, formData);
+                toast.success('Vendor updated successfully');
             } else {
                 await createVendor(formData);
+                toast.success('Vendor created successfully');
             }
             invalidate('vendors');
             closeModal();
             fetchVendors();
         } catch {
-            alert('Failed to save vendor');
+            toast.error('Failed to save vendor');
         }
     };
 
@@ -96,8 +100,9 @@ export function useVendors() {
             await deleteVendor(id);
             invalidate('vendors');
             fetchVendors();
+            toast.success('Vendor deleted');
         } catch {
-            alert('Failed to delete vendor');
+            toast.error('Failed to delete vendor');
         }
     };
 

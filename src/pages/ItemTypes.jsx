@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag, Plus, X } from 'lucide-react';
 import { getItemTypes, createItemType } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 const EMPTY_FORM = {
     name: '',
@@ -10,6 +11,7 @@ const EMPTY_FORM = {
 };
 
 export default function ItemTypes() {
+    const { toast } = useToast();
     const [itemTypes, setItemTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -40,8 +42,9 @@ export default function ItemTypes() {
             setShowModal(false);
             setFormData(EMPTY_FORM);
             fetchData();
+            toast.success('Item type created');
         } catch {
-            alert('Failed to create item type');
+            toast.error('Failed to create item type');
         } finally {
             setSaving(false);
         }
