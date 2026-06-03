@@ -6,6 +6,7 @@ import {
     payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
     getPOBills, getGrns,
     getAssetSyncLogs, retryAssetSync,
+    approvePurchaseOrder, cancelPurchaseOrder,
 } from '../../../api/client';
 import { query, invalidateKey } from '../../../lib/queryCache';
 import { EMPTY_PO_FORM, EMPTY_PAY_FORM, extractArray } from '../utils/poHelpers';
@@ -224,6 +225,28 @@ export function usePurchaseOrders() {
         }
     };
 
+    const approvePO = async (poId) => {
+        try {
+            await approvePurchaseOrder(poId);
+            invalidateKey('purchaseOrders');
+            await fetchData();
+            toast.success('Purchase order approved');
+        } catch (e) {
+            toast.error(e.response?.data?.message || e.message || 'Failed to approve purchase order');
+        }
+    };
+
+    const cancelPO = async (poId) => {
+        try {
+            await cancelPurchaseOrder(poId);
+            invalidateKey('purchaseOrders');
+            await fetchData();
+            toast.success('Purchase order cancelled');
+        } catch (e) {
+            toast.error(e.response?.data?.message || e.message || 'Failed to cancel purchase order');
+        }
+    };
+
     const retrySync = async (poId) => {
         try {
             const res = await retryAssetSync(poId);
@@ -312,6 +335,6 @@ export function usePurchaseOrders() {
         payForm, setPayForm,
         openPayModal, handlePaySubmit,
         // misc
-        fetchData, retrySync,
+        fetchData, retrySync, approvePO, cancelPO,
     };
 }

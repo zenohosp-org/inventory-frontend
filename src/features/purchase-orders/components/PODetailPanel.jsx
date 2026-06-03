@@ -17,11 +17,16 @@ export default function PODetailPanel({
     onReceive,
     onPayAdvance,
     onRetrySync,
+    onApprove,
+    onCancel,
 }) {
     const status = STATUS_MAP[po.status] || { label: po.status || '-', color: 'badge-secondary' };
     const total = Number(po.totalAmount || 0);
     const orderedItems = po.items || [];
     const hasAssetItems = orderedItems.some(it => it.inventoryItem?.billingGroup === 'ASSET');
+    const isDraft = po.status === 'DRAFT';
+    const canReceive = po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED';
+    const canPay = !isDraft && bill?.paymentStatus !== 'PAID';
 
     return (
         <div className="so-panel">
@@ -98,13 +103,20 @@ export default function PODetailPanel({
                     <div className="so-card-header">Actions</div>
                     <div className="so-card-body">
                         <div className="po-detail-actions">
-                            {(po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED') && (
+                            {isDraft && (
+                                <>
+                                    <button className="btn btn-sm btn-success" onClick={onApprove}>Approve</button>
+                                    <button className="btn btn-sm btn-ghost po-cancel-btn" onClick={onCancel}>Cancel PO</button>
+                                </>
+                            )}
+                            {canReceive && (
                                 <button className="btn btn-sm btn-primary" onClick={onReceive}>Receive Items</button>
                             )}
-                            {bill?.paymentStatus !== 'PAID' && (
+                            {canPay && (
                                 <button className="btn btn-sm btn-accent" onClick={onPayAdvance}>Pay Advance</button>
                             )}
                             {po.status === 'BILLED' && <span className="text-muted">Already Billed</span>}
+                            {po.status === 'CANCELLED' && <span className="text-muted">Cancelled</span>}
                         </div>
                     </div>
                 </div>

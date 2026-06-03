@@ -434,6 +434,14 @@
     gap: var(--spacing-2);
 }
 
+.po-cancel-btn {
+    color: var(--color-error, #dc2626);
+}
+.po-cancel-btn:hover:not(:disabled) {
+    background: var(--color-error-light, #fee2e2);
+    color: var(--color-error, #dc2626);
+}
+
 /* ── Asset sync status card ── */
 .po-sync-row {
     display: flex;

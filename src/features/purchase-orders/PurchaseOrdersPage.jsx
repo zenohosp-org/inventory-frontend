@@ -80,7 +80,10 @@ export default function PurchaseOrdersPage() {
                                     {po.paginatedPos.map(row => {
                                         const s = STATUS_MAP[row.status] || { label: row.status || '-', color: 'badge-secondary' };
                                         const bill = po.billsByPoId[row.id];
-                                        const canPay = bill?.paymentStatus !== 'PAID';
+                                        const isDraft = row.status === 'DRAFT';
+                                        const canReceive = row.status === 'ORDERED' || row.status === 'PARTIALLY_RECEIVED';
+                                        const canPay = !isDraft && bill?.paymentStatus !== 'PAID';
+                                        const isTerminal = row.status === 'BILLED' || row.status === 'CANCELLED' || row.status === 'RECEIVED';
                                         const isSelected = po.selectedPOId === row.id;
                                         return (
                                             <tr
@@ -99,7 +102,17 @@ export default function PurchaseOrdersPage() {
                                                 {!po.selectedPOId && (
                                                     <td onClick={(e) => e.stopPropagation()}>
                                                         <div className="po-action-group">
-                                                            {(row.status === 'ORDERED' || row.status === 'PARTIALLY_RECEIVED') && (
+                                                            {isDraft && (
+                                                                <>
+                                                                    <button className="btn btn-sm btn-success" onClick={() => po.approvePO(row.id)}>
+                                                                        Approve
+                                                                    </button>
+                                                                    <button className="btn btn-sm btn-ghost po-cancel-btn" onClick={() => po.cancelPO(row.id)}>
+                                                                        Cancel
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {canReceive && (
                                                                 <button className="btn btn-sm btn-primary" onClick={() => po.openReceiptModal(row)}>
                                                                     Receive
                                                                 </button>
@@ -109,8 +122,8 @@ export default function PurchaseOrdersPage() {
                                                                     Pay Advance
                                                                 </button>
                                                             )}
-                                                            {row.status === 'BILLED' && (
-                                                                <span className="text-muted">Billed</span>
+                                                            {isTerminal && (
+                                                                <span className="text-muted">{s.label}</span>
                                                             )}
                                                         </div>
                                                     </td>
@@ -157,6 +170,8 @@ export default function PurchaseOrdersPage() {
                         onReceive={() => po.openReceiptModal(po.selectedPO)}
                         onPayAdvance={() => po.openPayModal(po.selectedPO)}
                         onRetrySync={po.retrySync}
+                        onApprove={() => po.approvePO(po.selectedPO.id)}
+                        onCancel={() => po.cancelPO(po.selectedPO.id)}
                     />
                 )}
             </div>

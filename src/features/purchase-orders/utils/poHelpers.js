@@ -1,8 +1,10 @@
 export const STATUS_MAP = {
-    ORDERED: { label: 'Ordered', color: 'badge-primary' },
-    PARTIALLY_RECEIVED: { label: 'Partial', color: 'badge-warning' },
-    RECEIVED: { label: 'Received', color: 'badge-success' },
-    BILLED: { label: 'Billed', color: 'badge-secondary' },
+    DRAFT:              { label: 'Draft',     color: 'badge-secondary' },
+    ORDERED:            { label: 'Ordered',   color: 'badge-primary'   },
+    PARTIALLY_RECEIVED: { label: 'Partial',   color: 'badge-warning'   },
+    RECEIVED:           { label: 'Received',  color: 'badge-success'   },
+    BILLED:             { label: 'Billed',    color: 'badge-secondary' },
+    CANCELLED:          { label: 'Cancelled', color: 'badge-error'     },
 };
 
 export const EMPTY_PO_FORM = {
