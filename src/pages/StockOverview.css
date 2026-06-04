@@ -175,3 +175,81 @@
 .so-asset-badge {
     margin-left: 8px;
 }
+
+/* ── Units tab (per-asset list in side panel) ── */
+.so-units-summary {
+    display: flex;
+    gap: var(--spacing-3);
+    padding: 12px 16px;
+    background: var(--color-gray-50);
+    border-bottom: 1px solid var(--color-gray-100);
+}
+
+.so-units-summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+}
+
+.so-units-summary-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-gray-800);
+    line-height: 1;
+}
+
+.so-units-summary-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-gray-500);
+}
+
+.so-unit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-gray-100);
+    gap: var(--spacing-2);
+}
+
+.so-unit-row:last-child {
+    border-bottom: none;
+}
+
+.so-unit-code {
+    font-family: var(--font-mono, monospace);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gray-800);
+}
+
+.so-unit-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.so-unit-location {
+    font-size: 11px;
+    color: var(--color-gray-500);
+    white-space: nowrap;
+}
+
+/* Reuse asset status pill styles from StoreDetail.css if it's not loaded here */
+.sd-asset-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.asset-status--store   { background: var(--color-gray-100); color: var(--color-gray-600); }
+.asset-status--inuse   { background: #dbeafe;                color: #1d4ed8; }
+.asset-status--maint   { background: #fef3c7;                color: #92400e; }
+.asset-status--retired { background: #fee2e2;                color: #991b1b; }

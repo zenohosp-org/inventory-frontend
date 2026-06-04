@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Package, Search, X, Layers, Edit3 } from 'lucide-react';
+import { Package, Search, X, Layers, Edit3, Cpu } from 'lucide-react';
 import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
-import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors, getStockBatches } from '../api/client';
+import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors, getStockBatches, getAssets } from '../api/client';
 import { withCache } from '../cache';
 import { stripHospitalPrefix } from '../utils/format';
 import './StockOverview.css';
@@ -42,6 +42,15 @@ export default function StockOverview() {
     const [stockLogs, setStockLogs] = useState([]);
     const [panelBatches, setPanelBatches] = useState([]);
     const [batchesLoading, setBatchesLoading] = useState(false);
+    const [panelAssetUnits, setPanelAssetUnits] = useState([]);
+    const [assetUnitsLoading, setAssetUnitsLoading] = useState(false);
+
+    const ASSET_STATUS = {
+        ACTIVE:            { label: 'In Store',     cls: 'asset-status--store'  },
+        IN_USE:            { label: 'In Use',        cls: 'asset-status--inuse'  },
+        UNDER_MAINTENANCE: { label: 'Maintenance',   cls: 'asset-status--maint'  },
+        RETIRED:           { label: 'Retired',       cls: 'asset-status--retired'},
+    };
 
     useEffect(() => { fetchData(); }, []);
 
@@ -91,8 +100,20 @@ export default function StockOverview() {
         const isSelected = panelStock?.itemId === stock.itemId && panelStock?.storeId === stock.storeId;
         if (isSelected) { setPanelStock(null); return; }
         setPanelStock(stock);
-        setPanelTab('txns');
         setPanelBatches([]);
+        setPanelAssetUnits([]);
+        const initialTab = stock.billingGroup === 'ASSET' ? 'units' : 'txns';
+        setPanelTab(initialTab);
+        if (initialTab === 'units') loadAssetUnits(stock);
+    };
+
+    const loadAssetUnits = async (stock) => {
+        setAssetUnitsLoading(true);
+        try {
+            const res = await getAssets({ sourceItemId: stock.itemId });
+            setPanelAssetUnits(Array.isArray(res.data) ? res.data : []);
+        } catch { setPanelAssetUnits([]); }
+        finally { setAssetUnitsLoading(false); }
     };
 
     const handlePanelTab = async (tab) => {
@@ -104,6 +125,9 @@ export default function StockOverview() {
                 setPanelBatches(Array.isArray(res.data) ? res.data : []);
             } catch { setPanelBatches([]); }
             finally { setBatchesLoading(false); }
+        }
+        if (tab === 'units' && panelStock && panelAssetUnits.length === 0) {
+            loadAssetUnits(panelStock);
         }
     };
 
@@ -239,7 +263,14 @@ export default function StockOverview() {
                                                     </td>
                                                     <td onClick={e => e.stopPropagation()}>
                                                         {stock.billingGroup === 'ASSET' ? (
-                                                            <span className="text-muted text-xs">Asset</span>
+                                                            <button
+                                                                onClick={() => openPanel(stock)}
+                                                                className="btn btn-sm btn-outline so-adjust-btn"
+                                                                title="View individual asset units"
+                                                            >
+                                                                <Cpu size={13} />
+                                                                View Units
+                                                            </button>
                                                         ) : (
                                                             <button
                                                                 onClick={() => handleLogStockClick(stock)}
@@ -269,6 +300,7 @@ export default function StockOverview() {
                             t => t.itemId === panelStock.itemId && t.storeId === panelStock.storeId
                         );
                         const stockLow = panelStock.quantityAvail <= panelStock.reorderLevel;
+                        const isAsset = panelStock.billingGroup === 'ASSET';
                         return (
                             <div className="so-panel">
                                 <div className="so-panel-header">
@@ -294,12 +326,19 @@ export default function StockOverview() {
                                 </div>
 
                                 <div className="so-panel-tabs">
+                                    {isAsset && (
+                                        <button className={`so-panel-tab${panelTab === 'units' ? ' so-panel-tab--active' : ''}`} onClick={() => handlePanelTab('units')}>
+                                            <Cpu size={13} /> Units
+                                        </button>
+                                    )}
                                     <button className={`so-panel-tab${panelTab === 'txns' ? ' so-panel-tab--active' : ''}`} onClick={() => handlePanelTab('txns')}>
                                         Transactions
                                     </button>
-                                    <button className={`so-panel-tab${panelTab === 'batches' ? ' so-panel-tab--active' : ''}`} onClick={() => handlePanelTab('batches')}>
-                                        <Layers size={13} /> Batches
-                                    </button>
+                                    {!isAsset && (
+                                        <button className={`so-panel-tab${panelTab === 'batches' ? ' so-panel-tab--active' : ''}`} onClick={() => handlePanelTab('batches')}>
+                                            <Layers size={13} /> Batches
+                                        </button>
+                                    )}
                                 </div>
 
                                 {panelTab === 'txns' && (
@@ -359,6 +398,47 @@ export default function StockOverview() {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                )}
+
+                                {panelTab === 'units' && (
+                                    <div className="so-txn-scroll">
+                                        {assetUnitsLoading ? (
+                                            <div className="so-txn-empty"><div className="spinner"></div></div>
+                                        ) : panelAssetUnits.length === 0 ? (
+                                            <div className="so-txn-empty">No asset records found yet. Sync may be pending.</div>
+                                        ) : (
+                                            <>
+                                                <div className="so-units-summary">
+                                                    <div className="so-units-summary-item">
+                                                        <span className="so-units-summary-val">{panelAssetUnits.filter(a => a.roomId != null).length}</span>
+                                                        <span className="so-units-summary-label">Assigned</span>
+                                                    </div>
+                                                    <div className="so-units-summary-item">
+                                                        <span className="so-units-summary-val">{panelAssetUnits.filter(a => a.roomId == null && a.status !== 'RETIRED').length}</span>
+                                                        <span className="so-units-summary-label">In Store</span>
+                                                    </div>
+                                                    <div className="so-units-summary-item">
+                                                        <span className="so-units-summary-val">{panelAssetUnits.filter(a => a.status === 'UNDER_MAINTENANCE').length}</span>
+                                                        <span className="so-units-summary-label">Maintenance</span>
+                                                    </div>
+                                                </div>
+                                                {panelAssetUnits.map(a => {
+                                                    const meta = ASSET_STATUS[a.status] || { label: a.status || 'Unknown', cls: 'asset-status--store' };
+                                                    const hasRoom = a.roomId != null;
+                                                    return (
+                                                        <div key={a.assetId} className="so-unit-row">
+                                                            <div className="so-unit-code">{a.assetCode || a.assetId?.slice(0, 8)}</div>
+                                                            <div className="so-unit-meta">
+                                                                <span className={`sd-asset-status ${meta.cls}`}>{meta.label}</span>
+                                                                {hasRoom && <span className="so-unit-location">Room {a.roomId}</span>}
+                                                                {!hasRoom && a.status === 'ACTIVE' && <span className="so-unit-location">Central Store</span>}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </div>
