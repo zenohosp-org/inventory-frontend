@@ -16,10 +16,10 @@ export default function Layout({ children }) {
         location.pathname === '/stock-overview' || location.pathname === '/stock-log'
     );
     const [purchaseOpen, setPurchaseOpen] = useState(
-        ['/vendors', '/purchase-orders', '/po-bill', '/grn'].includes(location.pathname)
+        ['/purchase-orders', '/po-bill', '/grn'].includes(location.pathname)
     );
     const [settingsOpen, setSettingsOpen] = useState(
-        ['/item-types', '/inventory-categories', '/stores'].includes(location.pathname)
+        ['/item-types', '/inventory-categories', '/vendors', '/stores'].includes(location.pathname)
     );
 
     const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -94,7 +94,6 @@ export default function Layout({ children }) {
                                 />
                                 {purchaseOpen && (
                                     <div className="sidebar-submenu">
-                                        <NavLink to="/vendors" icon={Truck} label="Vendors" />
                                         <NavLink to="/purchase-orders" icon={FileText} label="Purchase Orders" />
                                         <NavLink to="/grn" icon={ClipboardList} label="GRN" />
                                         <NavLink to="/po-bill" icon={Receipt} label="PO Bills" />
@@ -142,6 +141,7 @@ export default function Layout({ children }) {
                                     <div className="sidebar-submenu">
                                         <NavLink to="/item-types" icon={Tag} label="Item Types" />
                                         <NavLink to="/inventory-categories" icon={Layers} label="Categories" />
+                                        <NavLink to="/vendors" icon={Truck} label="Vendors" />
                                         <NavLink to="/stores" icon={StoreIcon} label="Stores" />
                                     </div>
                                 )}
