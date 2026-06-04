@@ -103,9 +103,8 @@ export default function StoreDetail() {
         setAssetUnits([]);
         setAssetUnitsLoading(true);
         try {
-            const res = await getAssets();
-            const all = Array.isArray(res.data) ? res.data : [];
-            setAssetUnits(all.filter(a => a.sourceItemId === s.itemId));
+            const res = await getAssets({ sourceItemId: s.itemId });
+            setAssetUnits(Array.isArray(res.data) ? res.data : []);
         } catch (_) { setAssetUnits([]); }
         finally { setAssetUnitsLoading(false); }
     };

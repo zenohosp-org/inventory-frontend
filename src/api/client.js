@@ -43,11 +43,13 @@ api.interceptors.response.use(
 );
 
 // Inject real JWT on all requests when mock auth is enabled (local dev only)
-if (import.meta.env.VITE_DEV_MOCK_AUTH === 'true' && import.meta.env.VITE_MOCK_JWT) {
-    api.interceptors.request.use((config) => {
-        config.headers.Authorization = `Bearer ${import.meta.env.VITE_MOCK_JWT}`;
-        return config;
-    });
+const attachMockJwt = (config) => {
+    config.headers.Authorization = `Bearer ${import.meta.env.VITE_MOCK_JWT}`;
+    return config;
+};
+const isMockAuth = import.meta.env.VITE_DEV_MOCK_AUTH === 'true' && import.meta.env.VITE_MOCK_JWT;
+if (isMockAuth) {
+    api.interceptors.request.use(attachMockJwt);
 }
 
 // ── Auth (Cookie-based) ──
@@ -159,28 +161,24 @@ export const payAdvancePO = (poId, data) =>
 // ── HMS API (infrastructure — Buildings & Floors) ──
 export const HMS_API_URL = import.meta.env?.VITE_HMS_API_URL || 'https://api-hms.zenohosp.com';
 const hmsApi = axios.create({ baseURL: HMS_API_URL, withCredentials: true });
+if (isMockAuth) hmsApi.interceptors.request.use(attachMockJwt);
 export const getHmsInfrastructure = (hospitalId) =>
     hmsApi.get(`/api/ipd/infrastructure?hospitalId=${hospitalId}`);
 
 // ── Finance API (bank accounts for Pay Advance modal) ──
 export const FINANCE_API_URL = import.meta.env?.VITE_FINANCE_API_URL || 'https://api-finance.zenohosp.com';
 const financeApi = axios.create({ baseURL: FINANCE_API_URL, withCredentials: true });
+if (isMockAuth) financeApi.interceptors.request.use(attachMockJwt);
 export const getFinanceBankAccounts = () => financeApi.get('/api/finance/bank-accounts');
 export const createFinanceBankTransaction = (bankAccountId, data) =>
     financeApi.post(`/api/finance/bank-accounts/${bankAccountId}/transactions`, data);
 
 // ── Asset Manager API ──
 export const ASSET_API_URL = import.meta.env?.VITE_ASSET_API_URL || 'https://api-asset.zenohosp.com';
-export const createAsset = (data, token) =>
-    axios.post(`${ASSET_API_URL}/api/assets`, data, {
-        withCredentials: true,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-export const getAssets = (token) =>
-    axios.get(`${ASSET_API_URL}/api/assets`, {
-        withCredentials: true,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+const assetApi = axios.create({ baseURL: ASSET_API_URL, withCredentials: true });
+if (isMockAuth) assetApi.interceptors.request.use(attachMockJwt);
+export const createAsset = (data) => assetApi.post('/api/assets', data);
+export const getAssets = (params) => assetApi.get('/api/assets', { params });
 
 
 // ── Directory API (for fetching directory data) ──
