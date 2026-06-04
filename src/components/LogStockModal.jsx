@@ -1,69 +1,102 @@
-import { useState } from 'react';
-import { X, AlertCircle } from 'lucide-react';
-import { logStock } from '../api/client';
+import { useState, useEffect } from 'react';
+import { X, AlertCircle, ArrowUpFromLine, Trash2, Undo2, Package } from 'lucide-react';
+import { logStock, getStockBatches } from '../api/client';
 import { stripHospitalPrefix } from '../utils/format';
 
+const ACTIONS = [
+    {
+        value: 'INTERNAL_USE',
+        label: 'Dispensed',
+        helper: 'Used for patient or department',
+        Icon: ArrowUpFromLine,
+        mod: 'dispensed',
+    },
+    {
+        value: 'EXPIRED_DISPOSED',
+        label: 'Expired / Damaged',
+        helper: 'Disposed — cannot be used',
+        Icon: Trash2,
+        mod: 'expired',
+    },
+    {
+        value: 'RETURN',
+        label: 'Return to Vendor',
+        helper: 'Sent back to supplier',
+        Icon: Undo2,
+        mod: 'return',
+    },
+];
+
 export default function LogStockModal({ stock, onClose, onSuccess }) {
-    const [transactionType, setTransactionType] = useState('INTERNAL_USE');
+    const [action, setAction] = useState('INTERNAL_USE');
     const [quantity, setQuantity] = useState('');
-    const [vendorId, setVendorId] = useState('');
-    const [expiryDate, setExpiryDate] = useState('');
+    const [batchId, setBatchId] = useState('');
     const [batchNo, setBatchNo] = useState('');
     const [reason, setReason] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const transactionTypes = [
-        { value: 'INTERNAL_USE', label: 'Internal Use', icon: '📤' },
-        { value: 'RETURN', label: 'Return', icon: '↩️' },
-        { value: 'EXPIRED_DISPOSED', label: 'Expired/Disposed', icon: '🗑️' },
-        { value: 'PURCHASE_IN', label: 'Purchase In', icon: '📥' },
-    ];
+    const [batches, setBatches] = useState([]);
+    const [batchesLoading, setBatchesLoading] = useState(false);
+
+    const isPharmacy = stock.billingGroup === 'PHARMACY';
+    const requireBatch = isPharmacy;
+
+    useEffect(() => {
+        if (!requireBatch) return;
+        let cancelled = false;
+        setBatchesLoading(true);
+        getStockBatches(stock.storeId, stock.itemId)
+            .then(res => {
+                if (cancelled) return;
+                const arr = Array.isArray(res.data) ? res.data : [];
+                setBatches(arr.filter(b => Number(b.quantityAvailable) > 0));
+            })
+            .catch(() => { if (!cancelled) setBatches([]); })
+            .finally(() => { if (!cancelled) setBatchesLoading(false); });
+        return () => { cancelled = true; };
+    }, [requireBatch, stock.storeId, stock.itemId]);
+
+    const selectedBatch = batches.find(b => b.id === batchId);
+    const maxQty = requireBatch && selectedBatch
+        ? Number(selectedBatch.quantityAvailable)
+        : Number(stock.quantityAvail);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e?.preventDefault();
         setError('');
 
-        if (!quantity || quantity <= 0) {
-            setError('Please enter a valid quantity');
+        const q = Number(quantity);
+        if (!q || q <= 0) { setError('Enter a quantity greater than zero'); return; }
+        if (q > maxQty) {
+            setError(requireBatch
+                ? `Only ${maxQty} units available in the selected batch`
+                : `Only ${maxQty} units available in this store`);
             return;
         }
+        if (requireBatch && !batchId) { setError('Select a batch'); return; }
+        if (action === 'RETURN' && !reason.trim()) { setError('Enter a return reason'); return; }
 
-        if (quantity > stock.quantityAvail && transactionType !== 'PURCHASE_IN') {
-            setError(`Cannot ${transactionType.toLowerCase()} more than available quantity (${stock.quantityAvail})`);
-            return;
+        const payload = {
+            itemId: stock.itemId,
+            storeId: stock.storeId,
+            movementType: action,
+            quantity: q,
+            notes: notes || (action === 'RETURN' ? reason : ''),
+        };
+        if (requireBatch && selectedBatch) {
+            payload.batchNo = selectedBatch.batchNumber;
+        } else if (batchNo.trim()) {
+            payload.batchNo = batchNo.trim();
         }
 
         try {
             setLoading(true);
-            const payload = {
-                itemId: stock.itemId,
-                storeId: stock.storeId,
-                movementType: transactionType,
-                quantity: Math.abs(parseInt(quantity)),
-                notes: notes || '',
-            };
-
-            if (transactionType === 'PURCHASE_IN') {
-                payload.vendorId = vendorId;
-                payload.expiryDate = expiryDate || null;
-                payload.batchNo = batchNo;
-            } else if (transactionType === 'RETURN') {
-                payload.reason = reason;
-                payload.batchNo = batchNo;
-                payload.notes = notes;
-            } else if (transactionType === 'INTERNAL_USE') {
-                payload.notes = notes;
-            } else if (transactionType === 'EXPIRED_DISPOSED') {
-                payload.batchNo = batchNo;
-                payload.notes = notes;
-            }
-
             await logStock(payload);
             onSuccess();
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to log stock transaction');
+            setError(err.response?.data?.message || 'Failed to adjust stock');
         } finally {
             setLoading(false);
         }
@@ -74,161 +107,145 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
             <div className="modal" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     <div>
-                        <h2 className="modal-title">Log Stock Transaction</h2>
-                        <p className="modal-subtitle">{stock.itemName} ({stripHospitalPrefix(stock.itemCode)})</p>
+                        <h2 className="modal-title">Adjust Stock</h2>
+                        <p className="modal-subtitle">
+                            <strong>{stock.itemName}</strong>
+                            {stock.itemCode ? ` · ${stripHospitalPrefix(stock.itemCode)}` : ''}
+                        </p>
                     </div>
-                    <button onClick={() => onClose()} className="modal-close" aria-label="Close modal">
+                    <button onClick={() => onClose()} className="modal-close" aria-label="Close">
                         <X size={20} />
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="modal-body">
-                    <div className="form-group">
-                        <div className="stock-info-box">
-                            <div className="stock-info-label">Current Stock Level</div>
-                            <div className="stock-info-value">{stock.quantityAvail} units</div>
+                    {/* Current stock summary */}
+                    <div className="adjust-stock-summary">
+                        <div className="adjust-stock-summary-item">
+                            <span className="adjust-stock-summary-label">Current Stock</span>
+                            <span className="adjust-stock-summary-val">{stock.quantityAvail}</span>
                         </div>
+                        {stock.reorderLevel != null && (
+                            <div className="adjust-stock-summary-item">
+                                <span className="adjust-stock-summary-label">Reorder Level</span>
+                                <span className="adjust-stock-summary-val adjust-stock-summary-val--muted">{stock.reorderLevel}</span>
+                            </div>
+                        )}
                     </div>
 
+                    {/* Action picker */}
                     <div className="form-group">
-                        <label className="form-label">Transaction Type</label>
-                        <div className="txn-type-grid">
-                            {transactionTypes.map((type) => (
+                        <label className="form-label">What happened?</label>
+                        <div className="adjust-action-grid">
+                            {ACTIONS.map(a => (
                                 <button
-                                    key={type.value}
+                                    key={a.value}
                                     type="button"
-                                    onClick={() => setTransactionType(type.value)}
-                                    className={`transaction-type-btn ${transactionType === type.value ? 'active' : ''}`}
+                                    onClick={() => setAction(a.value)}
+                                    className={`adjust-action-card adjust-action-card--${a.mod}${action === a.value ? ' is-active' : ''}`}
                                 >
-                                    <div>{type.icon}</div>
-                                    <div>{type.label}</div>
+                                    <a.Icon size={20} className="adjust-action-icon" />
+                                    <span className="adjust-action-label">{a.label}</span>
+                                    <span className="adjust-action-helper">{a.helper}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
+                    {/* Batch picker (pharmacy only) */}
+                    {requireBatch && (
+                        <div className="form-group">
+                            <label className="form-label">Batch <span className="form-label-required">*</span></label>
+                            {batchesLoading ? (
+                                <div className="adjust-batch-empty"><div className="spinner-sm"></div> Loading batches…</div>
+                            ) : batches.length === 0 ? (
+                                <div className="adjust-batch-empty">No batches with stock in this store</div>
+                            ) : (
+                                <div className="adjust-batch-list">
+                                    {batches.map(b => {
+                                        const days = b.expiryDate ? Math.ceil((new Date(b.expiryDate) - new Date()) / 86400000) : null;
+                                        const expiryCls = days == null ? '' : days < 0 ? 'adjust-batch-pill--expired'
+                                            : days <= 30 ? 'adjust-batch-pill--critical'
+                                            : days <= 60 ? 'adjust-batch-pill--warn' : 'adjust-batch-pill--ok';
+                                        return (
+                                            <button
+                                                key={b.id}
+                                                type="button"
+                                                onClick={() => setBatchId(b.id)}
+                                                className={`adjust-batch-row${batchId === b.id ? ' is-selected' : ''}`}
+                                            >
+                                                <Package size={14} className="adjust-batch-icon" />
+                                                <span className="adjust-batch-no">{b.batchNumber || 'No batch'}</span>
+                                                <span className="adjust-batch-qty">{Number(b.quantityAvailable)} avail</span>
+                                                {b.expiryDate && (
+                                                    <span className={`adjust-batch-pill ${expiryCls}`}>
+                                                        {days < 0 ? 'Expired' : `${days}d`}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Quantity */}
                     <div className="form-group">
                         <label className="form-label">Quantity</label>
                         <input
                             type="number"
-                            min="0"
+                            min="1"
                             step="1"
                             value={quantity}
                             onChange={(e) => setQuantity(e.target.value)}
-                            placeholder="Enter quantity"
+                            placeholder="0"
                             className="form-input"
                             required
                         />
-                        <p className="form-help">Maximum available: {stock.quantityAvail} units</p>
+                        <p className="form-help">Max: {maxQty} unit{maxQty !== 1 ? 's' : ''}</p>
                     </div>
 
-                    {transactionType === 'PURCHASE_IN' && (
-                        <>
-                            <div className="form-group">
-                                <label className="form-label">Vendor ID (Optional)</label>
-                                <input
-                                    type="text"
-                                    value={vendorId}
-                                    onChange={(e) => setVendorId(e.target.value)}
-                                    placeholder="Enter vendor ID"
-                                    className="form-input"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Batch No</label>
-                                <input
-                                    type="text"
-                                    value={batchNo}
-                                    onChange={(e) => setBatchNo(e.target.value)}
-                                    placeholder="Enter batch number"
-                                    className="form-input"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Expiry Date (Optional)</label>
-                                <input
-                                    type="date"
-                                    value={expiryDate}
-                                    onChange={(e) => setExpiryDate(e.target.value)}
-                                    className="form-input"
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    {transactionType === 'RETURN' && (
-                        <>
-                            <div className="form-group">
-                                <label className="form-label">Reason</label>
-                                <input
-                                    type="text"
-                                    value={reason}
-                                    onChange={(e) => setReason(e.target.value)}
-                                    placeholder="Why is this being returned?"
-                                    className="form-input"
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Batch No</label>
-                                <input
-                                    type="text"
-                                    value={batchNo}
-                                    onChange={(e) => setBatchNo(e.target.value)}
-                                    placeholder="Enter batch number"
-                                    className="form-input"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Notes (Optional)</label>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Add any additional notes..."
-                                    className="form-textarea"
-                                    rows="2"
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    {transactionType === 'INTERNAL_USE' && (
+                    {/* Optional batch No for non-pharmacy items */}
+                    {!requireBatch && (
                         <div className="form-group">
-                            <label className="form-label">Notes (Optional)</label>
-                            <textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Purpose of use, patient/staff assignment, etc."
-                                className="form-textarea"
-                                rows="2"
+                            <label className="form-label">Batch No <span className="form-label-optional">(optional)</span></label>
+                            <input
+                                type="text"
+                                value={batchNo}
+                                onChange={(e) => setBatchNo(e.target.value)}
+                                placeholder="e.g. B-001"
+                                className="form-input"
                             />
                         </div>
                     )}
 
-                    {transactionType === 'EXPIRED_DISPOSED' && (
-                        <>
-                            <div className="form-group">
-                                <label className="form-label">Batch No</label>
-                                <input
-                                    type="text"
-                                    value={batchNo}
-                                    onChange={(e) => setBatchNo(e.target.value)}
-                                    placeholder="Enter batch number"
-                                    className="form-input"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Notes (Optional)</label>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Reason for disposal, expiry date, etc."
-                                    className="form-textarea"
-                                    rows="2"
-                                />
-                            </div>
-                        </>
+                    {/* Reason for return */}
+                    {action === 'RETURN' && (
+                        <div className="form-group">
+                            <label className="form-label">Reason <span className="form-label-required">*</span></label>
+                            <input
+                                type="text"
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                placeholder="Why is this being returned?"
+                                className="form-input"
+                                required
+                            />
+                        </div>
                     )}
+
+                    {/* Notes */}
+                    <div className="form-group">
+                        <label className="form-label">Notes <span className="form-label-optional">(optional)</span></label>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder={action === 'INTERNAL_USE' ? 'Patient / department / purpose' : 'Any additional detail'}
+                            className="form-textarea"
+                            rows="2"
+                        />
+                    </div>
 
                     {error && (
                         <div className="alert alert-error">
@@ -243,7 +260,7 @@ export default function LogStockModal({ stock, onClose, onSuccess }) {
                         Cancel
                     </button>
                     <button onClick={handleSubmit} disabled={loading || !quantity} className="btn btn-primary">
-                        {loading ? 'Logging...' : 'Log Transaction'}
+                        {loading ? 'Saving…' : 'Confirm Adjustment'}
                     </button>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Search, X, Layers } from 'lucide-react';
+import { Package, Search, X, Layers, Edit3 } from 'lucide-react';
 import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
 import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors, getStockBatches } from '../api/client';
@@ -238,9 +238,18 @@ export default function StockOverview() {
                                                                 : <span className="badge badge-success">Optimal</span>}
                                                     </td>
                                                     <td onClick={e => e.stopPropagation()}>
-                                                        <button onClick={() => handleLogStockClick(stock)} className="btn btn-sm btn-primary" title="Log stock transaction">
-                                                            Log
-                                                        </button>
+                                                        {stock.billingGroup === 'ASSET' ? (
+                                                            <span className="text-muted text-xs">Asset</span>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleLogStockClick(stock)}
+                                                                className="btn btn-sm btn-outline so-adjust-btn"
+                                                                title="Adjust stock"
+                                                            >
+                                                                <Edit3 size={13} />
+                                                                Adjust
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             );
