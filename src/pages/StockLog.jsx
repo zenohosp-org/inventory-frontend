@@ -191,8 +191,8 @@ export default function StockLog() {
                                             </strong>
                                         </td>
                                         <td className="text-right text-muted">{txn.balanceAfter || '-'}</td>
-                                        <td className="text-muted">{txn.storeName || 'N/A'}</td>
-                                        <td className="text-xs text-muted">{txn.createdBy || 'System'}</td>
+                                        <td className="text-muted">{txn.storeName || '—'}</td>
+                                        <td className="text-muted">{txn.createdByName || 'System'}</td>
                                     </tr>
                                 ))}
                             </tbody>
