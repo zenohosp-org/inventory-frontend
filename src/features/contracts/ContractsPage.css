@@ -1,0 +1,11 @@
+/* Let the row dropdown overlay escape the table chrome. */
+.table-container.contracts-table-wrap,
+.table-container.contracts-table-wrap .table-body {
+    overflow: visible;
+}
+
+.contracts-table-wrap th.col-actions,
+.contracts-table-wrap td.col-actions {
+    width: 56px;
+    text-align: center;
+}

@@ -4,7 +4,7 @@ import {
     LayoutDashboard, Package, ShoppingCart, History,
     ChevronDown, ChevronRight, Layers, Store as StoreIcon,
     Globe, Inbox, FileText, Truck, Receipt, Tag,
-    Activity, BarChart2, Box, ArrowUpRight, ClipboardList, Settings
+    Activity, BarChart2, Box, ArrowUpRight, ClipboardList, Settings, FileCheck
 } from 'lucide-react';
 import Header from './Header';
 
@@ -16,7 +16,7 @@ export default function Layout({ children }) {
         location.pathname === '/stock-overview' || location.pathname === '/stock-log'
     );
     const [purchaseOpen, setPurchaseOpen] = useState(
-        ['/purchase-orders', '/po-bill', '/grn'].includes(location.pathname)
+        ['/vendors', '/purchase-orders', '/po-bill', '/grn', '/contracts'].includes(location.pathname)
     );
     const [settingsOpen, setSettingsOpen] = useState(
         ['/item-types', '/inventory-categories', '/vendors', '/stores'].includes(location.pathname)
@@ -97,6 +97,7 @@ export default function Layout({ children }) {
                                         <NavLink to="/purchase-orders" icon={FileText} label="Purchase Orders" />
                                         <NavLink to="/grn" icon={ClipboardList} label="GRN" />
                                         <NavLink to="/po-bill" icon={Receipt} label="PO Bills" />
+                                        <NavLink to="/contracts" icon={FileCheck} label="Contracts (AMC/CMC)" />
                                     </div>
                                 )}
                             </div>
