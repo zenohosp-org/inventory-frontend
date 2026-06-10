@@ -183,7 +183,6 @@ export const getAssets = (params) => assetApi.get('/api/assets', { params });
 // AMC / CMC maintenance contracts — managed in inventory but stored in the
 // asset module (contracts reference asset-module assets + vendors). All calls
 // hit the asset backend directly; SSO cookie carries auth (withCredentials).
-const assetApi = axios.create({ baseURL: ASSET_API_URL, withCredentials: true });
 export const getContracts = () => assetApi.get('/api/amc');
 export const createContract = (data) => assetApi.post('/api/amc', data);
 export const updateContract = (id, data) => assetApi.put(`/api/amc/${id}`, data);
