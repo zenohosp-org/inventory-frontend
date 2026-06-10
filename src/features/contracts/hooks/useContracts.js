@@ -45,10 +45,10 @@ export function useContracts() {
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    const openCreateModal = () => {
+    const openCreateModal = (contractType = 'AMC') => {
         setMode('create');
         setEditingId(null);
-        setFormData(EMPTY_CONTRACT_FORM);
+        setFormData({ ...EMPTY_CONTRACT_FORM, contractType });
         setShowModal(true);
     };
 

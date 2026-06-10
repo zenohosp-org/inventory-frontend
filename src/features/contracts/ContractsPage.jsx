@@ -13,16 +13,20 @@ export default function ContractsPage() {
                 <div className="page-header-left">
                     <h1 className="page-title">
                         <FileText size={26} />
-                        Maintenance Contracts
+                        AMC / CMC
                     </h1>
                     <p className="page-subtitle">
                         Register and manage AMC / CMC contracts for assets.
                     </p>
                 </div>
                 <div className="page-actions">
-                    <button className="btn btn-primary" onClick={c.openCreateModal}>
+                    <button className="btn btn-primary" onClick={() => c.openCreateModal('AMC')}>
                         <Plus size={18} />
-                        New Contract
+                        Add AMC
+                    </button>
+                    <button className="btn btn-primary" onClick={() => c.openCreateModal('CMC')}>
+                        <Plus size={18} />
+                        Add CMC
                     </button>
                 </div>
             </div>
