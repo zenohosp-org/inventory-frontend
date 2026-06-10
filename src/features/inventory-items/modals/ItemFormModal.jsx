@@ -111,18 +111,17 @@ export default function ItemFormModal({
 
                                 <div>
                                     <label className="form-label item-form-block-label">Item Type</label>
-                                    <div className="item-type-chips">
-                                        {itemTypes.map(type => (
-                                            <button
-                                                key={type.id}
-                                                type="button"
-                                                onClick={() => handleItemTypeSelect(type)}
-                                                className={`item-type-chip ${formData.itemTypeId === type.id ? 'is-selected' : ''}`}
-                                            >
-                                                {type.name}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <SearchableSelect
+                                        value={formData.itemTypeId}
+                                        onChange={v => {
+                                            const type = itemTypes.find(t => t.id === v);
+                                            if (type) handleItemTypeSelect(type);
+                                        }}
+                                        options={itemTypes}
+                                        getId={t => t.id}
+                                        getLabel={t => t.name}
+                                        placeholder="Search item type"
+                                    />
                                     {selectedType && (
                                         <p className="item-form-help">Defaults applied — adjust below if needed.</p>
                                     )}
