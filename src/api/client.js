@@ -180,6 +180,19 @@ if (isMockAuth) assetApi.interceptors.request.use(attachMockJwt);
 export const createAsset = (data) => assetApi.post('/api/assets', data);
 export const getAssets = (params) => assetApi.get('/api/assets', { params });
 
+// AMC / CMC maintenance contracts — managed in inventory but stored in the
+// asset module (contracts reference asset-module assets + vendors). All calls
+// hit the asset backend directly; SSO cookie carries auth (withCredentials).
+const assetApi = axios.create({ baseURL: ASSET_API_URL, withCredentials: true });
+export const getContracts = () => assetApi.get('/api/amc');
+export const createContract = (data) => assetApi.post('/api/amc', data);
+export const updateContract = (id, data) => assetApi.put(`/api/amc/${id}`, data);
+export const renewContract = (id, data) => assetApi.patch(`/api/amc/${id}/renew`, data);
+export const cancelContract = (id) => assetApi.patch(`/api/amc/${id}/cancel`);
+// Dropdown sources for the contract form (asset-module assets + vendors)
+export const getAssetList = () => assetApi.get('/api/assets');
+export const getAssetVendors = () => assetApi.get('/api/vendors');
+
 
 // ── Directory API (for fetching directory data) ──
 export const getHospitals = () => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals`, { withCredentials: true });

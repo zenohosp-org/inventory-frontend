@@ -18,6 +18,7 @@ const InventoryItems = lazy(() => import('./features/inventory-items/InventoryIt
 const ItemTypes = lazy(() => import('./pages/ItemTypes'));
 const InventoryKits = lazy(() => import('./features/inventory-kits/InventoryKitsPage'));
 const PurchaseOrders = lazy(() => import('./features/purchase-orders/PurchaseOrdersPage'));
+const Contracts = lazy(() => import('./features/contracts/ContractsPage'));
 const StockLog = lazy(() => import('./pages/StockLog'));
 
 // New pages
@@ -72,6 +73,7 @@ export default function App() {
                 <Route path="/stores" element={<PageShell><Stores /></PageShell>} />
                 <Route path="/stores/:storeId" element={<PageShell><StoreDetail /></PageShell>} />
                 <Route path="/vendors" element={<PageShell><Vendors /></PageShell>} />
+                <Route path="/contracts" element={<PageShell><Contracts /></PageShell>} />
                 <Route path="/inventory-categories" element={<PageShell><InventoryCategories /></PageShell>} />
                 <Route path="/inventory-items" element={<PageShell><InventoryItems /></PageShell>} />
                 <Route path="/item-types" element={<PageShell><ItemTypes /></PageShell>} />
