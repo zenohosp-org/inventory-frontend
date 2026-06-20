@@ -153,35 +153,31 @@ export default function Layout({ children }) {
                                 )}
                             </div>
                         </li>
-
-                        {/* Other Apps */}
-                        <li className="sidebar-section sidebar-apps-section">
-                            <div className="sidebar-section-title">Other Apps</div>
-                            {[
-                                { label: 'HMS', href: 'https://hms.zenohosp.com', icon: Activity },
-                                { label: 'Finance', href: 'https://finance.zenohosp.com', icon: BarChart2 },
-                                { label: 'Assets', href: 'https://asset.zenohosp.com', icon: Box },
-                                { label: 'Directory', href: 'https://directory.zenohosp.com', icon: Globe },
-                            ].map(({ label, href, icon: Icon }) => (
-                                <a
-                                    key={href}
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="sidebar-link"
-                                    onClick={() => setSidebarOpen(false)}
-                                >
-                                    <Icon className="sidebar-icon" size={18} />
-                                    {label}
-                                    <ArrowUpRight size={12} style={{ marginLeft: 'auto', opacity: 0.4 }} />
-                                </a>
-                            ))}
-                        </li>
                     </ul>
                 </nav>
 
+                {/* Other Apps — fixed footer; the nav scrolls underneath it */}
                 <div className="sidebar-footer">
-                    <div className="sidebar-copyright">© 2026 Inventory Manager</div>
+                    <div className="sidebar-section-title sidebar-apps-title">Other Apps</div>
+                    {[
+                        { label: 'HMS', href: 'https://hms.zenohosp.com', icon: Activity },
+                        { label: 'Finance', href: 'https://finance.zenohosp.com', icon: BarChart2 },
+                        { label: 'Assets', href: 'https://asset.zenohosp.com', icon: Box },
+                        { label: 'Directory', href: 'https://directory.zenohosp.com', icon: Globe },
+                    ].map(({ label, href, icon: Icon }) => (
+                        <a
+                            key={href}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="sidebar-link sidebar-link--app"
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <Icon className="sidebar-icon" size={16} />
+                            <span className="sidebar-app-label">{label}</span>
+                            <ArrowUpRight size={12} className="sidebar-app-arrow" />
+                        </a>
+                    ))}
                 </div>
             </aside>
 
