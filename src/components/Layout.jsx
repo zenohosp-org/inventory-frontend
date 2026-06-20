@@ -51,8 +51,13 @@ export default function Layout({ children }) {
             {/* Sidebar */}
             <aside className={`sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
                 <div className="sidebar-brand">
-                    <Package size={20} className="sidebar-brand-icon" />
-                    <span className="sidebar-brand-text">ZenoInventory</span>
+                    <div className="sidebar-brand-icon">
+                        <Package size={18} />
+                    </div>
+                    <div className="sidebar-brand-meta">
+                        <span className="sidebar-brand-text">ZenoInventory</span>
+                        <span className="sidebar-brand-sub">Inventory Management</span>
+                    </div>
                 </div>
 
                 <nav className="sidebar-nav">
