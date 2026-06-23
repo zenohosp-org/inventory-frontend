@@ -154,9 +154,9 @@ export const getStockOverviewWithPOs = () =>
 export const getPOBills = (params) => api.get('/api/po-bills', { params });
 export const getPOBillById = (billId) => api.get(`/api/po-bills/${billId}`);
 
-// ── Pay Advance ──
-export const payAdvancePO = (poId, data) =>
-    api.post(`/api/inventory/po/${poId}/pay-advance`, data);
+// ── Pay Vendor (atomic: posts the Finance DEBIT and marks the bill in one server-side saga) ──
+export const payVendorPO = (poId, data) =>
+    api.post(`/api/inventory/po/${poId}/pay`, data);
 
 // ── HMS API (infrastructure — Buildings & Floors) ──
 export const HMS_API_URL = import.meta.env?.VITE_HMS_API_URL || 'https://api-hms.zenohosp.com';
@@ -166,12 +166,10 @@ export const getHmsInfrastructure = (hospitalId) =>
     hmsApi.get(`/api/ipd/infrastructure?hospitalId=${hospitalId}`);
 
 // ── Finance API (bank accounts for Pay Advance modal) ──
-export const FINANCE_API_URL = import.meta.env?.VITE_FINANCE_API_URL || 'https://api-finance.zenohosp.com';
+export const FINANCE_API_URL = import.meta.env?.VITE_FINANCE_API_URL || 'http://localhost:8083';
 const financeApi = axios.create({ baseURL: FINANCE_API_URL, withCredentials: true });
 if (isMockAuth) financeApi.interceptors.request.use(attachMockJwt);
 export const getFinanceBankAccounts = () => financeApi.get('/api/finance/bank-accounts');
-export const createFinanceBankTransaction = (bankAccountId, data) =>
-    financeApi.post(`/api/finance/bank-accounts/${bankAccountId}/transactions`, data);
 
 // ── Asset Manager API ──
 export const ASSET_API_URL = import.meta.env?.VITE_ASSET_API_URL || 'https://api-asset.zenohosp.com';

@@ -3,7 +3,7 @@ import {
     getPurchaseOrders, createPurchaseOrder,
     getVendors, getItems, getStores,
     recordPOReceipt,
-    payAdvancePO, getFinanceBankAccounts, createFinanceBankTransaction,
+    payVendorPO, getFinanceBankAccounts,
     getPOBills, getGrns,
     getAssetSyncLogs, retryAssetSync,
     approvePurchaseOrder, cancelPurchaseOrder,
@@ -278,28 +278,19 @@ export function usePurchaseOrders() {
         if (!payForm.paidAmount || Number(payForm.paidAmount) <= 0) {
             toast.warn('Enter a valid payment amount'); return;
         }
+        if (!payForm.bankAccountId) {
+            toast.warn('Select a bank account to record the payment'); return;
+        }
         setSubmitting(true);
         const selectedAccount = bankAccounts.find(a => a.id === payForm.bankAccountId);
+        // Single atomic call: Inventory posts the Finance DEBIT and marks the bill together,
+        // compensating on failure — no more silent finance/inventory divergence.
         try {
-            if (payForm.bankAccountId) {
-                try {
-                    await createFinanceBankTransaction(payForm.bankAccountId, {
-                        type: 'DEBIT',
-                        amount: Number(payForm.paidAmount),
-                        referenceNo: payForm.referenceNo || null,
-                        description: `Advance – ${payModal.poNumber} | ${payModal.vendor?.name || ''}`,
-                        relatedEntityType: 'PO',
-                        relatedEntityId: payModal.id,
-                        relatedEntityName: `${payModal.poNumber} | ${payModal.vendor?.name || ''}`,
-                    });
-                } catch (finErr) {
-                    console.warn('Finance debit failed (non-blocking):', finErr.message);
-                }
-            }
-            await payAdvancePO(payModal.id, {
+            await payVendorPO(payModal.id, {
                 paidAmount: Number(payForm.paidAmount),
-                bankAccountId: payForm.bankAccountId || null,
+                bankAccountId: payForm.bankAccountId,
                 bankAccountName: selectedAccount?.accountName || '',
+                referenceNo: payForm.referenceNo || null,
             });
             setPayModal(null);
             invalidateKey('purchaseOrders'); invalidateKey('poBills'); invalidateKey('grns');

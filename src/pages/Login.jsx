@@ -1,12 +1,61 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import {
+    Boxes,
+    BarChart2,
+    ClipboardList,
+    Package,
+    ShoppingCart,
+    Truck,
+    Warehouse,
+    Layers,
+    Tag,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../api/client';
+import './Login.css';
+
+// Auto-rotating feature carousel. Inline icons + CSS transitions only —
+// no external images, no network round-trips, so the panel renders
+// instantly. All icons travel in the existing lucide bundle (zero size impact).
+const SLIDES = [
+    {
+        title: 'Stock visibility across every store, in real time',
+        sub: 'On-hand quantities, reorder points and movements on one dashboard.',
+        Hero: BarChart2,
+        side: [Boxes, Warehouse, Layers],
+        tone: 'is-blue',
+    },
+    {
+        title: 'Purchase orders without the back-and-forth',
+        sub: 'Raise, approve and receive POs with a clear audit trail.',
+        Hero: ClipboardList,
+        side: [ShoppingCart, Package, Tag],
+        tone: 'is-violet',
+    },
+    {
+        title: 'Receive goods the moment they arrive',
+        sub: 'GRNs reconcile against POs and update stock automatically.',
+        Hero: Truck,
+        side: [Package, Warehouse, ClipboardList],
+        tone: 'is-amber',
+    },
+    {
+        title: 'Multi-store inventory, fully in sync',
+        sub: 'Transfers, indents and consumption stay live across locations.',
+        Hero: Boxes,
+        side: [Warehouse, Layers, BarChart2],
+        tone: 'is-green',
+    },
+];
+
+const SLIDE_INTERVAL_MS = 4500;
 
 export default function Login() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { user, loading } = useAuth();
+    const [slide, setSlide] = useState(0);
 
     useEffect(() => {
         if (!loading && user) {
@@ -14,256 +63,116 @@ export default function Login() {
         }
     }, [user, loading, navigate]);
 
+    useEffect(() => {
+        const id = setInterval(
+            () => setSlide((s) => (s + 1) % SLIDES.length),
+            SLIDE_INTERVAL_MS
+        );
+        return () => clearInterval(id);
+    }, []);
+
     const handleLoginClick = () => {
         window.location.href = `${API_BASE_URL}/oauth2/authorization/directory`;
     };
 
-    const error = searchParams.get('error') ? (searchParams.get('error_description') || 'SSO login failed.') : null;
+    const error = searchParams.get('error')
+        ? searchParams.get('error_description') || 'SSO login failed.'
+        : null;
 
     if (searchParams.get('code')) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#0f172a',
-            }}>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{
-                        width: '50px',
-                        height: '50px',
-                        border: '4px solid #3b82f6',
-                        borderTop: 'transparent',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                        margin: '0 auto 20px',
-                    }}></div>
-                    <p style={{
-                        color: 'white',
-                        fontWeight: 'bold',
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        fontSize: '12px',
-                    }}>Completing SSO Login...</p>
+            <div className="hms-login-loading">
+                <div className="hms-login-loading__inner">
+                    <div className="hms-login-loading__spinner"></div>
+                    <p className="hms-login-loading__text">Completing SSO Login...</p>
                 </div>
-                <style>{`
-                    @keyframes spin {
-                        to { transform: rotate(360deg); }
-                    }
-                `}</style>
             </div>
         );
     }
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'row',
-            backgroundColor: '#0f172a',
-            color: '#cbd5e1',
-            overflow: 'hidden',
-            position: 'relative',
-        }}>
-            {/* Left Col - Hero Information */}
-            <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                padding: '40px 80px',
-                zIndex: 10,
-                position: 'relative',
-            }}>
-                <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    width: 'fit-content',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    border: '1px solid rgba(59, 130, 246, 0.2)',
-                    padding: '8px 16px',
-                    borderRadius: '9999px',
-                    marginBottom: '32px',
-                }}>
-                    <span style={{
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        color: '#60a5fa',
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                    }}>ZenoHosp Enterprise OS</span>
-                </div>
-
-                <h1 style={{
-                    fontSize: '56px',
-                    fontWeight: 'bold',
-                    marginBottom: '24px',
-                    background: 'linear-gradient(to right, #ffffff, #cbd5e1)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    lineHeight: 1.2,
-                }}>
-                    Institutional Level<br />Inventory Management
-                </h1>
-
-                <p style={{
-                    fontSize: '18px',
-                    color: '#94a3b8',
-                    maxWidth: '500px',
-                    marginBottom: '48px',
-                }}>
-                    Gain full visibility over hospital stock levels, purchase orders, and store operations powered by ZenoHosp's integrated security directory.
-                </p>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        fontWeight: '500',
-                        color: '#cbd5e1',
-                        marginBottom: '16px',
-                    }}>
-                        <span style={{ color: '#10b981' }}>✓</span>
-                        <span>Centralized stock and purchase order tracking</span>
-                    </div>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        fontWeight: '500',
-                        color: '#cbd5e1',
-                        marginBottom: '16px',
-                    }}>
-                        <span style={{ color: '#10b981' }}>✓</span>
-                        <span>Multi-store inventory with real-time stock levels</span>
-                    </div>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        fontWeight: '500',
-                        color: '#cbd5e1',
-                    }}>
-                        <span style={{ color: '#10b981' }}>✓</span>
-                        <span>Seamless global SSO authentication</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Right Col - Login Box */}
-            <div style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '32px',
-                zIndex: 10,
-            }}>
-                <div style={{
-                    width: '100%',
-                    maxWidth: '400px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    backdropFilter: 'blur(30px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '24px',
-                    padding: '40px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                    position: 'relative',
-                }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: '4px',
-                        background: 'linear-gradient(to right, #3b82f6, #a855f7)',
-                        borderRadius: '24px 24px 0 0',
-                    }}></div>
-
-                    <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                        <div style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '80px',
-                            height: '80px',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderRadius: '16px',
-                            marginBottom: '24px',
-                            border: '1px solid rgba(59, 130, 246, 0.2)',
-                        }}>
-                            <span style={{ fontSize: '40px' }}>📦</span>
+        <div className="hms-login">
+            {/* Left — Sign in */}
+            <div className="hms-login__form-pane">
+                <div className="hms-login__form-inner">
+                    <div className="hms-login__brand">
+                        <div className="hms-login__brand-icon">
+                            <Package className="w-5 h-5" />
                         </div>
-                        <h2 style={{
-                            fontSize: '24px',
-                            fontWeight: 'bold',
-                            color: 'white',
-                            marginBottom: '8px',
-                        }}>Welcome Back</h2>
-                        <p style={{ color: '#94a3b8' }}>Please sign in to your dashboard</p>
+                        <div>
+                            <h1 className="hms-login__brand-title">ZenoHosp</h1>
+                        </div>
+                    </div>
+
+                    <div className="hms-login__heading">
+                        <h2>Sign in</h2>
+                        <p>to access Inventory Management</p>
                     </div>
 
                     {error && (
-                        <div style={{
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid rgba(239, 68, 68, 0.2)',
-                            color: '#f87171',
-                            fontSize: '14px',
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            marginBottom: '24px',
-                            textAlign: 'center',
-                        }}>
-                            {error}
-                        </div>
+                        <div className="hms-login__alert is-danger">{error}</div>
                     )}
 
-                    <div>
-                        <button
-                            onClick={handleLoginClick}
-                            style={{
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '16px',
-                                backgroundColor: 'white',
-                                color: '#1f2937',
-                                fontWeight: 'bold',
-                                padding: '16px',
-                                borderRadius: '12px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                                fontSize: '16px',
-                                marginBottom: '24px',
-                                transition: 'all 0.2s',
-                            }}
-                            onMouseOver={(e) => {
-                                e.target.style.backgroundColor = '#f3f4f6';
-                                e.target.style.boxShadow = '0 25px 30px -5px rgba(0, 0, 0, 0.15)';
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.backgroundColor = 'white';
-                                e.target.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
-                            }}
-                        >
-                            <span style={{ fontSize: '20px' }}>🌐</span>
-                            Continue with ZenoHosp SSO
-                        </button>
+                    <button
+                        type="button"
+                        onClick={handleLoginClick}
+                        className="hms-login__sso-btn"
+                    >
+                        <Package className="w-5 h-5" />
+                        Sign in with ZenoHosp Directory
+                    </button>
 
-                        <p style={{
-                            textAlign: 'center',
-                            fontSize: '12px',
-                            color: '#64748b',
-                        }}>
-                            By logging in, you agree to our Terms of Service and Privacy Policy. Auth tokens are fully encrypted via Identity Directory.
-                        </p>
-                    </div>
+                    <p className="hms-login__terms">
+                        Don&apos;t have a ZenoHosp account?{' '}
+                        <span className="hms-login__terms-link">Contact your admin</span>
+                    </p>
+                </div>
+            </div>
+
+            {/* Right — Auto-rotating feature panel */}
+            <div className="hms-login__visual">
+                <div className="hms-login__carousel">
+                    {SLIDES.map((s, i) => {
+                        const Hero = s.Hero;
+                        return (
+                            <div
+                                key={i}
+                                className={`hms-login__slide ${s.tone}${
+                                    i === slide ? ' is-active' : ''
+                                }`}
+                                aria-hidden={i !== slide}
+                            >
+                                <div className="hms-login__slide-stage">
+                                    <div className="hms-login__slide-hero">
+                                        <Hero size={56} strokeWidth={1.6} />
+                                    </div>
+                                    {s.side.map((Icon, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`hms-login__slide-orb is-orb-${idx + 1}`}
+                                        >
+                                            <Icon size={18} strokeWidth={1.8} />
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="hms-login__slide-caption">
+                                    <h3>{s.title}</h3>
+                                    <p>{s.sub}</p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+                <div className="hms-login__dots">
+                    {SLIDES.map((_, i) => (
+                        <button
+                            key={i}
+                            type="button"
+                            onClick={() => setSlide(i)}
+                            className={`hms-login__dot${i === slide ? ' is-active' : ''}`}
+                            aria-label={`Slide ${i + 1}`}
+                        />
+                    ))}
                 </div>
             </div>
         </div>
