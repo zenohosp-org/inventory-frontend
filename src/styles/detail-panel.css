@@ -30,6 +30,18 @@
     flex: 0.46;
 }
 
+/* When the panel is open, keep the shrunk list from spilling over it — even on
+   pages (Items, Contracts) that set overflow:visible on the wrap for their row
+   menus. The row menu column is hidden while the panel is open, so clipping here
+   is safe. */
+.so-layout:has(.so-panel) .so-table-wrap {
+    overflow: hidden;
+}
+
+.so-layout:has(.so-panel) .so-table-wrap .table-body {
+    overflow-x: auto;
+}
+
 /* ── Clickable row ── */
 .so-row {
     cursor: pointer;
@@ -117,6 +129,7 @@
 .so-stat-value--ok       { color: var(--color-success-dark, #059669); }
 .so-stat-value--low      { color: var(--color-error-dark, #DC2626); }
 .so-stat-value--incoming { color: var(--color-primary, #2563EB); }
+.so-stat-value--date     { font-size: 13px; }
 
 /* Close button — bordered chip, not a bare icon */
 .so-panel-close {

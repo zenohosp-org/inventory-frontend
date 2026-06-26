@@ -14,9 +14,11 @@ export default function ContractsTable({
     contracts, loading,
     activeDropdown, setActiveDropdown,
     onEdit, onRenew, onCancel,
+    selectedId, onRowClick,
 }) {
+    const panelOpen = selectedId != null;
     return (
-        <div className="table-container contracts-table-wrap">
+        <div className="table-container contracts-table-wrap so-table-wrap">
             <div className="table-header">
                 <h3 className="table-title">Contracts ({contracts.length})</h3>
             </div>
@@ -31,47 +33,57 @@ export default function ContractsTable({
                             <tr>
                                 <th>Asset</th>
                                 <th>Contract #</th>
-                                <th>Type</th>
-                                <th>Vendor</th>
-                                <th>Value</th>
-                                <th>Period</th>
-                                <th>Next Service</th>
+                                {!panelOpen && <th>Type</th>}
+                                {!panelOpen && <th>Vendor</th>}
+                                {!panelOpen && <th>Value</th>}
+                                {!panelOpen && <th>Period</th>}
+                                {!panelOpen && <th>Next Service</th>}
                                 <th>Status</th>
-                                <th className="col-actions">Actions</th>
+                                {!panelOpen && <th className="col-actions">Actions</th>}
                             </tr>
                         </thead>
                         <tbody>
                             {contracts.map((c) => (
-                                <tr key={c.id}>
+                                <tr
+                                    key={c.id}
+                                    className={`so-row${selectedId === c.id ? ' so-row-selected' : ''}`}
+                                    onClick={() => onRowClick(c)}
+                                >
                                     <td><strong>{c.asset?.assetName || '-'}</strong></td>
                                     <td className="text-muted mono">{c.contractNumber || '-'}</td>
-                                    <td>
-                                        <span className="badge badge-secondary">{c.contractType}</span>
-                                    </td>
-                                    <td className="text-muted">{c.vendor?.name || '-'}</td>
-                                    <td className="text-muted">{fmtMoney(c.contractValue)}</td>
-                                    <td className="text-muted">
-                                        <div>{fmtDate(c.startDate)}</div>
-                                        <span className="subtext">to {fmtDate(c.endDate)}</span>
-                                    </td>
-                                    <td className="text-muted">{fmtDate(c.nextServiceDate)}</td>
+                                    {!panelOpen && (
+                                        <td>
+                                            <span className="badge badge-secondary">{c.contractType}</span>
+                                        </td>
+                                    )}
+                                    {!panelOpen && <td className="text-muted">{c.vendor?.name || '-'}</td>}
+                                    {!panelOpen && <td className="text-muted">{fmtMoney(c.contractValue)}</td>}
+                                    {!panelOpen && (
+                                        <td className="text-muted">
+                                            <div>{fmtDate(c.startDate)}</div>
+                                            <span className="subtext">to {fmtDate(c.endDate)}</span>
+                                        </td>
+                                    )}
+                                    {!panelOpen && <td className="text-muted">{fmtDate(c.nextServiceDate)}</td>}
                                     <td>
                                         <span className={`badge ${statusBadge(c.status)}`}>{c.status}</span>
                                     </td>
-                                    <td className="col-actions">
-                                        <RowActionsMenu
-                                            id={c.id}
-                                            activeId={activeDropdown}
-                                            onToggle={setActiveDropdown}
-                                            actions={[
-                                                { label: 'Edit', icon: <Edit2 size={16} />, color: '#3b82f6', onClick: () => onEdit(c) },
-                                                { label: 'Renew', icon: <RefreshCw size={16} />, color: '#16a34a', onClick: () => onRenew(c) },
-                                                ...(c.status === 'ACTIVE'
-                                                    ? [{ divider: true }, { label: 'Cancel', icon: <Ban size={16} />, danger: true, onClick: () => onCancel(c) }]
-                                                    : []),
-                                            ]}
-                                        />
-                                    </td>
+                                    {!panelOpen && (
+                                        <td className="col-actions" onClick={(e) => e.stopPropagation()}>
+                                            <RowActionsMenu
+                                                id={c.id}
+                                                activeId={activeDropdown}
+                                                onToggle={setActiveDropdown}
+                                                actions={[
+                                                    { label: 'Edit', icon: <Edit2 size={16} />, color: '#3b82f6', onClick: () => onEdit(c) },
+                                                    { label: 'Renew', icon: <RefreshCw size={16} />, color: '#16a34a', onClick: () => onRenew(c) },
+                                                    ...(c.status === 'ACTIVE'
+                                                        ? [{ divider: true }, { label: 'Cancel', icon: <Ban size={16} />, danger: true, onClick: () => onCancel(c) }]
+                                                        : []),
+                                                ]}
+                                            />
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>

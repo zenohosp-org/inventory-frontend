@@ -24,6 +24,7 @@ export default function ItemsTable({
     selectedItemId,
     onRowClick,
 }) {
+    const panelOpen = selectedItemId != null;
     return (
         <div className="table-container items-table-wrap so-table-wrap">
             <div className="table-header">
@@ -40,11 +41,11 @@ export default function ItemsTable({
                             <tr>
                                 <th>Code</th>
                                 <th>Product Name</th>
-                                <th>Item Type</th>
+                                {!panelOpen && <th>Item Type</th>}
                                 <th>Category</th>
-                                <th>Unit</th>
-                                <th>Billable</th>
-                                <th className="col-actions">Actions</th>
+                                {!panelOpen && <th>Unit</th>}
+                                {!panelOpen && <th>Billable</th>}
+                                {!panelOpen && <th className="col-actions">Actions</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -59,30 +60,36 @@ export default function ItemsTable({
                                     >
                                         <td><span className="mono-sm">{stripHospitalPrefix(item.code) || '-'}</span></td>
                                         <td><strong>{item.name}</strong></td>
-                                        <td>
-                                            {item.itemTypeName
-                                                ? <span className="badge badge-secondary">{item.itemTypeName}</span>
-                                                : <span className="text-muted">—</span>}
-                                        </td>
+                                        {!panelOpen && (
+                                            <td>
+                                                {item.itemTypeName
+                                                    ? <span className="badge badge-secondary">{item.itemTypeName}</span>
+                                                    : <span className="text-muted">—</span>}
+                                            </td>
+                                        )}
                                         <td><span className="badge badge-primary">{categoryName}</span></td>
-                                        <td>{item.unit || '—'}</td>
-                                        <td>
-                                            {billable
-                                                ? <span className={`badge ${billable.className}`}>{billable.label}</span>
-                                                : <span className="text-muted">—</span>}
-                                        </td>
-                                        <td className="col-actions" onClick={e => e.stopPropagation()}>
-                                            <RowActionsMenu
-                                                id={item.id}
-                                                activeId={activeDropdown}
-                                                onToggle={setActiveDropdown}
-                                                actions={[
-                                                    { label: 'Edit', icon: <Edit2 size={16} />, color: '#3b82f6', onClick: () => onEdit(item) },
-                                                    { divider: true },
-                                                    { label: 'Delete', icon: <Trash2 size={16} />, danger: true, onClick: () => onDelete(item.id) },
-                                                ]}
-                                            />
-                                        </td>
+                                        {!panelOpen && <td>{item.unit || '—'}</td>}
+                                        {!panelOpen && (
+                                            <td>
+                                                {billable
+                                                    ? <span className={`badge ${billable.className}`}>{billable.label}</span>
+                                                    : <span className="text-muted">—</span>}
+                                            </td>
+                                        )}
+                                        {!panelOpen && (
+                                            <td className="col-actions" onClick={e => e.stopPropagation()}>
+                                                <RowActionsMenu
+                                                    id={item.id}
+                                                    activeId={activeDropdown}
+                                                    onToggle={setActiveDropdown}
+                                                    actions={[
+                                                        { label: 'Edit', icon: <Edit2 size={16} />, color: '#3b82f6', onClick: () => onEdit(item) },
+                                                        { divider: true },
+                                                        { label: 'Delete', icon: <Trash2 size={16} />, danger: true, onClick: () => onDelete(item.id) },
+                                                    ]}
+                                                />
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })}
