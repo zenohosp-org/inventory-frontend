@@ -21,9 +21,11 @@ export default function ItemsTable({
     setActiveDropdown,
     onEdit,
     onDelete,
+    selectedItemId,
+    onRowClick,
 }) {
     return (
-        <div className="table-container items-table-wrap">
+        <div className="table-container items-table-wrap so-table-wrap">
             <div className="table-header">
                 <h3 className="table-title">Products ({filteredItems.length})</h3>
             </div>
@@ -50,7 +52,11 @@ export default function ItemsTable({
                                 const billable = BILLABLE_BADGE[item.billable];
                                 const categoryName = categories.find(c => c.id === item.categoryId)?.name || 'N/A';
                                 return (
-                                    <tr key={item.id}>
+                                    <tr
+                                        key={item.id}
+                                        className={`so-row${selectedItemId === item.id ? ' so-row-selected' : ''}`}
+                                        onClick={() => onRowClick(item)}
+                                    >
                                         <td><span className="mono-sm">{stripHospitalPrefix(item.code) || '-'}</span></td>
                                         <td><strong>{item.name}</strong></td>
                                         <td>
@@ -65,7 +71,7 @@ export default function ItemsTable({
                                                 ? <span className={`badge ${billable.className}`}>{billable.label}</span>
                                                 : <span className="text-muted">—</span>}
                                         </td>
-                                        <td className="col-actions">
+                                        <td className="col-actions" onClick={e => e.stopPropagation()}>
                                             <RowActionsMenu
                                                 id={item.id}
                                                 activeId={activeDropdown}

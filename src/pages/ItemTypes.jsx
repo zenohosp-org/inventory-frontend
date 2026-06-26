@@ -135,7 +135,6 @@ export default function ItemTypes() {
                                     >
                                         <option value="">None (General Inventory)</option>
                                         <option value="PHARMACY">Pharmacy</option>
-                                        <option value="OT">OT</option>
                                         <option value="ASSET">Asset</option>
                                     </select>
                                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>

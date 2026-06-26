@@ -13,6 +13,7 @@ export default function InventoryCategories() {
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
+        description: '',
         isActive: true
     });
     const [activeDropdown, setActiveDropdown] = useState(null);
@@ -48,12 +49,14 @@ export default function InventoryCategories() {
             setEditingId(category.id);
             setFormData({
                 name: category.name,
+                description: category.description || '',
                 isActive: category.isActive !== false
             });
         } else {
             setEditingId(null);
             setFormData({
                 name: '',
+                description: '',
                 isActive: true
             });
         }
@@ -202,6 +205,17 @@ export default function InventoryCategories() {
                                         className="form-input"
                                         placeholder="e.g., Surgical Instruments"
                                         required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Description</label>
+                                    <textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        className="form-input"
+                                        placeholder="Optional description"
+                                        rows={3}
                                     />
                                 </div>
 

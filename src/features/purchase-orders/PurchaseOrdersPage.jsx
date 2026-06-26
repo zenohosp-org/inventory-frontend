@@ -82,8 +82,8 @@ export default function PurchaseOrdersPage() {
                                         const bill = po.billsByPoId[row.id];
                                         const isDraft = row.status === 'DRAFT';
                                         const canReceive = row.status === 'ORDERED' || row.status === 'PARTIALLY_RECEIVED';
-                                        const canPay = !isDraft && bill?.paymentStatus !== 'PAID';
                                         const isTerminal = row.status === 'BILLED' || row.status === 'CANCELLED' || row.status === 'RECEIVED';
+                                        const canPay = !isDraft && row.status !== 'CANCELLED' && bill?.paymentStatus !== 'PAID';
                                         const isSelected = po.selectedPOId === row.id;
                                         return (
                                             <tr

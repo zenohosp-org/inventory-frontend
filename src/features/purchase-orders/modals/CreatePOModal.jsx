@@ -18,6 +18,7 @@ export default function CreatePOModal({
             ...next[idx],
             itemId: selectedItem.id,
             gstPercent: selectedItem.gstPercent ?? 0,
+            unitPrice: selectedItem.purchasePrice ?? next[idx].unitPrice ?? 0,
         };
         setFormData(f => ({ ...f, items: next }));
     };

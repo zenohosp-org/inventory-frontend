@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import { Package, Plus, Search } from 'lucide-react';
 import { useInventoryItems } from './hooks/useInventoryItems';
 import ItemsTable from './components/ItemsTable';
+import ItemDetailPanel from './components/ItemDetailPanel';
 import ItemFormModal from './modals/ItemFormModal';
 import './InventoryItemsPage.css';
 
 export default function InventoryItemsPage() {
     const it = useInventoryItems();
+    const [selectedItem, setSelectedItem] = useState(null);
+
+    const handleRowClick = (item) => {
+        setSelectedItem(prev => (prev?.id === item.id ? null : item));
+    };
 
     return (
         <div className="main-content">
@@ -41,20 +48,32 @@ export default function InventoryItemsPage() {
                 </div>
             </div>
 
-            <ItemsTable
-                loading={it.loading}
-                filteredItems={it.filteredItems}
-                paginatedItems={it.paginatedItems}
-                categories={it.categories}
-                pageIndex={it.pageIndex}
-                pageSize={it.pageSize}
-                totalPages={it.totalPages}
-                setPageIndex={it.setPageIndex}
-                activeDropdown={it.activeDropdown}
-                setActiveDropdown={it.setActiveDropdown}
-                onEdit={it.openEditModal}
-                onDelete={it.handleDelete}
-            />
+            <div className="so-layout">
+                <ItemsTable
+                    loading={it.loading}
+                    filteredItems={it.filteredItems}
+                    paginatedItems={it.paginatedItems}
+                    categories={it.categories}
+                    pageIndex={it.pageIndex}
+                    pageSize={it.pageSize}
+                    totalPages={it.totalPages}
+                    setPageIndex={it.setPageIndex}
+                    activeDropdown={it.activeDropdown}
+                    setActiveDropdown={it.setActiveDropdown}
+                    onEdit={it.openEditModal}
+                    onDelete={it.handleDelete}
+                    selectedItemId={selectedItem?.id || null}
+                    onRowClick={handleRowClick}
+                />
+
+                {selectedItem && (
+                    <ItemDetailPanel
+                        item={selectedItem}
+                        categories={it.categories}
+                        onClose={() => setSelectedItem(null)}
+                    />
+                )}
+            </div>
 
             {it.showModal && (
                 <ItemFormModal

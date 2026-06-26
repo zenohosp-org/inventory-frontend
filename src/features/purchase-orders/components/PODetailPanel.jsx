@@ -25,8 +25,9 @@ export default function PODetailPanel({
     const orderedItems = po.items || [];
     const hasAssetItems = orderedItems.some(it => it.inventoryItem?.billingGroup === 'ASSET');
     const isDraft = po.status === 'DRAFT';
+    const isCancelled = po.status === 'CANCELLED';
     const canReceive = po.status === 'ORDERED' || po.status === 'PARTIALLY_RECEIVED';
-    const canPay = !isDraft && bill?.paymentStatus !== 'PAID';
+    const canPay = !isDraft && !isCancelled && bill?.paymentStatus !== 'PAID';
 
     return (
         <div className="so-panel">
@@ -116,7 +117,13 @@ export default function PODetailPanel({
                                 <button className="btn btn-sm btn-accent" onClick={onPayAdvance}>Pay Advance</button>
                             )}
                             {po.status === 'BILLED' && <span className="text-muted">Already Billed</span>}
-                            {po.status === 'CANCELLED' && <span className="text-muted">Cancelled</span>}
+                            {isCancelled && (
+                                <span className="text-muted">
+                                    Cancelled
+                                    {po.cancelledByEmail ? ` by ${po.cancelledByEmail}` : ''}
+                                    {po.cancelledAt ? ` on ${new Date(po.cancelledAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}` : ''}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

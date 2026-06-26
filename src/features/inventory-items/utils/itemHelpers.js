@@ -20,7 +20,6 @@ export const DRUG_SCHEDULE_OPTIONS = [
 export const TRACKING_FLAGS = [
     ['batchRequired', 'Batch Required'],
     ['expiryRequired', 'Expiry Required'],
-    ['serialRequired', 'Serial Required'],
 ];
 
 export const EMPTY_ITEM_FORM = {

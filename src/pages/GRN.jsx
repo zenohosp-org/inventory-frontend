@@ -1,14 +1,22 @@
 import { useState, useMemo } from 'react';
-import { ClipboardList, X, Package } from 'lucide-react';
+import { ClipboardList, X, Package, Search } from 'lucide-react';
 import { getGrns } from '../api/client';
 import { useQuery } from '../hooks/useQuery';
 import { stripHospitalPrefix } from '../utils/format';
 import './GRN.css';
 
 export default function GRN() {
-    const { data: grns = [], loading } = useQuery('grns', () => getGrns().then(r => Array.isArray(r.data) ? r.data : []));
+    // Cache the raw axios response under the shared 'grns' key — the Purchase
+    // Orders page caches the same key the same way, so the shapes can't clash
+    // (a mismatch left this page hydrating a non-array and rendering blank).
+    const { data: grnsRaw, loading } = useQuery('grns', getGrns);
+    const grns = useMemo(() => {
+        const d = grnsRaw?.data ?? grnsRaw;
+        return Array.isArray(d) ? d : [];
+    }, [grnsRaw]);
     const [panelKey, setPanelKey] = useState(null);
     const [expandedGrns, setExpandedGrns] = useState({});
+    const [search, setSearch] = useState('');
 
     const fmt = (dt) => dt ? new Date(dt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
     const toggleGrn = (id) => setExpandedGrns(prev => ({ ...prev, [id]: !prev[id] }));
@@ -42,6 +50,17 @@ export default function GRN() {
         return arr;
     }, [grns]);
 
+    // Filter the PO groups by PO number, vendor, or any GRN number they contain.
+    const visibleGroups = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return groupedByPo;
+        return groupedByPo.filter(g =>
+            stripHospitalPrefix(g.poNumber).toLowerCase().includes(q) ||
+            (g.vendorName || '').toLowerCase().includes(q) ||
+            g.grns.some(gr => stripHospitalPrefix(gr.grnNumber || '').toLowerCase().includes(q))
+        );
+    }, [groupedByPo, search]);
+
     const panelGroup = panelKey ? groupedByPo.find(g => g.key === panelKey) : null;
 
     return (
@@ -57,13 +76,24 @@ export default function GRN() {
                 <div className="table-container so-table-wrap">
                     <div className="table-header">
                         <h3 className="table-title">GRNs ({grns.length})</h3>
-                        <span className="text-muted so-hint">Click a row to see receipts</span>
+                        <div className="search-bar grn-search">
+                            <Search size={16} />
+                            <input
+                                type="text"
+                                placeholder="Search by GRN no, PO no, or vendor..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="search-bar-input"
+                            />
+                        </div>
                     </div>
                     <div className="table-body">
                         {loading ? (
                             <div className="table-empty"><div className="spinner"></div></div>
                         ) : groupedByPo.length === 0 ? (
                             <div className="table-empty">No GRNs yet. Receive items from a Purchase Order to create the first GRN.</div>
+                        ) : visibleGroups.length === 0 ? (
+                            <div className="table-empty">No GRNs match "{search}".</div>
                         ) : (
                             <table className="table">
                                 <thead>
@@ -76,7 +106,7 @@ export default function GRN() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {groupedByPo.map(group => {
+                                    {visibleGroups.map(group => {
                                         const isSelected = panelKey === group.key;
                                         return (
                                             <tr
