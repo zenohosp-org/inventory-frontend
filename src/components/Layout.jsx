@@ -14,11 +14,9 @@ export default function Layout({ children }) {
             <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
             <div className="zu-app-shell-main">
                 <Header onMenuClick={toggleSidebar} />
-                <div className="zu-app-shell-content">
-                    <div className="zu-page-content">
-                        {children}
-                    </div>
-                </div>
+                <main className="zu-app-shell-content">
+                    {children}
+                </main>
             </div>
         </div>
     );

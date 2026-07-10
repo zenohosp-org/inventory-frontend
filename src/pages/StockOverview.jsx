@@ -143,7 +143,7 @@ export default function StockOverview() {
     });
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -152,6 +152,8 @@ export default function StockOverview() {
                 }
                 subtitle="Monitor inventory levels and stock transactions."
             />
+            <div className="zu-page-content">
+
 
             {/* Filter Bar */}
             <div className="filter-bar">
@@ -194,14 +196,6 @@ export default function StockOverview() {
             {/* Stock Table + Detail Panel */}
             <div className="so-layout">
                     <div className="zu-table-wrapper so-table-wrap">
-                        <div className="table-header">
-                            <h3 className="table-title">Products ({filteredStocks.length})</h3>
-                            <span className="text-muted so-hint">
-                                {filterType === 'asset'
-                                    ? 'Quantities are received totals — individual units are tracked in the Asset module'
-                                    : 'Click a row to see transactions'}
-                            </span>
-                        </div>
                         <div className="table-body">
                             {loading ? (
                                 <div className="table-empty"><div className="spinner"></div></div>
@@ -467,6 +461,7 @@ export default function StockOverview() {
                 />
             )}
 
+                    </div>
         </div>
     );
 }

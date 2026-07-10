@@ -13,7 +13,7 @@ export default function PurchaseOrdersPage() {
     const po = usePurchaseOrders();
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -29,6 +29,8 @@ export default function PurchaseOrdersPage() {
                     </button>
                 }
             />
+            <div className="zu-page-content">
+
 
             {po.error && (
                 <div className="po-error-banner">
@@ -42,30 +44,31 @@ export default function PurchaseOrdersPage() {
             )}
 
             <div className="so-layout">
-                <div className="table-container so-table-wrap">
-                    <div className="table-header">
-                        <h3 className="table-title">Purchase Orders ({po.filteredPos.length})</h3>
-                        <div className="po-search">
+                <div className="filter-bar" style={{ marginBottom: 'var(--spacing-4)' }}>
+                    <div className="filter-group flex-1">
+                        <div className="search-bar po-search">
                             <Search size={14} className="po-search-icon" />
                             <input
                                 type="text"
                                 placeholder="Search PO, vendor, store..."
                                 value={po.searchQuery}
                                 onChange={(e) => po.setSearchQuery(e.target.value)}
-                                className="po-search-input"
+                                className="search-bar-input po-search-input"
                             />
                             {po.searchQuery && (
                                 <button className="po-search-clear" onClick={() => po.setSearchQuery('')}>×</button>
                             )}
                         </div>
                     </div>
-                    <div className="table-body">
+                </div>
+                <div className="table-container so-table-wrap">
+                    <div className="zu-table-wrapper">
                         {po.loading ? (
                             <div className="table-empty"><div className="spinner"></div></div>
                         ) : po.filteredPos.length === 0 ? (
                             <div className="table-empty">{po.searchQuery ? 'No matching purchase orders.' : 'No purchase orders found.'}</div>
                         ) : (
-                            <table className="table">
+                            <table className="zu-table">
                                 <thead>
                                     <tr>
                                         <th>PO #</th>
@@ -216,6 +219,7 @@ export default function PurchaseOrdersPage() {
                     onClose={() => po.setPayModal(null)}
                 />
             )}
+                    </div>
         </div>
     );
 }

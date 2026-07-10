@@ -13,10 +13,6 @@ export default function KitsTable({
 
     return (
         <div className="zu-table-wrapper so-table-wrap kits-table-wrap">
-            <div className="table-header">
-                <h3 className="table-title">Kits ({filteredKits.length})</h3>
-                <span className="text-muted so-hint">Click a row to see components</span>
-            </div>
             <div className="table-body">
                 {loading ? (
                     <div className="table-empty"><div className="spinner"></div></div>

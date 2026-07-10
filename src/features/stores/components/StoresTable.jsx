@@ -15,9 +15,6 @@ export default function StoresTable({
 }) {
     return (
         <div className="zu-table-wrapper stores-table-wrap">
-            <div className="table-header">
-                <h3 className="table-title">Stores ({stores.length})</h3>
-            </div>
             <div className="table-body">
                 {loading ? (
                     <div className="table-empty"><div className="spinner"></div></div>

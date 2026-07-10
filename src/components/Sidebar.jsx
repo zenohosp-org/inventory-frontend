@@ -4,7 +4,8 @@ import {
     LayoutDashboard, Package, ShoppingCart, History,
     ChevronDown, Layers, Store as StoreIcon,
     Globe, Inbox, FileText, Truck, Receipt, Tag,
-    Activity, BarChart2, Box, ArrowUpRight, ClipboardList, Settings, FileCheck
+    Activity, BarChart2, Box, ArrowUpRight, ClipboardList, Settings, FileCheck,
+    Stethoscope, FlaskConical, Pill
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onToggle }) {
@@ -52,13 +53,11 @@ export default function Sidebar({ isOpen, onToggle }) {
                 {isOpen && (
                     <div className="sidebar-brand">
                         <h2 className="sidebar-brand-name">ZenoInventory</h2>
-                        <p className="sidebar-brand-sub">Inventory Management</p>
                     </div>
                 )}
             </div>
 
             <div className="sidebar-nav-container">
-                {isOpen && <h3 className="sidebar-section-label">Main Navigation</h3>}
                 
                 <nav className="sidebar-nav">
                     <div className="sidebar-nav-group">
@@ -74,8 +73,6 @@ export default function Sidebar({ isOpen, onToggle }) {
                         </Link>
                     </div>
                 </nav>
-
-                {isOpen && <h3 className="sidebar-section-label">Inventory</h3>}
                 
                 <nav className="sidebar-nav">
                     <div className="sidebar-nav-group">
@@ -159,9 +156,20 @@ export default function Sidebar({ isOpen, onToggle }) {
                             </div>
                         </Link>
                     </div>
-                </nav>
 
-                {isOpen && <h3 className="sidebar-section-label">Settings</h3>}
+                    <div className="sidebar-nav-group">
+                        <Link
+                            to="/reports"
+                            className={`sidebar-nav-item ${isActive('/reports') ? 'active' : ''} ${!isOpen ? 'is-icon-only' : ''}`}
+                            title={!isOpen ? "Reports" : ""}
+                        >
+                            <div className="sidebar-nav-label">
+                                <FileText className="sidebar-nav-icon" />
+                                {isOpen && <span>Reports</span>}
+                            </div>
+                        </Link>
+                    </div>
+                </nav>
                 
                 <nav className="sidebar-nav">
                     <div className="sidebar-nav-group">
@@ -199,9 +207,12 @@ export default function Sidebar({ isOpen, onToggle }) {
                 {isOpen && <h3 className="sidebar-section-label" style={{ padding: '8px 12px 4px', fontSize: '10px' }}>Other Apps</h3>}
                 {[
                     { label: 'HMS', href: 'https://hms.zenohosp.com', icon: Activity },
+                    { label: 'OT Room', href: 'https://ot.zenohosp.com', icon: Stethoscope },
+                    { label: 'Lab', href: 'https://lab.zenohosp.com', icon: FlaskConical },
+                    { label: 'Pharmacy', href: 'https://pharmacy.zenohosp.com', icon: Pill },
                     { label: 'Finance', href: 'https://finance.zenohosp.com', icon: BarChart2 },
+                    { label: 'Inventory', href: 'https://inventory.zenohosp.com', icon: Package },
                     { label: 'Assets', href: 'https://asset.zenohosp.com', icon: Box },
-                    { label: 'Directory', href: 'https://directory.zenohosp.com', icon: Globe },
                 ].map(({ label, href, icon: Icon }) => (
                     <a
                         key={href}

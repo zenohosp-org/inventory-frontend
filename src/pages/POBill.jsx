@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Receipt } from 'lucide-react';
 import { getPOBills } from '../api/client';
 import { useQuery } from '../hooks/useQuery';
@@ -13,15 +14,14 @@ const STATUS_BADGE = {
 function StatusBadge({ status }) {
     return <span className={`badge ${STATUS_BADGE[status] || 'badge-secondary'}`}>{status || '-'}</span>;
 }
-
 export default function POBill() {
-    const { data: bills = [], loading } = useQuery('poBills', () =>
-        getPOBills().then(res => {
-            const data = Array.isArray(res.data) ? res.data : [];
-            data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            return data;
-        })
-    );
+    const { data: poBillsRaw, loading } = useQuery('poBills', getPOBills);
+
+    const bills = useMemo(() => {
+        const data = Array.isArray(poBillsRaw?.data) ? [...poBillsRaw.data] : [];
+        data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return data;
+    }, [poBillsRaw]);
 
     return (
         <div>
@@ -35,9 +35,6 @@ export default function POBill() {
             />
 
             <div className="zu-table-wrapper">
-                <div className="table-header">
-                    <h3 className="table-title">Bills ({bills.length})</h3>
-                </div>
                 <div className="table-body">
                     {loading ? (
                         <div className="table-empty"><div className="spinner"></div></div>

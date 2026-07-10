@@ -8,9 +8,6 @@ export default function VendorsTable({
 }) {
     return (
         <div className="zu-table-wrapper vendors-table-wrap">
-            <div className="table-header">
-                <h3 className="table-title">Vendors ({vendors.length})</h3>
-            </div>
             <div className="table-body">
                 {loading ? (
                     <div className="table-empty"><div className="spinner"></div></div>

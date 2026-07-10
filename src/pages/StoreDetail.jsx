@@ -151,7 +151,7 @@ export default function StoreDetail() {
     };
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <div style={{ padding: '24px 32px 0 32px' }}>
                 <Link to="/stores" className="back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748b', textDecoration: 'none', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
                     <ArrowLeft size={15} /> Stores
@@ -166,6 +166,8 @@ export default function StoreDetail() {
                 }
                 subtitle={store ? `${store.type}${store.location ? ` · ${store.location}` : ''}` : undefined}
             />
+            <div className="zu-page-content">
+
 
             <div className="tab-bar">
                 <button className={`tab-btn ${activeTab === 'pos' ? 'active' : ''}`} onClick={() => setActiveTab('pos')}>
@@ -476,6 +478,7 @@ export default function StoreDetail() {
                     </div>
                 </div>
             )}
+                    </div>
         </div>
     );
 }

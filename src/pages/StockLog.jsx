@@ -97,7 +97,7 @@ export default function StockLog() {
     const rangeEnd = Math.min((pageIndex + 1) * pageSize, totalElements);
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             {/* Page Header */}
             <PageHeader 
                 title={
@@ -108,6 +108,8 @@ export default function StockLog() {
                 }
                 subtitle="Complete audit trail of all inventory movements and adjustments."
             />
+            <div className="zu-page-content">
+
 
             {/* Filter Bar */}
             <div className="filter-bar">
@@ -143,10 +145,6 @@ export default function StockLog() {
 
             {/* Transactions Table */}
             <div className="zu-table-wrapper">
-                <div className="table-header">
-                    <h3 className="table-title">Transactions ({totalElements})</h3>
-                </div>
-
                 <div className="table-body">
                     {loading ? (
                         <div className="table-empty"><div className="spinner"></div></div>
@@ -229,6 +227,7 @@ export default function StockLog() {
                     )}
                 </div>
             </div>
+                    </div>
         </div>
     );
 }

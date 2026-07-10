@@ -95,7 +95,7 @@ export default function InventoryCategories() {
     };
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             {/* Page Header */}
             <PageHeader 
                 title={
@@ -112,13 +112,11 @@ export default function InventoryCategories() {
                     </button>
                 }
             />
+            <div className="zu-page-content">
+
 
             {/* Categories Table */}
             <div className="zu-table-wrapper">
-                <div className="table-header">
-                    <h3 className="table-title">Categories ({categories.length})</h3>
-                </div>
-
                 <div className="table-body">
                     {loading ? (
                         <div className="table-empty"><div className="spinner"></div></div>
@@ -241,6 +239,7 @@ export default function InventoryCategories() {
                     </div>
                 </div>
             )}
+                    </div>
         </div>
     );
 }

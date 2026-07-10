@@ -75,10 +75,9 @@ export default function GRN() {
                 subtitle="Click a PO row to see its GRN receipts."
             />
 
-            <div className="so-layout">
-                <div className="zu-table-wrapper so-table-wrap">
-                    <div className="table-header">
-                        <h3 className="table-title">GRNs ({grns.length})</h3>
+            <div className="zu-page-content">
+                <div className="filter-bar">
+                    <div className="filter-group flex-1">
                         <div className="search-bar grn-search">
                             <Search size={16} />
                             <input
@@ -90,9 +89,13 @@ export default function GRN() {
                             />
                         </div>
                     </div>
-                    <div className="table-body">
-                        {loading ? (
-                            <div className="table-empty"><div className="spinner"></div></div>
+                </div>
+
+                <div className="so-layout">
+                    <div className="zu-table-wrapper so-table-wrap">
+                        <div className="table-body">
+                            {loading ? (
+                                <div className="table-empty"><div className="spinner"></div></div>
                         ) : groupedByPo.length === 0 ? (
                             <div className="table-empty">No GRNs yet. Receive items from a Purchase Order to create the first GRN.</div>
                         ) : visibleGroups.length === 0 ? (
@@ -208,6 +211,7 @@ export default function GRN() {
                         </div>
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );

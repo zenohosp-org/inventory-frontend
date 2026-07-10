@@ -45,7 +45,7 @@ export default function KitDetailPanel({ kit, onClose }) {
                         {componentCount === 0 ? (
                             <div className="so-txn-empty">No components</div>
                         ) : (
-                            <table className="kit-components-table">
+                            <div className="zu-table-wrapper"><table className="zu-table">
                                 <colgroup>
                                     <col className="col-item" />
                                     <col className="col-need" />
@@ -79,7 +79,7 @@ export default function KitDetailPanel({ kit, onClose }) {
                                         );
                                     })}
                                 </tbody>
-                            </table>
+                            </table></div>
                         )}
                     </div>
                 </div>

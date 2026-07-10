@@ -55,7 +55,7 @@ export default function ConsumeKitModal({
                     {kit.components && (
                         <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '6px' }}>
                             <h4 style={{ margin: '0 0 0.75rem 0', fontSize: '0.875rem', fontWeight: '600' }}>Component Breakdown</h4>
-                            <table style={{ width: '100%', fontSize: '0.85rem' }}>
+                            <div className="zu-table-wrapper"><table className="zu-table">
                                 <thead>
                                     <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                                         <th style={{ textAlign: 'left', padding: '0.5rem 0' }}>Item</th>
@@ -86,7 +86,7 @@ export default function ConsumeKitModal({
                                         );
                                     })}
                                 </tbody>
-                            </table>
+                            </table></div>
                         </div>
                     )}
 

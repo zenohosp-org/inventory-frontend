@@ -65,7 +65,7 @@ export default function PODetailPanel({
                 <div className="so-card">
                     <div className="so-card-header">Ordered Items</div>
                     <div className="so-card-body is-flush">
-                        <table className="po-detail-items">
+                        <div className="zu-table-wrapper"><table className="zu-table">
                             <colgroup>
                                 <col className="col-item" />
                                 <col className="col-ord" />
@@ -95,7 +95,7 @@ export default function PODetailPanel({
                                     );
                                 })}
                             </tbody>
-                        </table>
+                        </table></div>
                     </div>
                 </div>
 

@@ -27,9 +27,6 @@ export default function ItemsTable({
     const panelOpen = selectedItemId != null;
     return (
         <div className="zu-table-wrapper items-table-wrap so-table-wrap">
-            <div className="table-header">
-                <h3 className="table-title">Products ({filteredItems.length})</h3>
-            </div>
             <div className="table-body">
                 {loading ? (
                     <div className="table-empty"><div className="spinner"></div></div>

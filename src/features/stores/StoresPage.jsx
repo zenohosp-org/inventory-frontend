@@ -9,7 +9,7 @@ export default function StoresPage() {
     const s = useStores();
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -25,6 +25,8 @@ export default function StoresPage() {
                     </button>
                 }
             />
+            <div className="zu-page-content">
+
 
             <StoresTable
                 stores={s.stores}
@@ -52,6 +54,7 @@ export default function StoresPage() {
                     onClose={s.closeModal}
                 />
             )}
+                    </div>
         </div>
     );
 }

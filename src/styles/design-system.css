@@ -317,6 +317,20 @@ a:hover {
   justify-content: space-between;
 }
 
+/* ── Layout Classes ── */
+.zu-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--zu-space-xl, 24px);
+}
+
+.zu-page-content {
+  padding: 0 28px 28px;
+  flex: 1;
+}
+
 .flex-column {
   display: flex;
   flex-direction: column;
@@ -561,7 +575,8 @@ a:hover {
     display: none;
   }
 
-  .main-content {
+  .zu-page,
+  .zu-page-content {
     padding: 0;
     background: white;
   }

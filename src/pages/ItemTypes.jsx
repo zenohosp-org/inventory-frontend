@@ -52,7 +52,7 @@ export default function ItemTypes() {
     };
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -66,11 +66,10 @@ export default function ItemTypes() {
                     </button>
                 }
             />
+            <div className="zu-page-content">
+
 
             <div className="zu-table-wrapper">
-                <div className="table-header">
-                    <h3 className="table-title">Item Types ({itemTypes.length})</h3>
-                </div>
                 <div className="table-body">
                     {loading ? (
                         <div className="table-empty"><div className="spinner"></div></div>
@@ -175,6 +174,7 @@ export default function ItemTypes() {
                     </div>
                 </div>
             )}
+                    </div>
         </div>
     );
 }

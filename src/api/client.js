@@ -111,7 +111,9 @@ export const getKitConsumptions = () => api.get('/api/inventory/kits/consumption
 
 // ── Stock Overview ──
 export const getStockOverview = () => api.get('/api/inventory/stock-overview');
-export const getExpiryAlerts = () => api.get('/api/inventory/expiry-alerts');
+export const getExpiryAlerts = (days) => api.get('/api/inventory/expiry-alerts', { params: days ? { days } : {} });
+export const getStockValuation = () => api.get('/api/inventory/stock-valuation');
+export const getPriceVariance = () => api.get('/api/inventory/price-variance');
 export const getAssetSyncLogs = (status) => api.get('/api/inventory/asset-sync-logs', { params: status ? { status } : {} });
 export const retryAssetSync = (poId) => api.post(`/api/inventory/po/${poId}/retry-asset-sync`);
 export const getStockBatches = (storeId, itemId) => api.get('/api/inventory/stock-batches', { params: { storeId, itemId } });

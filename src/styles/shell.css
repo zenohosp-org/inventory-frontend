@@ -4,42 +4,42 @@
    =================================================================== */
 
 :root {
-  --zu-gray-50: var(--color-gray-50);
-  --zu-gray-100: var(--color-gray-100);
-  --zu-gray-200: var(--color-gray-200);
-  --zu-gray-300: var(--color-gray-300);
-  --zu-gray-400: var(--color-gray-400);
-  --zu-gray-500: var(--color-gray-500);
-  --zu-gray-600: var(--color-gray-600);
-  --zu-gray-700: var(--color-gray-700);
-  --zu-gray-800: var(--color-gray-800);
-  --zu-gray-900: var(--color-gray-900);
-  --zu-gray-950: #020617;
-  --zu-slate-500: var(--color-gray-500);
-  --zu-slate-900: var(--color-gray-900);
-  --zu-white: var(--color-white);
-  --zu-brand-primary: var(--color-primary);
-  --zu-danger-bg: var(--color-error-subtle);
-  --zu-rose-500: var(--color-error);
-  
-  --zu-font-family: var(--font-primary);
-  
-  --zu-space-xs: var(--spacing-1);
-  --zu-space-sm: var(--spacing-2);
-  --zu-space-md: var(--spacing-4);
-  --zu-space-9: 9px;
-  --zu-space-12: 12px;
-  --zu-space-xl: 32px;
-  
-  --zu-radius: var(--radius-md);
-  --zu-radius-md: var(--radius-md);
-  --zu-radius-full: var(--radius-full);
-  
-  --zu-transition-fast: var(--transition-fast);
-  --zu-transition-normal: var(--transition-base);
-  --zu-transition-layout: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  
-  --zu-z-sticky: 10;
+    --zu-gray-50: var(--color-gray-50);
+    --zu-gray-100: var(--color-gray-100);
+    --zu-gray-200: var(--color-gray-200);
+    --zu-gray-300: var(--color-gray-300);
+    --zu-gray-400: var(--color-gray-400);
+    --zu-gray-500: var(--color-gray-500);
+    --zu-gray-600: var(--color-gray-600);
+    --zu-gray-700: var(--color-gray-700);
+    --zu-gray-800: var(--color-gray-800);
+    --zu-gray-900: var(--color-gray-900);
+    --zu-gray-950: #020617;
+    --zu-slate-500: var(--color-gray-500);
+    --zu-slate-900: var(--color-gray-900);
+    --zu-white: var(--color-white);
+    --zu-brand-primary: var(--color-primary);
+    --zu-danger-bg: var(--color-error-subtle);
+    --zu-rose-500: var(--color-error);
+
+    --zu-font-family: var(--font-primary);
+
+    --zu-space-xs: var(--spacing-1);
+    --zu-space-sm: var(--spacing-2);
+    --zu-space-md: var(--spacing-4);
+    --zu-space-9: 9px;
+    --zu-space-12: 12px;
+    --zu-space-xl: 32px;
+
+    --zu-radius: var(--radius-md);
+    --zu-radius-md: var(--radius-md);
+    --zu-radius-full: var(--radius-full);
+
+    --zu-transition-fast: var(--transition-fast);
+    --zu-transition-normal: var(--transition-base);
+    --zu-transition-layout: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    --zu-z-sticky: 10;
 }
 
 /* ─────────────────────────── App shell ─────────────────────────── */
@@ -83,9 +83,6 @@
     padding: 28px;
 }
 
-.zu-page-content {
-    padding: 0 28px;
-}
 
 /* ─────────────────────────── Sidebar ─────────────────────────── */
 .sidebar {
@@ -155,7 +152,7 @@
 
 .sidebar-nav-container {
     flex: 1;
-    padding: 1rem 0;
+    padding: 12px 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -185,15 +182,16 @@
 .sidebar-nav-group {
     display: flex;
     flex-direction: column;
+    padding: 0 12px;
 }
 
 .sidebar-nav-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--zu-space-9) var(--zu-space-md);
-    margin: 0 0 0 var(--zu-space-12);
-    width: calc(100% - 1.5rem);
+    padding: 9px 12px;
+    margin: 0;
+    width: 100%;
     border-radius: 0.5rem;
     font-size: 13px;
     font-weight: 500;
@@ -263,8 +261,8 @@
     display: flex;
     flex-direction: column;
     gap: 1px;
-    padding: 0 0 0 0.75rem;
-    margin: 2px 0.75rem 2px 18px;
+    margin: 2px 0 4px 30px;
+    padding: 0 0 0 12px;
     border-left: 1px solid var(--zu-gray-200);
 }
 
@@ -273,6 +271,7 @@
     padding: 0;
 }
 
+.sidebar-submenu a,
 .sidebar-submenu button {
     display: block;
     font-size: 13px;
@@ -290,11 +289,13 @@
     transition: background var(--zu-transition-fast), color var(--zu-transition-fast);
 }
 
+.sidebar-submenu a:hover,
 .sidebar-submenu button:hover {
     background: var(--zu-gray-100);
     color: var(--zu-slate-900);
 }
 
+.sidebar-submenu a.active,
 .sidebar-submenu button.active {
     background: var(--zu-gray-100);
     color: var(--zu-slate-900);
@@ -414,15 +415,16 @@
     width: var(--zu-space-xl);
     height: var(--zu-space-xl);
     border-radius: var(--zu-radius-full);
-    background: var(--zu-gray-100);
-    border: 1px solid var(--zu-gray-300);
-    color: var(--zu-gray-700);
+    background: var(--zu-brand-primary);
+    color: var(--zu-white);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
     font-weight: 700;
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    /* Match typical primary shadow */
 }
 
 .zu-topnav-user-text {

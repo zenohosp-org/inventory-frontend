@@ -16,7 +16,7 @@ export default function InventoryItemsPage() {
     };
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -30,6 +30,8 @@ export default function InventoryItemsPage() {
                     </button>
                 }
             />
+            <div className="zu-page-content">
+
 
             <div className="filter-bar">
                 <div className="filter-group flex-1">
@@ -95,6 +97,7 @@ export default function InventoryItemsPage() {
                     handleItemTypeSelect={it.handleItemTypeSelect}
                 />
             )}
+                    </div>
         </div>
     );
 }

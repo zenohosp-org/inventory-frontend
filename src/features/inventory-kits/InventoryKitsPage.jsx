@@ -11,7 +11,7 @@ export default function InventoryKitsPage() {
     const k = useInventoryKits();
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -26,6 +26,8 @@ export default function InventoryKitsPage() {
                     </button>
                 }
             />
+            <div className="zu-page-content">
+
 
             {k.error && <div className="alert alert-error">{k.error}</div>}
 
@@ -86,6 +88,7 @@ export default function InventoryKitsPage() {
                     onClose={() => k.setShowConsumeModal(false)}
                 />
             )}
+                    </div>
         </div>
     );
 }

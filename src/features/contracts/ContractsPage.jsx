@@ -16,7 +16,7 @@ export default function ContractsPage() {
     };
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -38,6 +38,8 @@ export default function ContractsPage() {
                     </>
                 }
             />
+            <div className="zu-page-content">
+
 
             <div className="so-layout">
                 <ContractsTable
@@ -73,6 +75,7 @@ export default function ContractsPage() {
                     onClose={c.closeModal}
                 />
             )}
+                    </div>
         </div>
     );
 }

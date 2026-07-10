@@ -9,6 +9,7 @@ const Login = lazy(() => import('./pages/Login'));
 const SsoCallback = lazy(() => import('./pages/SsoCallback'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const StockOverview = lazy(() => import('./pages/StockOverview'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
 
 // Masters
 const Stores = lazy(() => import('./features/stores/StoresPage'));
@@ -25,6 +26,12 @@ const StockLog = lazy(() => import('./pages/StockLog'));
 const POBill = lazy(() => import('./pages/POBill'));
 const StoreDetail = lazy(() => import('./pages/StoreDetail'));
 const GRN = lazy(() => import('./pages/GRN'));
+
+// Reports
+const ReportsIndex = lazy(() => import('./pages/reports/ReportsIndex'));
+const StockValuation = lazy(() => import('./pages/reports/StockValuation'));
+const NearExpiry = lazy(() => import('./pages/reports/NearExpiry'));
+const PriceVariance = lazy(() => import('./pages/reports/PriceVariance'));
 
 /**
  * Wraps a lazy-loaded page with the Layout (sidebar + header) plus an inner
@@ -68,6 +75,7 @@ export default function App() {
                     while the page chunk downloads. */}
                 <Route path="/dashboard" element={<PageShell><Dashboard /></PageShell>} />
                 <Route path="/stock-overview" element={<PageShell><StockOverview /></PageShell>} />
+                <Route path="/profile" element={<PageShell><UserProfile /></PageShell>} />
 
                 {/* Masters */}
                 <Route path="/stores" element={<PageShell><Stores /></PageShell>} />
@@ -84,6 +92,12 @@ export default function App() {
                 <Route path="/stock-log" element={<PageShell><StockLog /></PageShell>} />
                 <Route path="/po-bill" element={<PageShell><POBill /></PageShell>} />
                 <Route path="/grn" element={<PageShell><GRN /></PageShell>} />
+
+                {/* Reports */}
+                <Route path="/reports" element={<PageShell><ReportsIndex /></PageShell>} />
+                <Route path="/reports/stock-valuation" element={<PageShell><StockValuation /></PageShell>} />
+                <Route path="/reports/near-expiry" element={<PageShell><NearExpiry /></PageShell>} />
+                <Route path="/reports/price-variance" element={<PageShell><PriceVariance /></PageShell>} />
 
                 <Route path="/" element={<Navigate to="/dashboard" />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />

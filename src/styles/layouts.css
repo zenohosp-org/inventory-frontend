@@ -37,86 +37,106 @@
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 24px 26px;
-  min-height: 165px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
-
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.stat-card>div:first-child {
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
   width: 100%;
 }
 
-.stat-icon {
-  order: -1;
-  width: auto;
-  height: auto;
-  margin-bottom: 14px;
-  font-size: 24px;
-  line-height: 1;
-  flex-shrink: 0;
+.stat-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
 }
 
 .stat-label {
-  font-size: 24px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: #020617;
-
-  text-transform: none;
-  letter-spacing: -0.04em;
-  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 2px;
 }
 
 .stat-card p {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.45;
-  color: #64748b;
+  font-size: 12px;
+  color: #94a3b8;
   font-weight: 400;
 }
 
-.stat-value {
-  margin-top: 32px;
-  font-size: 40px;
-  line-height: 1;
-  font-weight: 800;
-  color: #000000;
-  letter-spacing: -0.045em;
+/* Colors for variants */
+.stat-card.primary .stat-icon-wrapper {
+  background: #eff6ff;
+  color: #3b82f6;
 }
 
-.stat-card:nth-child(1) .stat-icon {
-  color: #16a34a;
+.stat-card.success .stat-icon-wrapper {
+  background: #dcfce7;
+  color: #22c55e;
 }
 
-.stat-card.warning .stat-icon {
-  color: #2563eb;
+.stat-card.danger .stat-icon-wrapper {
+  background: #f1f5f9;
+  color: #334155;
 }
 
-.stat-card.success .stat-icon {
-  color: #f59e0b;
+.stat-card.warning .stat-icon-wrapper {
+  background: #fef3c7;
+  color: #d97706;
 }
 
-.stat-card.info .stat-icon {
-  color: #a855f7;
+/* ── Dashboard Bento Grid ── */
+.dashboard-bento {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .dashboard-bento {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-bento-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.dashboard-bento-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
 }
 
 /* ── Filter Bar ── */
 .filter-bar {
-  background-color: var(--color-bg-card);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-5);
-  margin-bottom: var(--spacing-5);
-  border: 1px solid var(--color-gray-200);
   display: flex;
   gap: var(--spacing-4);
   flex-wrap: wrap;
   align-items: flex-end;
-  box-shadow: var(--shadow-xs);
+  padding-bottom: 20px;
 }
 
 .filter-group {

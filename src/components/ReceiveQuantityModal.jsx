@@ -98,7 +98,7 @@ export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <div className="zu-table-wrapper"><table className="zu-table">
                             <thead className="sticky top-0 bg-gray-100">
                                 <tr className="border-b">
                                     <th className="text-left px-3 py-2 font-medium">Item</th>
@@ -183,7 +183,7 @@ export default function ReceiveQuantityModal({ po, onClose, onSuccess }) {
                                     );
                                 })}
                             </tbody>
-                        </table>
+                        </table></div>
                     </div>
 
                     <div className="flex gap-2">

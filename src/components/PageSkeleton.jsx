@@ -5,7 +5,9 @@
  */
 export default function PageSkeleton() {
     return (
-        <div className="main-content">
+        <div className="zu-page">
+<div className="zu-page-content">
+
             <div className="page-header">
                 <div className="page-header-left">
                     <div className="sk-line sk-line--title" />
@@ -29,6 +31,8 @@ export default function PageSkeleton() {
                     ))}
                 </div>
             </div>
-        </div>
+        
+</div>
+</div>
     );
 }

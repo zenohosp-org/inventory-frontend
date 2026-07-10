@@ -19,9 +19,6 @@ export default function ContractsTable({
     const panelOpen = selectedId != null;
     return (
         <div className="zu-table-wrapper contracts-table-wrap so-table-wrap">
-            <div className="table-header">
-                <h3 className="table-title">Contracts ({contracts.length})</h3>
-            </div>
             <div className="table-body">
                 {loading ? (
                     <div className="table-empty"><div className="spinner"></div></div>

@@ -9,7 +9,7 @@ export default function VendorsPage() {
     const v = useVendors();
 
     return (
-        <div className="main-content">
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -25,6 +25,8 @@ export default function VendorsPage() {
                     </button>
                 }
             />
+            <div className="zu-page-content">
+
 
             <VendorsTable
                 vendors={v.vendors}
@@ -47,6 +49,7 @@ export default function VendorsPage() {
                     onClose={v.closeModal}
                 />
             )}
+                    </div>
         </div>
     );
 }

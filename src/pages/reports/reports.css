@@ -1,0 +1,97 @@
+.zu-report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.zu-report-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+    padding: var(--spacing-5);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.zu-report-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--color-primary-light);
+    transform: translateY(-1px);
+}
+
+.zu-report-card-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-subtle);
+    color: var(--color-primary);
+}
+
+.zu-report-card-title {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-semibold);
+    color: var(--color-gray-900);
+    margin-bottom: var(--spacing-1);
+}
+
+.zu-report-card-desc {
+    font-size: var(--fs-sm);
+    color: var(--color-gray-500);
+    line-height: var(--lh-normal);
+}
+
+/* ── Price Variance: min→max range bar ── */
+.pv-range {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+}
+
+.pv-range-track {
+    position: relative;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(to right, var(--color-success-light), var(--color-warning-light), var(--color-error-light));
+}
+
+.pv-range-marker {
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+    background: var(--color-gray-900);
+    border: 2px solid var(--color-bg-card);
+    transform: translate(-50%, -50%);
+    box-shadow: var(--shadow-xs);
+}
+
+.pv-range-marker.pv-range-avg {
+    width: 6px;
+    height: 6px;
+    background: var(--color-gray-400);
+    border-width: 1px;
+}
+
+.pv-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--fs-xs);
+    color: var(--color-gray-500);
+}
+
+.pv-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: flex-end;
+}
