@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Store as StoreIcon, Package, ShoppingCart, X, ArrowLeftRight, Cpu } from 'lucide-react';
 import { getStores, getStockOverview, getPOsByStore, recordPOReceipt, convertPOToBill, getAssets } from '../api/client';
+import PageHeader from '../components/PageHeader';
 import './StoreDetail.css';
 import TransferStockModal from '../components/TransferStockModal';
 import { useToast } from '../context/ToastContext';
@@ -150,21 +151,21 @@ export default function StoreDetail() {
     };
 
     return (
-        <div>
-            <div className="page-header">
-                <div>
-                    <Link to="/stores" className="back-link">
-                        <ArrowLeft size={15} /> Stores
-                    </Link>
-                    <h1 className="page-title">
+        <div className="main-content">
+            <div style={{ padding: '24px 32px 0 32px' }}>
+                <Link to="/stores" className="back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748b', textDecoration: 'none', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
+                    <ArrowLeft size={15} /> Stores
+                </Link>
+            </div>
+            <PageHeader 
+                title={
+                    <>
                         <StoreIcon size={24} />
                         {store?.name || 'Store'}
-                    </h1>
-                    {store && (
-                        <p className="page-subtitle">{store.type}{store.location ? ` · ${store.location}` : ''}</p>
-                    )}
-                </div>
-            </div>
+                    </>
+                }
+                subtitle={store ? `${store.type}${store.location ? ` · ${store.location}` : ''}` : undefined}
+            />
 
             <div className="tab-bar">
                 <button className={`tab-btn ${activeTab === 'pos' ? 'active' : ''}`} onClick={() => setActiveTab('pos')}>
@@ -177,7 +178,7 @@ export default function StoreDetail() {
 
             {/* ── Purchase Orders tab ── */}
             {activeTab === 'pos' && (
-                <div className="table-container">
+                <div className="zu-table-wrapper" style={{ margin: '0 32px 32px 32px' }}>
                     <div className="table-header">
                         <h3 className="table-title">Purchase Orders ({pos.length})</h3>
                         <label className="toggle-label">
@@ -191,7 +192,7 @@ export default function StoreDetail() {
                         ) : pos.length === 0 ? (
                             <div className="table-empty">No purchase orders found.</div>
                         ) : (
-                            <table className="table">
+                            <table className="zu-table">
                                 <thead>
                                     <tr>
                                         <th>PO #</th>
@@ -243,8 +244,8 @@ export default function StoreDetail() {
 
             {/* ── Stock tab ── */}
             {activeTab === 'stock' && (
-                <div className="sd-stock-layout">
-                    <div className="table-container sd-stock-table">
+                <div className="sd-stock-layout" style={{ margin: '0 32px 32px 32px' }}>
+                    <div className="zu-table-wrapper sd-stock-table">
                         <div className="table-header">
                             <h3 className="table-title">Stock ({stock.length})</h3>
                         </div>
@@ -254,7 +255,7 @@ export default function StoreDetail() {
                             ) : stock.length === 0 ? (
                                 <div className="table-empty">No stock records for this store.</div>
                             ) : (
-                                <table className="table">
+                                <table className="zu-table">
                                     <thead>
                                         <tr>
                                             <th>Item</th>
@@ -414,7 +415,8 @@ export default function StoreDetail() {
                         </div>
                         <div className="modal-body">
                             <p className="text-muted">Batch No and Expiry are optional — filling them enables expiry tracking on the dashboard.</p>
-                            <table className="table">
+                            <div className="zu-table-wrapper" style={{ border: 'none', boxShadow: 'none' }}>
+                                <table className="zu-table">
                                 <thead>
                                     <tr>
                                         <th>Item</th>
@@ -462,7 +464,8 @@ export default function StoreDetail() {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
                         </div>
                         <div className="modal-footer">
                             <button className="btn btn-secondary" onClick={() => setReceiptModal(null)}>Cancel</button>

@@ -4,6 +4,7 @@ import { useInventoryItems } from './hooks/useInventoryItems';
 import ItemsTable from './components/ItemsTable';
 import ItemDetailPanel from './components/ItemDetailPanel';
 import ItemFormModal from './modals/ItemFormModal';
+import PageHeader from '../../components/PageHeader';
 import './InventoryItemsPage.css';
 
 export default function InventoryItemsPage() {
@@ -16,15 +17,19 @@ export default function InventoryItemsPage() {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title"><Package size={26} /> Product Master</h1>
-                    <p className="page-subtitle">Manage inventory products and their billing, tracking, and consumption behavior.</p>
-                </div>
-                <button className="btn btn-primary" onClick={it.openCreateModal}>
-                    <Plus size={18} /> Add Product
-                </button>
-            </div>
+            <PageHeader 
+                title={
+                    <>
+                        <Package size={26} /> Product Master
+                    </>
+                }
+                subtitle="Manage inventory products and their billing, tracking, and consumption behavior."
+                actions={
+                    <button className="btn btn-primary" onClick={it.openCreateModal}>
+                        <Plus size={18} /> Add Product
+                    </button>
+                }
+            />
 
             <div className="filter-bar">
                 <div className="filter-group flex-1">

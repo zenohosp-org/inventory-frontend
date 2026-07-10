@@ -1,192 +1,24 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import {
-    LayoutDashboard, Package, ShoppingCart, History,
-    ChevronDown, ChevronRight, Layers, Store as StoreIcon,
-    Globe, Inbox, FileText, Truck, Receipt, Tag,
-    Activity, BarChart2, Box, ArrowUpRight, ClipboardList, Settings, FileCheck
-} from 'lucide-react';
+import Sidebar from './Sidebar';
 import Header from './Header';
 
 export default function Layout({ children }) {
-    const location = useLocation();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
-    const [invOpen, setInvOpen] = useState(
-        location.pathname === '/stock-overview' || location.pathname === '/stock-log'
-    );
-    const [purchaseOpen, setPurchaseOpen] = useState(
-        ['/vendors', '/purchase-orders', '/po-bill', '/grn', '/contracts'].includes(location.pathname)
-    );
-    const [settingsOpen, setSettingsOpen] = useState(
-        ['/item-types', '/inventory-categories', '/vendors', '/stores'].includes(location.pathname)
-    );
-
-    const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
-
-    const NavLink = ({ to, icon: Icon, label }) => (
-        <Link
-            to={to}
-            className={`sidebar-link sidebar-submenu-link ${isActive(to) ? 'active' : ''}`}
-            onClick={() => setSidebarOpen(false)}
-        >
-            <Icon className="sidebar-icon" size={15} />
-            {label}
-        </Link>
-    );
-
-    const CollapseToggle = ({ open, onToggle, icon: Icon, label }) => (
-        <button onClick={onToggle} className="sidebar-link sidebar-submenu-toggle">
-            <div className="sidebar-submenu-inner">
-                <Icon className="sidebar-icon" size={18} />
-                {label}
-            </div>
-            {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-        </button>
-    );
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 
     return (
-        <div className="app-layout">
-
-            {/* Sidebar */}
-            <aside className={`sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
-                <div className="sidebar-brand">
-                    <div className="sidebar-brand-icon">
-                        <Package size={18} />
-                    </div>
-                    <div className="sidebar-brand-meta">
-                        <span className="sidebar-brand-text">ZenoInventory</span>
-                        <span className="sidebar-brand-sub">Inventory Management</span>
+        <div className="zu-app-shell">
+            <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
+            <div className="zu-app-shell-main">
+                <Header onMenuClick={toggleSidebar} />
+                <div className="zu-app-shell-content">
+                    <div className="zu-page-content">
+                        {children}
                     </div>
                 </div>
-
-                <nav className="sidebar-nav">
-                    <ul className="sidebar-menu">
-                        {/* Dashboard */}
-                        <li>
-                            <Link
-                                to="/dashboard"
-                                className={`sidebar-link ${isActive('/dashboard') ? 'active' : ''}`}
-                                onClick={() => setSidebarOpen(false)}
-                            >
-                                <LayoutDashboard className="sidebar-icon" size={18} />
-                                Dashboard
-                            </Link>
-                        </li>
-
-                        {/* Inventory Section — ordered to mirror the workflow:
-                            Items → Purchase → Stock → Kits */}
-                        <li className="sidebar-section">
-                            <div className="sidebar-section-title">Inventory</div>
-
-                            {/* Items — the anchor, direct link */}
-                            <Link
-                                to="/inventory-items"
-                                className={`sidebar-link ${isActive('/inventory-items') ? 'active' : ''}`}
-                                onClick={() => setSidebarOpen(false)}
-                            >
-                                <Package className="sidebar-icon" size={18} />
-                                Items
-                            </Link>
-
-                            {/* Purchase collapsible */}
-                            <div className="sidebar-subsection">
-                                <CollapseToggle
-                                    open={purchaseOpen}
-                                    onToggle={() => setPurchaseOpen(o => !o)}
-                                    icon={ShoppingCart}
-                                    label="Purchase"
-                                />
-                                {purchaseOpen && (
-                                    <div className="sidebar-submenu">
-                                        <NavLink to="/purchase-orders" icon={FileText} label="Purchase Orders" />
-                                        <NavLink to="/grn" icon={ClipboardList} label="GRN" />
-                                        <NavLink to="/po-bill" icon={Receipt} label="PO Bills" />
-                                        <NavLink to="/contracts" icon={FileCheck} label="Contracts (AMC/CMC)" />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Stock collapsible */}
-                            <div className="sidebar-subsection">
-                                <CollapseToggle
-                                    open={invOpen}
-                                    onToggle={() => setInvOpen(o => !o)}
-                                    icon={Inbox}
-                                    label="Stock"
-                                />
-                                {invOpen && (
-                                    <div className="sidebar-submenu">
-                                        <NavLink to="/stock-overview" icon={Inbox} label="Stock Overview" />
-                                        <NavLink to="/stock-log" icon={History} label="Stock Log" />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Kits — operational, direct link */}
-                            <Link
-                                to="/inventory-kits"
-                                className={`sidebar-link ${isActive('/inventory-kits') ? 'active' : ''}`}
-                                onClick={() => setSidebarOpen(false)}
-                            >
-                                <Layers className="sidebar-icon" size={18} />
-                                Kits
-                            </Link>
-                        </li>
-
-                        {/* Settings Section — one-time setup, demoted to the bottom */}
-                        <li className="sidebar-section">
-                            <div className="sidebar-subsection">
-                                <CollapseToggle
-                                    open={settingsOpen}
-                                    onToggle={() => setSettingsOpen(o => !o)}
-                                    icon={Settings}
-                                    label="Settings"
-                                />
-                                {settingsOpen && (
-                                    <div className="sidebar-submenu">
-                                        <NavLink to="/item-types" icon={Tag} label="Item Types" />
-                                        <NavLink to="/inventory-categories" icon={Layers} label="Categories" />
-                                        <NavLink to="/vendors" icon={Truck} label="Vendors" />
-                                        <NavLink to="/stores" icon={StoreIcon} label="Stores" />
-                                    </div>
-                                )}
-                            </div>
-                        </li>
-                    </ul>
-                </nav>
-
-                {/* Other Apps — fixed footer; the nav scrolls underneath it */}
-                <div className="sidebar-footer">
-                    <div className="sidebar-section-title sidebar-apps-title">Other Apps</div>
-                    {[
-                        { label: 'HMS', href: 'https://hms.zenohosp.com', icon: Activity },
-                        { label: 'Finance', href: 'https://finance.zenohosp.com', icon: BarChart2 },
-                        { label: 'Assets', href: 'https://asset.zenohosp.com', icon: Box },
-                        { label: 'Directory', href: 'https://directory.zenohosp.com', icon: Globe },
-                    ].map(({ label, href, icon: Icon }) => (
-                        <a
-                            key={href}
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="sidebar-link sidebar-link--app"
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <Icon className="sidebar-icon" size={16} />
-                            <span className="sidebar-app-label">{label}</span>
-                            <ArrowUpRight size={12} className="sidebar-app-arrow" />
-                        </a>
-                    ))}
-                </div>
-            </aside>
-
-            {/* Header + Main */}
-            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <Header />
-                <main className="main-content" style={{ flex: 1, gridColumn: 'unset', gridRow: 'unset' }}>
-                    {children}
-                </main>
             </div>
         </div>
     );

@@ -3,6 +3,7 @@ import { Package, AlertCircle, Clock, AlertTriangle, Plus } from 'lucide-react';
 import LogStockModal from '../components/LogStockModal';
 import { getStockOverview, getStockLogs, getExpiryAlerts } from '../api/client';
 import { stripHospitalPrefix } from '../utils/format';
+import PageHeader from '../components/PageHeader';
 
 const ACTIVITY_LABELS = {
     purchase_in: 'Purchase In',
@@ -75,14 +76,10 @@ const Dashboard = () => {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title">Inventory Dashboard</h1>
-                    <p className="page-subtitle">
-                        {loading ? 'Loading overview...' : 'Live inventory overview for your hospital.'}
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Inventory Dashboard"
+                subtitle={loading ? 'Loading overview...' : 'Live inventory overview for your hospital.'}
+            />
 
             {/* Stat Cards */}
             <div className="card-grid">
@@ -129,7 +126,7 @@ const Dashboard = () => {
                         </h3>
                     </div>
                     <div className="table-body">
-                        <table className="table">
+                        <table className="zu-table">
                             <thead>
                                 <tr>
                                     <th>Item</th>
@@ -169,7 +166,7 @@ const Dashboard = () => {
                         </h3>
                     </div>
                     <div className="table-body">
-                        <table className="table">
+                        <table className="zu-table">
                             <thead>
                                 <tr>
                                     <th>Product</th>
@@ -206,7 +203,7 @@ const Dashboard = () => {
                         <h3 className="table-title"><Clock size={18} /> Recent Transactions</h3>
                     </div>
                     <div className="table-body">
-                        <table className="table">
+                        <table className="zu-table">
                             <thead>
                                 <tr>
                                     <th>Type</th>

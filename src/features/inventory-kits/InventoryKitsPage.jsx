@@ -4,6 +4,7 @@ import KitsTable from './components/KitsTable';
 import KitDetailPanel from './components/KitDetailPanel';
 import KitFormModal from './modals/KitFormModal';
 import ConsumeKitModal from './modals/ConsumeKitModal';
+import PageHeader from '../../components/PageHeader';
 import './InventoryKitsPage.css';
 
 export default function InventoryKitsPage() {
@@ -11,16 +12,20 @@ export default function InventoryKitsPage() {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title"><Package size={26} /> Inventory Kits</h1>
-                    <p className="page-subtitle">Create and manage item kits.</p>
-                </div>
-                <button className="btn btn-primary" onClick={k.openCreateModal}>
-                    <Plus size={18} />
-                    Create Kit
-                </button>
-            </div>
+            <PageHeader 
+                title={
+                    <>
+                        <Package size={26} /> Inventory Kits
+                    </>
+                }
+                subtitle="Create and manage item kits."
+                actions={
+                    <button className="btn btn-primary" onClick={k.openCreateModal}>
+                        <Plus size={18} />
+                        Create Kit
+                    </button>
+                }
+            />
 
             {k.error && <div className="alert alert-error">{k.error}</div>}
 

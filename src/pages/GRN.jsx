@@ -3,6 +3,7 @@ import { ClipboardList, X, Package, Search } from 'lucide-react';
 import { getGrns } from '../api/client';
 import { useQuery } from '../hooks/useQuery';
 import { stripHospitalPrefix } from '../utils/format';
+import PageHeader from '../components/PageHeader';
 import './GRN.css';
 
 export default function GRN() {
@@ -65,15 +66,17 @@ export default function GRN() {
 
     return (
         <div>
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title"><ClipboardList size={24} /> Goods Received Notes</h1>
-                    <p className="page-subtitle">Click a PO row to see its GRN receipts.</p>
-                </div>
-            </div>
+            <PageHeader 
+                title={
+                    <>
+                        <ClipboardList size={24} /> Goods Received Notes
+                    </>
+                }
+                subtitle="Click a PO row to see its GRN receipts."
+            />
 
             <div className="so-layout">
-                <div className="table-container so-table-wrap">
+                <div className="zu-table-wrapper so-table-wrap">
                     <div className="table-header">
                         <h3 className="table-title">GRNs ({grns.length})</h3>
                         <div className="search-bar grn-search">
@@ -95,7 +98,7 @@ export default function GRN() {
                         ) : visibleGroups.length === 0 ? (
                             <div className="table-empty">No GRNs match "{search}".</div>
                         ) : (
-                            <table className="table">
+                            <table className="zu-table">
                                 <thead>
                                     <tr>
                                         <th>PO Number</th>

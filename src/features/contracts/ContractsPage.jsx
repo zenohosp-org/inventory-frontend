@@ -4,6 +4,7 @@ import { useContracts } from './hooks/useContracts';
 import ContractsTable from './components/ContractsTable';
 import ContractDetailPanel from './components/ContractDetailPanel';
 import ContractFormModal from './modals/ContractFormModal';
+import PageHeader from '../../components/PageHeader';
 import './ContractsPage.css';
 
 export default function ContractsPage() {
@@ -16,27 +17,27 @@ export default function ContractsPage() {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title">
+            <PageHeader 
+                title={
+                    <>
                         <FileText size={26} />
                         AMC / CMC
-                    </h1>
-                    <p className="page-subtitle">
-                        Register and manage AMC / CMC contracts for assets.
-                    </p>
-                </div>
-                <div className="page-actions">
-                    <button className="btn btn-primary" onClick={() => c.openCreateModal('AMC')}>
-                        <Plus size={18} />
-                        Add AMC
-                    </button>
-                    <button className="btn btn-primary" onClick={() => c.openCreateModal('CMC')}>
-                        <Plus size={18} />
-                        Add CMC
-                    </button>
-                </div>
-            </div>
+                    </>
+                }
+                subtitle="Register and manage AMC / CMC contracts for assets."
+                actions={
+                    <>
+                        <button className="btn btn-primary" onClick={() => c.openCreateModal('AMC')}>
+                            <Plus size={18} />
+                            Add AMC
+                        </button>
+                        <button className="btn btn-primary" onClick={() => c.openCreateModal('CMC')}>
+                            <Plus size={18} />
+                            Add CMC
+                        </button>
+                    </>
+                }
+            />
 
             <div className="so-layout">
                 <ContractsTable

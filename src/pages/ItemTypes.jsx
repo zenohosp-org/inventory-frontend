@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Tag, Plus, X } from 'lucide-react';
 import { getItemTypes, createItemType } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import PageHeader from '../components/PageHeader';
 
 const EMPTY_FORM = {
     name: '',
@@ -52,17 +53,21 @@ export default function ItemTypes() {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title"><Tag size={26} /> Item Types</h1>
-                    <p className="page-subtitle">Define item categories and their default inventory behavior.</p>
-                </div>
-                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                    <Plus size={18} /> Add Item Type
-                </button>
-            </div>
+            <PageHeader 
+                title={
+                    <>
+                        <Tag size={26} /> Item Types
+                    </>
+                }
+                subtitle="Define item categories and their default inventory behavior."
+                actions={
+                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                        <Plus size={18} /> Add Item Type
+                    </button>
+                }
+            />
 
-            <div className="table-container">
+            <div className="zu-table-wrapper">
                 <div className="table-header">
                     <h3 className="table-title">Item Types ({itemTypes.length})</h3>
                 </div>
@@ -72,7 +77,7 @@ export default function ItemTypes() {
                     ) : itemTypes.length === 0 ? (
                         <div className="table-empty">No item types found.</div>
                     ) : (
-                        <table className="table">
+                        <table className="zu-table">
                             <thead>
                                 <tr>
                                     <th>Name</th>

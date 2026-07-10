@@ -1,7 +1,7 @@
 import axios from 'axios';
 import SSOCookieManager from '../utils/ssoManager';
 
-export const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'https://api-inventory.zenohosp.com';
+export const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || (import.meta.env?.DEV ? '' : 'https://api-inventory.zenohosp.com');
 export const DIRECTORY_API_URL = import.meta.env?.VITE_DIRECTORY_API_URL || 'https://api-directory.zenohosp.com';
 
 const api = axios.create({

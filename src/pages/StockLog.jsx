@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { History, Search } from 'lucide-react';
 import { getStockLogs } from '../api/client';
 import { stripHospitalPrefix } from '../utils/format';
-
-
+import PageHeader from '../components/PageHeader';
 export default function StockLog() {
     const [transactions, setTransactions] = useState([]);
     const [totalElements, setTotalElements] = useState(0);
@@ -100,17 +99,15 @@ export default function StockLog() {
     return (
         <div className="main-content">
             {/* Page Header */}
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title">
+            <PageHeader 
+                title={
+                    <>
                         <History size={26} />
                         Stock Transaction Log
-                    </h1>
-                    <p className="page-subtitle">
-                        Complete audit trail of all inventory movements and adjustments.
-                    </p>
-                </div>
-            </div>
+                    </>
+                }
+                subtitle="Complete audit trail of all inventory movements and adjustments."
+            />
 
             {/* Filter Bar */}
             <div className="filter-bar">
@@ -145,7 +142,7 @@ export default function StockLog() {
             </div>
 
             {/* Transactions Table */}
-            <div className="table-container">
+            <div className="zu-table-wrapper">
                 <div className="table-header">
                     <h3 className="table-title">Transactions ({totalElements})</h3>
                 </div>
@@ -156,7 +153,7 @@ export default function StockLog() {
                     ) : transactions.length === 0 ? (
                         <div className="table-empty">No transactions found.</div>
                     ) : (
-                        <table className="table table-striped">
+                        <table className="zu-table table-striped">
                             <thead>
                                 <tr>
                                     <th>Timestamp</th>

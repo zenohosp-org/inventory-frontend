@@ -14,7 +14,7 @@ export default function StoresTable({
     onEdit, onDelete,
 }) {
     return (
-        <div className="table-container stores-table-wrap">
+        <div className="zu-table-wrapper stores-table-wrap">
             <div className="table-header">
                 <h3 className="table-title">Stores ({stores.length})</h3>
             </div>
@@ -24,7 +24,7 @@ export default function StoresTable({
                 ) : stores.length === 0 ? (
                     <div className="table-empty">No stores found. Create your first store to get started.</div>
                 ) : (
-                    <table className="table">
+                    <table className="zu-table">
                         <thead>
                             <tr>
                                 <th>Store Name</th>

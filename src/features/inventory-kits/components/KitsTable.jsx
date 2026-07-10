@@ -12,7 +12,7 @@ export default function KitsTable({
     const panelOpen = !!selectedKit;
 
     return (
-        <div className="table-container so-table-wrap kits-table-wrap">
+        <div className="zu-table-wrapper so-table-wrap kits-table-wrap">
             <div className="table-header">
                 <h3 className="table-title">Kits ({filteredKits.length})</h3>
                 <span className="text-muted so-hint">Click a row to see components</span>
@@ -25,7 +25,7 @@ export default function KitsTable({
                         <p>No kits yet. Click "Create Kit" to add one.</p>
                     </div>
                 ) : (
-                    <table className="table kits-table">
+                    <table className="zu-table kits-table">
                         <thead>
                             <tr>
                                 {!panelOpen && <th className="col-code">Code</th>}

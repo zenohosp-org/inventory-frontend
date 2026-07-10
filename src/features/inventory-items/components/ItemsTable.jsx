@@ -26,7 +26,7 @@ export default function ItemsTable({
 }) {
     const panelOpen = selectedItemId != null;
     return (
-        <div className="table-container items-table-wrap so-table-wrap">
+        <div className="zu-table-wrapper items-table-wrap so-table-wrap">
             <div className="table-header">
                 <h3 className="table-title">Products ({filteredItems.length})</h3>
             </div>
@@ -36,7 +36,7 @@ export default function ItemsTable({
                 ) : filteredItems.length === 0 ? (
                     <div className="table-empty">No products found.</div>
                 ) : (
-                    <table className="table">
+                    <table className="zu-table">
                         <thead>
                             <tr>
                                 <th>Code</th>

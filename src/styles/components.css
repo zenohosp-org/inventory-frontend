@@ -347,51 +347,60 @@
 }
 
 /* ════════════════════════════════════════
-   TABLES
+   TABLES (HMS Standard)
    ════════════════════════════════════════ */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--fs-sm);
+.zu-table-wrapper {
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
 }
 
-.table thead {
-  background-color: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+.zu-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+    text-align: left;
+    font-family: var(--font-primary);
 }
 
-.table thead th {
-  padding: 11px var(--spacing-5);
-  text-align: left;
-  font-weight: var(--fw-semibold);
-  font-size: var(--fs-xs);
-  color: var(--color-gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  white-space: nowrap;
+.zu-table thead th {
+    background: var(--color-gray-50);
+    color: var(--color-gray-600);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--color-gray-200);
+    white-space: nowrap;
 }
 
-.table tbody td {
-  padding: 13px var(--spacing-5);
-  border-bottom: 1px solid var(--color-gray-100);
-  color: var(--color-gray-800);
-  vertical-align: middle;
+.zu-table tbody td {
+    padding: 8px 16px;
+    color: var(--color-gray-800);
+    border-bottom: 1px solid var(--color-gray-100);
+    vertical-align: middle;
+    transition: var(--transition-fast);
 }
 
-.table tbody tr:last-child td {
-  border-bottom: none;
+.zu-table tbody tr:hover td {
+    background: var(--color-gray-50);
+    color: var(--color-gray-900);
 }
 
-.table tbody tr:hover {
-  background-color: #f9f9f9;
+.zu-table-loading {
+    padding: 48px;
+    text-align: center;
+    color: var(--color-gray-400);
+    font-size: 15px;
+    font-weight: 500;
 }
 
-.table-striped tbody tr:nth-child(odd) {
-  background-color: #ffffff;
-}
-
-.table-striped tbody tr:nth-child(odd):hover {
-  background-color: #f9f9f9;
+.zu-table-loading-cell {
+    padding: 0 !important;
 }
 
 /* ════════════════════════════════════════

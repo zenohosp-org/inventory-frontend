@@ -7,7 +7,7 @@ export default function VendorsTable({
     onEdit, onDelete,
 }) {
     return (
-        <div className="table-container vendors-table-wrap">
+        <div className="zu-table-wrapper vendors-table-wrap">
             <div className="table-header">
                 <h3 className="table-title">Vendors ({vendors.length})</h3>
             </div>
@@ -17,7 +17,7 @@ export default function VendorsTable({
                 ) : vendors.length === 0 ? (
                     <div className="table-empty">No vendors found. Add your first vendor to get started.</div>
                 ) : (
-                    <table className="table">
+                    <table className="zu-table">
                         <thead>
                             <tr>
                                 <th>Vendor Name</th>

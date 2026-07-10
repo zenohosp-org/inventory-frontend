@@ -2,6 +2,7 @@ import { Users, Plus } from 'lucide-react';
 import { useVendors } from './hooks/useVendors';
 import VendorsTable from './components/VendorsTable';
 import VendorFormModal from './modals/VendorFormModal';
+import PageHeader from '../../components/PageHeader';
 import './VendorsPage.css';
 
 export default function VendorsPage() {
@@ -9,23 +10,21 @@ export default function VendorsPage() {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title">
+            <PageHeader 
+                title={
+                    <>
                         <Users size={26} />
                         Vendors Master
-                    </h1>
-                    <p className="page-subtitle">
-                        Manage suppliers and vendor information for purchase orders.
-                    </p>
-                </div>
-                <div className="page-actions">
+                    </>
+                }
+                subtitle="Manage suppliers and vendor information for purchase orders."
+                actions={
                     <button className="btn btn-primary" onClick={v.openCreateModal}>
                         <Plus size={18} />
                         Add Vendor
                     </button>
-                </div>
-            </div>
+                }
+            />
 
             <VendorsTable
                 vendors={v.vendors}

@@ -3,6 +3,7 @@ import { Layers, Plus, Edit2, Trash2, X, MoreVertical } from 'lucide-react';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../api/client';
 import { invalidate } from '../cache';
 import { useToast } from '../context/ToastContext';
+import PageHeader from '../components/PageHeader';
 
 
 export default function InventoryCategories() {
@@ -96,27 +97,24 @@ export default function InventoryCategories() {
     return (
         <div className="main-content">
             {/* Page Header */}
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title">
+            <PageHeader 
+                title={
+                    <>
                         <Layers size={26} />
                         Product Categories
-                    </h1>
-                    <p className="page-subtitle">
-                        Organize inventory items by product categories and groups.
-                    </p>
-                </div>
-
-                <div className="page-actions">
+                    </>
+                }
+                subtitle="Organize inventory items by product categories and groups."
+                actions={
                     <button className="btn btn-primary" onClick={() => handleOpenModal()}>
                         <Plus size={18} />
                         Add Category
                     </button>
-                </div>
-            </div>
+                }
+            />
 
             {/* Categories Table */}
-            <div className="table-container">
+            <div className="zu-table-wrapper">
                 <div className="table-header">
                     <h3 className="table-title">Categories ({categories.length})</h3>
                 </div>
@@ -127,7 +125,7 @@ export default function InventoryCategories() {
                     ) : categories.length === 0 ? (
                         <div className="table-empty">No categories found. Create your first category to get started.</div>
                     ) : (
-                        <table className="table">
+                        <table className="zu-table">
                             <thead>
                                 <tr>
                                     <th>Category Name</th>

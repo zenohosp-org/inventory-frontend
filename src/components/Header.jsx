@@ -1,35 +1,30 @@
-import { LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import '../styles/header.css';
+import { Bell, Menu, User } from 'lucide-react';
 
-export default function Header() {
-    const { user, logout } = useAuth();
-
-    const displayName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User';
-    const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}` || 'U';
-
+export default function Header({ onMenuClick }) {
     return (
-        <header className="inv-header">
-            <span className="inv-header-title">Inventory Management</span>
-
-            <div className="inv-header-right">
-                <div className="inv-header-divider" />
-
-                <div className="inv-header-user">
-                    <div className="inv-header-avatar">
-                        {initials.toUpperCase()}
+        <header className="zu-topnav">
+            <button
+                className="zu-topnav-burger"
+                onClick={onMenuClick}
+                aria-label="Toggle menu"
+            >
+                <Menu size={20} />
+            </button>
+            <div className="zu-topnav-title">Inventory Manager</div>
+            <div className="zu-topnav-right">
+                <button className="zu-topnav-bell" aria-label="Notifications">
+                    <Bell size={20} />
+                    <span className="zu-topnav-bell-dot"></span>
+                </button>
+                <div className="zu-topnav-divider"></div>
+                <div className="zu-topnav-user">
+                    <div className="zu-topnav-user-avatar">
+                        <User size={16} />
                     </div>
-                    <div className="inv-header-name-group">
-                        <span className="inv-header-name">{displayName}</span>
-                        <span className="inv-header-role">{user?.role}</span>
+                    <div className="zu-topnav-user-text">
+                        <span className="zu-topnav-user-name">Dr. Sarah</span>
+                        <span className="zu-topnav-user-role">Inventory Admin</span>
                     </div>
-                    <button
-                        onClick={logout}
-                        title="Logout"
-                        className="inv-header-logout-btn"
-                    >
-                        <LogOut size={16} />
-                    </button>
                 </div>
             </div>
         </header>

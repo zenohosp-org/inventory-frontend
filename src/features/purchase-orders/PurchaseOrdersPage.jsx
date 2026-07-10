@@ -6,6 +6,7 @@ import PODetailPanel from './components/PODetailPanel';
 import CreatePOModal from './modals/CreatePOModal';
 import ReceiveItemsModal from './modals/ReceiveItemsModal';
 import PayAdvanceModal from './modals/PayAdvanceModal';
+import PageHeader from '../../components/PageHeader';
 import './PurchaseOrdersPage.css';
 
 export default function PurchaseOrdersPage() {
@@ -13,19 +14,21 @@ export default function PurchaseOrdersPage() {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title">
+            <PageHeader 
+                title={
+                    <>
                         <ShoppingCart size={26} />
                         Purchase Orders
-                    </h1>
-                    <p className="page-subtitle">Create and manage purchase orders from suppliers.</p>
-                </div>
-                <button className="btn btn-primary" onClick={() => po.setShowCreateModal(true)}>
-                    <Plus size={18} />
-                    Create Purchase Order
-                </button>
-            </div>
+                    </>
+                }
+                subtitle="Create and manage purchase orders from suppliers."
+                actions={
+                    <button className="btn btn-primary" onClick={() => po.setShowCreateModal(true)}>
+                        <Plus size={18} />
+                        Create Purchase Order
+                    </button>
+                }
+            />
 
             {po.error && (
                 <div className="po-error-banner">

@@ -18,7 +18,7 @@ export default function ContractsTable({
 }) {
     const panelOpen = selectedId != null;
     return (
-        <div className="table-container contracts-table-wrap so-table-wrap">
+        <div className="zu-table-wrapper contracts-table-wrap so-table-wrap">
             <div className="table-header">
                 <h3 className="table-title">Contracts ({contracts.length})</h3>
             </div>
@@ -28,7 +28,7 @@ export default function ContractsTable({
                 ) : contracts.length === 0 ? (
                     <div className="table-empty">No contracts found. Register your first AMC/CMC contract to get started.</div>
                 ) : (
-                    <table className="table">
+                    <table className="zu-table">
                         <thead>
                             <tr>
                                 <th>Asset</th>

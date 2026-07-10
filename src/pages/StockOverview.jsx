@@ -4,6 +4,7 @@ import LogStockModal from '../components/LogStockModal';
 import ReceiveQuantityModal from '../components/ReceiveQuantityModal';
 import { getStockOverview, getCategories, getPurchaseOrders, getStockLogs, getVendors, getStockBatches, getAssets } from '../api/client';
 import { withCache } from '../cache';
+import PageHeader from '../components/PageHeader';
 import { stripHospitalPrefix } from '../utils/format';
 import './StockOverview.css';
 
@@ -143,12 +144,14 @@ export default function StockOverview() {
 
     return (
         <div className="main-content">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <h1 className="page-title"><Package size={26} /> Stock Overview</h1>
-                    <p className="page-subtitle">Monitor inventory levels and stock transactions.</p>
-                </div>
-            </div>
+            <PageHeader 
+                title={
+                    <>
+                        <Package size={26} /> Stock Overview
+                    </>
+                }
+                subtitle="Monitor inventory levels and stock transactions."
+            />
 
             {/* Filter Bar */}
             <div className="filter-bar">
@@ -190,7 +193,7 @@ export default function StockOverview() {
 
             {/* Stock Table + Detail Panel */}
             <div className="so-layout">
-                    <div className="table-container so-table-wrap">
+                    <div className="zu-table-wrapper so-table-wrap">
                         <div className="table-header">
                             <h3 className="table-title">Products ({filteredStocks.length})</h3>
                             <span className="text-muted so-hint">
@@ -208,7 +211,7 @@ export default function StockOverview() {
                                     <p className="text-xs">Create inventory items and purchase orders to populate stock data.</p>
                                 </div>
                             ) : (
-                                <table className="table">
+                                <table className="zu-table">
                                     <thead>
                                         <tr>
                                             <th>Code</th>

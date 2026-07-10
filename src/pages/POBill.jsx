@@ -2,6 +2,7 @@ import { Receipt } from 'lucide-react';
 import { getPOBills } from '../api/client';
 import { useQuery } from '../hooks/useQuery';
 import { stripHospitalPrefix } from '../utils/format';
+import PageHeader from '../components/PageHeader';
 
 const STATUS_BADGE = {
     PENDING: 'badge-error',
@@ -24,14 +25,16 @@ export default function POBill() {
 
     return (
         <div>
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title"><Receipt size={24} /> PO Bills</h1>
-                    <p className="page-subtitle">Purchase order payment summary. Use "Pay Advance" on a PO to record payments.</p>
-                </div>
-            </div>
+            <PageHeader 
+                title={
+                    <>
+                        <Receipt size={24} /> PO Bills
+                    </>
+                }
+                subtitle='Purchase order payment summary. Use "Pay Advance" on a PO to record payments.'
+            />
 
-            <div className="table-container">
+            <div className="zu-table-wrapper">
                 <div className="table-header">
                     <h3 className="table-title">Bills ({bills.length})</h3>
                 </div>
@@ -41,7 +44,7 @@ export default function POBill() {
                     ) : bills.length === 0 ? (
                         <div className="table-empty">No bills yet. Use "Pay Advance" on a PO to create one.</div>
                     ) : (
-                        <table className="table">
+                        <table className="zu-table">
                             <thead>
                                 <tr>
                                     <th>Bill #</th>
