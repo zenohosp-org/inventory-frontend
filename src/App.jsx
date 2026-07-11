@@ -21,6 +21,8 @@ const InventoryKits = lazy(() => import('./features/inventory-kits/InventoryKits
 const PurchaseOrders = lazy(() => import('./features/purchase-orders/PurchaseOrdersPage'));
 const Contracts = lazy(() => import('./features/contracts/ContractsPage'));
 const StockLog = lazy(() => import('./pages/StockLog'));
+const StockAdjustments = lazy(() => import('./pages/StockAdjustments'));
+const LowStockAlerts = lazy(() => import('./pages/LowStockAlerts'));
 
 // New pages
 const POBill = lazy(() => import('./pages/POBill'));
@@ -94,10 +96,12 @@ export default function App() {
 
                 {/* Operations */}
                 <Route path="/purchase-orders" element={<PageShell><PurchaseOrders /></PageShell>} />
-                <Route path="/stock-log" element={<PageShell><StockLog /></PageShell>} />
+                <Route path="/stock/log" element={<PageShell><StockLog /></PageShell>} />
+                <Route path="/stock/adjustments" element={<PageShell><StockAdjustments /></PageShell>} />
                 <Route path="/po-bill" element={<PageShell><POBill /></PageShell>} />
                 <Route path="/grn" element={<PageShell><GRN /></PageShell>} />
                 <Route path="/purchase-returns" element={<PageShell><PurchaseReturns /></PageShell>} />
+                <Route path="/alerts/low-stock" element={<PageShell><LowStockAlerts /></PageShell>} />
                 <Route path="/delivery-challans" element={<PageShell><DeliveryChallans /></PageShell>} />
 
                 {/* Reports */}

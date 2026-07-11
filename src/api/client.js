@@ -213,4 +213,12 @@ export const getHospitals = () => axios.get(`${DIRECTORY_API_URL}/api/directory/
 export const getHospitalByCode = (code) => axios.get(`${DIRECTORY_API_URL}/api/directory/hospitals/${code}`, { withCredentials: true });
 
 export { SSOCookieManager };
+// Adjustments
+export const getStockAdjustments = () => api.get('/api/stock-adjustments');
+export const createStockAdjustment = (data) => api.post('/api/stock-adjustments', data);
+
+// Alerts
+export const getLowStockAlerts = () => api.get('/api/alerts/low-stock');
+export const autoGeneratePOs = (itemIds) => api.post('/api/alerts/auto-po', itemIds);
+
 export default api;

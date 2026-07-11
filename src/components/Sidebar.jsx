@@ -15,7 +15,7 @@ export default function Sidebar({ isOpen, onToggle }) {
         location.pathname === '/stock-overview' || location.pathname === '/stock-log'
     );
     const [purchaseOpen, setPurchaseOpen] = useState(
-        ['/vendors', '/purchase-orders', '/po-bill', '/grn', '/contracts'].includes(location.pathname)
+        ['/vendors', '/purchase-orders', '/po-bill', '/grn', '/contracts', '/alerts/low-stock'].includes(location.pathname)
     );
     const [settingsOpen, setSettingsOpen] = useState(
         ['/item-types', '/inventory-categories', '/vendors', '/stores'].includes(location.pathname)
@@ -100,6 +100,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                                 {purchaseOpen && (
                                     <ul className="sidebar-submenu">
                                         <NavLink to="/purchase-orders" label="Purchase Orders" />
+                                        <NavLink to="/alerts/low-stock" label="Low Stock Alerts" />
                                         <NavLink to="/grn" label="GRN" />
                                         <NavLink to="/po-bill" label="PO Bills" />
                                         <NavLink to="/purchase-returns" label="Purchase Returns" />
@@ -131,7 +132,8 @@ export default function Sidebar({ isOpen, onToggle }) {
                                 {invOpen && (
                                     <ul className="sidebar-submenu">
                                         <NavLink to="/stock-overview" label="Stock Overview" />
-                                        <NavLink to="/stock-log" label="Stock Log" />
+                                        <NavLink to="/stock/adjustments" label="Stock Adjustments" />
+                                        <NavLink to="/stock/log" label="Stock Log" />
                                     </ul>
                                 )}
                             </>
