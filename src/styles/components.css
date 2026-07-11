@@ -361,7 +361,7 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 14px;
+    font-size: 13px;
     text-align: left;
     font-family: var(--font-primary);
 }
@@ -802,7 +802,7 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   font-family: var(--font-primary);
   color: #64748b;
@@ -1324,7 +1324,7 @@
   padding: 10px 16px;
   background: transparent;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
   border: none;
   cursor: pointer;
   transition: all 150ms ease;

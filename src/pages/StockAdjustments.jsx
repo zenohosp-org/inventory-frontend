@@ -3,7 +3,7 @@ import {
     getStockAdjustments, 
     createStockAdjustment, 
     getStores, 
-    getInventoryItems, 
+    getItems, 
     getStockBatches 
 } from '../api/client';
 import { RefreshCw, Plus, PackageOpen } from 'lucide-react';
@@ -48,7 +48,7 @@ const StockAdjustments = () => {
         try {
             const [storesRes, itemsRes] = await Promise.all([
                 getStores(),
-                getInventoryItems()
+                getItems()
             ]);
             setStores(storesRes.data);
             setItems(itemsRes.data);

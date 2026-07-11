@@ -28,7 +28,7 @@
 }
 
 .inv-header-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #334155;
   flex: 1;
@@ -111,7 +111,7 @@
 }
 
 .inv-header-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #0f172a;
   line-height: 1.25;

@@ -9,6 +9,7 @@ const LowStockAlerts = () => {
     const [loading, setLoading] = useState(true);
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [generating, setGenerating] = useState(false);
+    const [filterCategory, setFilterCategory] = useState('All');
     const navigate = useNavigate();
 
     const fetchAlerts = async () => {
@@ -37,11 +38,24 @@ const LowStockAlerts = () => {
         setSelectedItems(newSet);
     };
 
+    const getCategory = (billingGroup) => {
+        if (billingGroup === 'PHARMACY') return 'Pharmacy';
+        if (billingGroup === 'ASSET') return 'Asset';
+        return 'Hospital';
+    };
+
+    const displayedAlerts = alerts.filter(a => {
+        if (filterCategory === 'All') return true;
+        return getCategory(a.billingGroup) === filterCategory;
+    });
+
+    const validAlerts = displayedAlerts.filter(a => a.preferredVendorId);
+
     const toggleSelectAll = () => {
-        if (selectedItems.size === alerts.filter(a => a.preferredVendorId).length) {
+        if (selectedItems.size === validAlerts.length && validAlerts.length > 0) {
             setSelectedItems(new Set());
         } else {
-            setSelectedItems(new Set(alerts.filter(a => a.preferredVendorId).map(a => a.itemId)));
+            setSelectedItems(new Set(validAlerts.map(a => a.itemId)));
         }
     };
 
@@ -58,7 +72,7 @@ const LowStockAlerts = () => {
         setGenerating(false);
     };
 
-    const validAlerts = alerts.filter(a => a.preferredVendorId);
+    const tabs = ['All', 'Hospital', 'Pharmacy', 'Asset'];
 
     return (
         <div>
@@ -98,10 +112,30 @@ const LowStockAlerts = () => {
                 </div>
             ) : (
                 <div className="table-container">
-                    <div className="table-header">
-                        <h3 className="table-title">
-                            Low Stock Items
-                        </h3>
+                    <div className="table-header" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', width: '100%' }}>
+                            {tabs.map(tab => {
+                                const count = tab === 'All' ? alerts.length : alerts.filter(a => getCategory(a.billingGroup) === tab).length;
+                                return (
+                                    <button
+                                        key={tab}
+                                        onClick={() => { setFilterCategory(tab); setSelectedItems(new Set()); }}
+                                        style={{
+                                            padding: '12px 16px',
+                                            background: 'none',
+                                            border: 'none',
+                                            borderBottom: filterCategory === tab ? '2px solid #1e293b' : '2px solid transparent',
+                                            color: filterCategory === tab ? '#1e293b' : '#64748b',
+                                            fontWeight: filterCategory === tab ? '600' : '500',
+                                            cursor: 'pointer',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        {tab} ({count})
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                     <div className="zu-table-wrapper">
                         <table className="zu-table">
@@ -121,7 +155,13 @@ const LowStockAlerts = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {alerts.map((alert) => {
+                                {displayedAlerts.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                                            No {filterCategory !== 'All' ? filterCategory : ''} items are below reorder level.
+                                        </td>
+                                    </tr>
+                                ) : displayedAlerts.map((alert) => {
                                     const hasVendor = !!alert.preferredVendorId;
                                     const isSelected = selectedItems.has(alert.itemId);
                                     return (
