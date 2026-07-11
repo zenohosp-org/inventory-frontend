@@ -877,7 +877,6 @@
    TEXT UTILITIES
    ════════════════════════════════════════ */
 .mono {
-  font-family: var(--font-mono);
 }
 
 .text-danger {
@@ -969,7 +968,6 @@
 
 /* Mono code cell (table) */
 .mono-sm {
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--color-gray-500);
 }
