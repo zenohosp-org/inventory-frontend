@@ -102,6 +102,8 @@ export default function Sidebar({ isOpen, onToggle }) {
                                         <NavLink to="/purchase-orders" label="Purchase Orders" />
                                         <NavLink to="/grn" label="GRN" />
                                         <NavLink to="/po-bill" label="PO Bills" />
+                                        <NavLink to="/purchase-returns" label="Purchase Returns" />
+                                        <NavLink to="/delivery-challans" label="Delivery Challans" />
                                         <NavLink to="/contracts" label="Contracts (AMC/CMC)" />
                                     </ul>
                                 )}

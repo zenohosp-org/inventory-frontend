@@ -26,12 +26,17 @@ const StockLog = lazy(() => import('./pages/StockLog'));
 const POBill = lazy(() => import('./pages/POBill'));
 const StoreDetail = lazy(() => import('./pages/StoreDetail'));
 const GRN = lazy(() => import('./pages/GRN'));
+const PurchaseReturns = lazy(() => import('./pages/PurchaseReturns'));
+const DeliveryChallans = lazy(() => import('./pages/DeliveryChallans'));
 
 // Reports
 const ReportsIndex = lazy(() => import('./pages/reports/ReportsIndex'));
 const StockValuation = lazy(() => import('./pages/reports/StockValuation'));
 const NearExpiry = lazy(() => import('./pages/reports/NearExpiry'));
 const PriceVariance = lazy(() => import('./pages/reports/PriceVariance'));
+const VendorPerformance = lazy(() => import('./pages/reports/VendorPerformance'));
+const POAging = lazy(() => import('./pages/reports/POAging'));
+const DeadStock = lazy(() => import('./pages/reports/DeadStock'));
 
 /**
  * Wraps a lazy-loaded page with the Layout (sidebar + header) plus an inner
@@ -92,12 +97,17 @@ export default function App() {
                 <Route path="/stock-log" element={<PageShell><StockLog /></PageShell>} />
                 <Route path="/po-bill" element={<PageShell><POBill /></PageShell>} />
                 <Route path="/grn" element={<PageShell><GRN /></PageShell>} />
+                <Route path="/purchase-returns" element={<PageShell><PurchaseReturns /></PageShell>} />
+                <Route path="/delivery-challans" element={<PageShell><DeliveryChallans /></PageShell>} />
 
                 {/* Reports */}
                 <Route path="/reports" element={<PageShell><ReportsIndex /></PageShell>} />
                 <Route path="/reports/stock-valuation" element={<PageShell><StockValuation /></PageShell>} />
                 <Route path="/reports/near-expiry" element={<PageShell><NearExpiry /></PageShell>} />
                 <Route path="/reports/price-variance" element={<PageShell><PriceVariance /></PageShell>} />
+                <Route path="/reports/vendor-performance" element={<PageShell><VendorPerformance /></PageShell>} />
+                <Route path="/reports/po-aging" element={<PageShell><POAging /></PageShell>} />
+                <Route path="/reports/dead-stock" element={<PageShell><DeadStock /></PageShell>} />
 
                 <Route path="/" element={<Navigate to="/dashboard" />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Package, AlertCircle, Clock, AlertTriangle, Plus, PieChart as PieIcon, Activity } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import LogStockModal from '../components/LogStockModal';
 import { getStockOverview, getStockLogs, getExpiryAlerts } from '../api/client';
 import { stripHospitalPrefix } from '../utils/format';
@@ -35,13 +35,33 @@ const Dashboard = () => {
     const [showLogModal, setShowLogModal] = useState(false);
     const [selectedStock, setSelectedStock] = useState(null);
 
-    const categoryData = useMemo(() => {
-        const counts = {};
+    const stockHealthData = useMemo(() => {
+        let optimal = 0;
+        let caution = 0;
+        let low = 0;
+        let outOfStock = 0;
+
         stocks.forEach(s => {
-            const cat = s.categoryName || 'Uncategorized';
-            counts[cat] = (counts[cat] || 0) + 1;
+            const avail = s.quantityAvail || 0;
+            const reorder = s.reorderLevel || 0;
+            if (avail === 0) {
+                outOfStock++;
+            } else if (avail <= reorder) {
+                low++;
+            } else if (avail <= reorder * 1.5) {
+                caution++;
+            } else {
+                optimal++;
+            }
         });
-        return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
+
+        const data = [];
+        if (optimal > 0) data.push({ name: 'Healthy', value: optimal, color: '#10b981' }); // success
+        if (caution > 0) data.push({ name: 'Caution', value: caution, color: '#f59e0b' }); // warning
+        if (low > 0) data.push({ name: 'Low Stock', value: low, color: '#ef4444' }); // error
+        if (outOfStock > 0) data.push({ name: 'Out of Stock', value: outOfStock, color: '#94a3b8' }); // gray
+
+        return data;
     }, [stocks]);
 
     const transactionData = useMemo(() => {
@@ -166,23 +186,24 @@ const Dashboard = () => {
 
                 <div className="table-container" style={{ display: 'flex', flexDirection: 'column' }}>
                     <div className="table-header">
-                        <h3 className="table-title"><PieIcon size={18} /> Stock by Category</h3>
+                        <h3 className="table-title"><Activity size={18} /> Stock Health</h3>
                     </div>
                     <div style={{ padding: '20px', height: '240px' }}>
-                        {categoryData.length > 0 ? (
+                        {stockHealthData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
-                                    <Pie data={categoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
-                                        {categoryData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    <Pie data={stockHealthData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
+                                        {stockHealthData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
                                     <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
                                 </PieChart>
                             </ResponsiveContainer>
                         ) : (
                             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-gray-500)' }}>
-                                No category data
+                                No stock data
                             </div>
                         )}
                     </div>

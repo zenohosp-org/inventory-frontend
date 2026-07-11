@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Wallet, AlertTriangle, ArrowLeftRight } from 'lucide-react';
+import { Wallet, AlertTriangle, ArrowLeftRight, Truck, PackageX, Clock } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import './reports.css';
 
@@ -21,6 +21,24 @@ const REPORTS = [
         icon: ArrowLeftRight,
         title: 'Price Variance',
         desc: 'How much you’ve paid for each item across purchase orders',
+    },
+    {
+        to: '/reports/vendor-performance',
+        icon: Truck,
+        title: 'Vendor Performance',
+        desc: 'Spend and on-time delivery record by vendor',
+    },
+    {
+        to: '/reports/po-aging',
+        icon: Clock,
+        title: 'PO Aging',
+        desc: 'Orders placed but not yet fully received, sorted by how overdue',
+    },
+    {
+        to: '/reports/dead-stock',
+        icon: PackageX,
+        title: 'Dead Stock',
+        desc: 'Stock on hand with no outbound movement in a while',
     },
 ];
 

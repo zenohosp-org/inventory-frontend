@@ -114,6 +114,8 @@ export const getStockOverview = () => api.get('/api/inventory/stock-overview');
 export const getExpiryAlerts = (days) => api.get('/api/inventory/expiry-alerts', { params: days ? { days } : {} });
 export const getStockValuation = () => api.get('/api/inventory/stock-valuation');
 export const getPriceVariance = () => api.get('/api/inventory/price-variance');
+export const getVendorPerformance = () => api.get('/api/inventory/vendor-performance');
+export const getDeadStock = (days) => api.get('/api/inventory/dead-stock', { params: days ? { days } : {} });
 export const getAssetSyncLogs = (status) => api.get('/api/inventory/asset-sync-logs', { params: status ? { status } : {} });
 export const retryAssetSync = (poId) => api.post(`/api/inventory/po/${poId}/retry-asset-sync`);
 export const getStockBatches = (storeId, itemId) => api.get('/api/inventory/stock-batches', { params: { storeId, itemId } });
@@ -155,6 +157,19 @@ export const getStockOverviewWithPOs = () =>
 // ── PO Bills ──
 export const getPOBills = (params) => api.get('/api/po-bills', { params });
 export const getPOBillById = (billId) => api.get(`/api/po-bills/${billId}`);
+
+// ── Purchase Returns ──
+export const getPurchaseReturns = (params) => api.get('/api/purchase-returns', { params });
+export const getPurchaseReturnById = (id) => api.get(`/api/purchase-returns/${id}`);
+export const createDraftPurchaseReturn = (grnId) => api.post('/api/purchase-returns/draft', null, { params: { grnId } });
+export const savePurchaseReturnItems = (id, items) => api.put(`/api/purchase-returns/${id}/items`, items);
+export const confirmPurchaseReturn = (id) => api.post(`/api/purchase-returns/${id}/confirm`);
+export const getDeliveryChallan = (id) => api.get(`/api/purchase-returns/${id}/delivery-challan`);
+export const deleteDraftPurchaseReturn = (id) => api.delete(`/api/purchase-returns/${id}`);
+export const getVendorDebitNotes = (vendorId) => api.get('/api/purchase-returns/integration/vendor-debit-notes', { params: { vendorId } });
+
+// ── Delivery Challans ──
+export const getDeliveryChallans = () => api.get('/api/delivery-challans');
 
 // ── Pay Vendor (atomic: posts the Finance DEBIT and marks the bill in one server-side saga) ──
 export const payVendorPO = (poId, data) =>
