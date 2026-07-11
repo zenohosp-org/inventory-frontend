@@ -200,7 +200,6 @@
 
 .table-body {
   overflow-x: auto;
-  padding: var(--spacing-4);
 }
 
 .table-footer {

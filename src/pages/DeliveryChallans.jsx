@@ -168,13 +168,12 @@ export default function DeliveryChallans() {
     };
 
     return (
-        <div>
+        <div className="zu-page">
             <PageHeader 
                 title="Delivery Challans" 
                 subtitle={view === 'list' ? "Manage all dispatch and transport documents" : `Viewing ${activeChallan?.challanNumber}`}
             />
-            {view === 'list' && renderList()}
-            {view === 'print' && renderPrintView()}
+            {view === 'list' ? renderList() : renderPrintView()}
         </div>
     );
 }

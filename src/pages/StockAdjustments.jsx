@@ -110,7 +110,7 @@ const StockAdjustments = () => {
     };
 
     return (
-        <div>
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>

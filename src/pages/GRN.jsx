@@ -65,7 +65,7 @@ export default function GRN() {
     const panelGroup = panelKey ? groupedByPo.find(g => g.key === panelKey) : null;
 
     return (
-        <div>
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>
@@ -78,7 +78,7 @@ export default function GRN() {
             <div className="zu-page-content">
                 <div className="filter-bar">
                     <div className="filter-group flex-1">
-                        <div className="search-bar grn-search">
+                        <div className="search-bar">
                             <Search size={16} />
                             <input
                                 type="text"
@@ -87,6 +87,9 @@ export default function GRN() {
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="search-bar-input"
                             />
+                            {search && (
+                                <button className="search-bar-clear" onClick={() => setSearch('')}>×</button>
+                            )}
                         </div>
                     </div>
                 </div>

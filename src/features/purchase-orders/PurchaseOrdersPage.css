@@ -413,46 +413,6 @@
     color: var(--color-gray-900);
 }
 
-/* ── Search bar in table header ── */
-.po-search {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.po-search-icon {
-    position: absolute;
-    left: 10px;
-    color: var(--color-gray-400);
-    pointer-events: none;
-}
-
-.po-search-input {
-    padding: 6px 28px 6px 30px;
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-    font-size: var(--fs-sm);
-    width: 240px;
-    outline: none;
-    background: #fff;
-}
-
-.po-search-input:focus {
-    border-color: var(--color-primary, #2563eb);
-}
-
-.po-search-clear {
-    position: absolute;
-    right: 6px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--color-gray-500);
-    font-size: 18px;
-    line-height: 1;
-    padding: 2px 6px;
-}
-
 /* ── PO detail panel: card content styles ──
    Card chrome (background, border, shadow) is provided by shared .so-card / .so-panel-*
    in src/styles/detail-panel.css. Only PO-specific bits live here. */

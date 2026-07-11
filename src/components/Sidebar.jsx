@@ -12,10 +12,10 @@ export default function Sidebar({ isOpen, onToggle }) {
     const location = useLocation();
 
     const [invOpen, setInvOpen] = useState(
-        location.pathname === '/stock-overview' || location.pathname === '/stock-log'
+        location.pathname === '/stock-overview' || location.pathname === '/stock/log' || location.pathname === '/stock/adjustments' || location.pathname === '/alerts/low-stock' || location.pathname === '/indents' || location.pathname === '/stock-issues'
     );
     const [purchaseOpen, setPurchaseOpen] = useState(
-        ['/vendors', '/purchase-orders', '/po-bill', '/grn', '/contracts', '/alerts/low-stock'].includes(location.pathname)
+        ['/purchase-orders', '/po-bill', '/grn', '/contracts', '/purchase-returns', '/delivery-challans'].includes(location.pathname)
     );
     const [settingsOpen, setSettingsOpen] = useState(
         ['/item-types', '/inventory-categories', '/vendors', '/stores'].includes(location.pathname)
@@ -100,7 +100,6 @@ export default function Sidebar({ isOpen, onToggle }) {
                                 {purchaseOpen && (
                                     <ul className="sidebar-submenu">
                                         <NavLink to="/purchase-orders" label="Purchase Orders" />
-                                        <NavLink to="/alerts/low-stock" label="Low Stock Alerts" />
                                         <NavLink to="/grn" label="GRN" />
                                         <NavLink to="/po-bill" label="PO Bills" />
                                         <NavLink to="/purchase-returns" label="Purchase Returns" />
@@ -132,8 +131,11 @@ export default function Sidebar({ isOpen, onToggle }) {
                                 {invOpen && (
                                     <ul className="sidebar-submenu">
                                         <NavLink to="/stock-overview" label="Stock Overview" />
+                                        <NavLink to="/alerts/low-stock" label="Low Stock Alerts" />
                                         <NavLink to="/stock/adjustments" label="Stock Adjustments" />
                                         <NavLink to="/stock/log" label="Stock Log" />
+                                        <NavLink to="/indents" label="Ward Indents" />
+                                        <NavLink to="/stock-issues" label="Stock Issues" />
                                     </ul>
                                 )}
                             </>

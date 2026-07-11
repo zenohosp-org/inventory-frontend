@@ -30,6 +30,8 @@ const StoreDetail = lazy(() => import('./pages/StoreDetail'));
 const GRN = lazy(() => import('./pages/GRN'));
 const PurchaseReturns = lazy(() => import('./pages/PurchaseReturns'));
 const DeliveryChallans = lazy(() => import('./pages/DeliveryChallans'));
+const Indents = lazy(() => import('./features/indents/IndentsPage'));
+const StockIssues = lazy(() => import('./features/issues/StockIssuesPage'));
 
 // Reports
 const ReportsIndex = lazy(() => import('./pages/reports/ReportsIndex'));
@@ -101,8 +103,10 @@ export default function App() {
                 <Route path="/po-bill" element={<PageShell><POBill /></PageShell>} />
                 <Route path="/grn" element={<PageShell><GRN /></PageShell>} />
                 <Route path="/purchase-returns" element={<PageShell><PurchaseReturns /></PageShell>} />
-                <Route path="/alerts/low-stock" element={<PageShell><LowStockAlerts /></PageShell>} />
                 <Route path="/delivery-challans" element={<PageShell><DeliveryChallans /></PageShell>} />
+                <Route path="/indents" element={<PageShell><Indents /></PageShell>} />
+                <Route path="/stock-issues" element={<PageShell><StockIssues /></PageShell>} />
+                <Route path="/alerts/low-stock" element={<PageShell><LowStockAlerts /></PageShell>} />
 
                 {/* Reports */}
                 <Route path="/reports" element={<PageShell><ReportsIndex /></PageShell>} />

@@ -75,7 +75,7 @@ const LowStockAlerts = () => {
     const tabs = ['All', 'Hospital', 'Pharmacy', 'Asset'];
 
     return (
-        <div>
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>

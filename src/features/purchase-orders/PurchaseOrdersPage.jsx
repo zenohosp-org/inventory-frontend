@@ -45,17 +45,17 @@ export default function PurchaseOrdersPage() {
 
             <div className="filter-bar" style={{ marginBottom: 'var(--spacing-4)' }}>
                 <div className="filter-group flex-1">
-                    <div className="search-bar po-search">
-                        <Search size={14} className="po-search-icon" />
+                    <div className="search-bar">
+                        <Search size={16} />
                         <input
                             type="text"
                             placeholder="Search PO, vendor, store..."
                             value={po.searchQuery}
                             onChange={(e) => po.setSearchQuery(e.target.value)}
-                            className="search-bar-input po-search-input"
+                            className="search-bar-input"
                         />
                         {po.searchQuery && (
-                            <button className="po-search-clear" onClick={() => po.setSearchQuery('')}>×</button>
+                            <button className="search-bar-clear" onClick={() => po.setSearchQuery('')}>×</button>
                         )}
                     </div>
                 </div>

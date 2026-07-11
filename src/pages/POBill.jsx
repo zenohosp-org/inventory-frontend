@@ -24,7 +24,7 @@ export default function POBill() {
     }, [poBillsRaw]);
 
     return (
-        <div>
+        <div className="zu-page">
             <PageHeader 
                 title={
                     <>

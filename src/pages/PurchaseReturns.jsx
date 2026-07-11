@@ -611,7 +611,7 @@ export default function PurchaseReturns() {
     };
 
     return (
-        <div>
+        <div className="zu-page">
             {confirmState && (
                 <ConfirmModal 
                     title={confirmState.title}

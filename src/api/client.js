@@ -182,6 +182,9 @@ if (isMockAuth) hmsApi.interceptors.request.use(attachMockJwt);
 export const getHmsInfrastructure = (hospitalId) =>
     hmsApi.get(`/api/ipd/infrastructure?hospitalId=${hospitalId}`);
 
+// Proxy endpoint on inventory backend to fetch flat list of wards from shared DB
+export const getHmsWards = () => api.get('/api/inventory/hms/wards');
+
 // ── Finance API (bank accounts for Pay Advance modal) ──
 export const FINANCE_API_URL = import.meta.env?.VITE_FINANCE_API_URL || 'http://localhost:8083';
 const financeApi = axios.create({ baseURL: FINANCE_API_URL, withCredentials: true });
@@ -216,6 +219,23 @@ export { SSOCookieManager };
 // Adjustments
 export const getStockAdjustments = () => api.get('/api/stock-adjustments');
 export const createStockAdjustment = (data) => api.post('/api/stock-adjustments', data);
+
+// ── Indents ──
+export const getIndents = () => api.get('/api/inventory/indents');
+export const getIndentById = (id) => api.get(`/api/inventory/indents/${id}`);
+export const createDraftIndent = (data) => api.post('/api/inventory/indents', data);
+export const updateDraftIndent = (id, data) => api.put(`/api/inventory/indents/${id}`, data);
+export const submitIndent = (id) => api.post(`/api/inventory/indents/${id}/submit`);
+export const cancelIndent = (id) => api.post(`/api/inventory/indents/${id}/cancel`);
+export const approveIndent = (id) => api.post(`/api/inventory/indents/${id}/approve`);
+export const rejectIndent = (id, data) => api.post(`/api/inventory/indents/${id}/reject`, data);
+export const shortCloseIndent = (id, data) => api.post(`/api/inventory/indents/${id}/short-close`, data);
+
+// ── Stock Issues ──
+export const getStockIssues = () => api.get('/api/inventory/issues');
+export const getStockIssueById = (id) => api.get(`/api/inventory/issues/${id}`);
+export const createDraftIssue = (data) => api.post('/api/inventory/issues', data);
+export const confirmIssue = (id) => api.post(`/api/inventory/issues/${id}/confirm`);
 
 // Alerts
 export const getLowStockAlerts = () => api.get('/api/alerts/low-stock');
