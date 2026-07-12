@@ -5,3 +5,14 @@
 @import './styles/layouts.css';
 @import './styles/detail-panel.css';
 @import './styles/skeleton.css';
+/* Remove native number-input spinner controls (the up/down "roller") */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
