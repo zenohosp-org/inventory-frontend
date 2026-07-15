@@ -1,8 +1,10 @@
 node_modules/
 dist/
 
-### Environment (local overrides only — .env and .env.production are committed) ###
-*.local
+### Environment ###
+.env
+.env.*
+!.env.example
 
 ### Logs ###
 *.log
