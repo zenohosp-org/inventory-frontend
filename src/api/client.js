@@ -1,5 +1,6 @@
 import axios from 'axios';
 import SSOCookieManager from '../utils/ssoManager';
+import { DEV_MOCK_AUTH } from '../utils/devMockAuth';
 
 export const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || (import.meta.env?.DEV ? '' : 'https://api-inventory.zenohosp.com');
 export const DIRECTORY_API_URL = import.meta.env?.VITE_DIRECTORY_API_URL || 'https://api-directory.zenohosp.com';
@@ -47,7 +48,7 @@ const attachMockJwt = (config) => {
     config.headers.Authorization = `Bearer ${import.meta.env.VITE_MOCK_JWT}`;
     return config;
 };
-const isMockAuth = import.meta.env.VITE_DEV_MOCK_AUTH === 'true' && import.meta.env.VITE_MOCK_JWT;
+const isMockAuth = DEV_MOCK_AUTH && import.meta.env.VITE_MOCK_JWT;
 if (isMockAuth) {
     api.interceptors.request.use(attachMockJwt);
 }
