@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { stripHospitalPrefix } from '../../../utils/format';
 
@@ -6,6 +7,10 @@ export default function KitFormModal({
     items, submitting,
     onSubmit, onClose,
 }) {
+    // Index of the component row whose item dropdown is open (focus-driven).
+    // Without this the dropdown rendered for every unselected row at once.
+    const [openDropdownIdx, setOpenDropdownIdx] = useState(null);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -36,6 +41,7 @@ export default function KitFormModal({
         const next = [...formData.components];
         next[idx] = { ...next[idx], itemId: selectedItem.id, itemSearch: selectedItem.name };
         setFormData(prev => ({ ...prev, components: next }));
+        setOpenDropdownIdx(null);
     };
 
     const clearItem = (idx) => {
@@ -103,6 +109,8 @@ export default function KitFormModal({
                                                     type="text"
                                                     value={comp.itemSearch || ''}
                                                     onChange={(e) => handleComponentChange(idx, 'itemSearch', e.target.value)}
+                                                    onFocus={() => setOpenDropdownIdx(idx)}
+                                                    onBlur={() => setOpenDropdownIdx(null)}
                                                     placeholder="Search by name or code..."
                                                     autoComplete="off"
                                                     style={{
@@ -111,7 +119,7 @@ export default function KitFormModal({
                                                         paddingRight: isSelected ? '32px' : undefined,
                                                     }}
                                                 />
-                                                {!isSelected && filtered.length > 0 && (
+                                                {openDropdownIdx === idx && !isSelected && filtered.length > 0 && (
                                                     <div style={{
                                                         position: 'absolute', top: '100%', left: 0, right: 0,
                                                         background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px',
@@ -138,15 +146,17 @@ export default function KitFormModal({
                                                                         <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>{item.name}</div>
                                                                         <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{stripHospitalPrefix(item.code)}</div>
                                                                     </div>
-                                                                    <div style={{ fontSize: '0.75rem', color: '#64748b', minWidth: '60px', textAlign: 'right' }}>
-                                                                        {usedElsewhere ? '⚠️ Used' : '✓'}
-                                                                    </div>
+                                                                    {usedElsewhere && (
+                                                                        <div style={{ fontSize: '0.75rem', color: '#d97706', minWidth: '60px', textAlign: 'right' }}>
+                                                                            ⚠️ Used
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         })}
                                                     </div>
                                                 )}
-                                                {comp.itemSearch && !isSelected && filtered.length === 0 && (
+                                                {openDropdownIdx === idx && comp.itemSearch && !isSelected && filtered.length === 0 && (
                                                     <div style={{
                                                         position: 'absolute', top: '100%', left: 0, right: 0,
                                                         background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px',

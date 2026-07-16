@@ -81,7 +81,7 @@ export function useInventoryKits() {
             patientBillingPrice: kit.patientBillingPrice || '',
             insuranceBillingPrice: kit.insuranceBillingPrice || '',
             components: (kit.components || []).map(c => ({
-                itemId: c.item?.id || '',
+                itemId: c.itemId || c.item?.id || '',
                 itemSearch: c.itemName || c.item?.name || '',
                 quantity: c.quantity || '',
             })),

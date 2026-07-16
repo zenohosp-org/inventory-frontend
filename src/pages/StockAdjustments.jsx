@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    getStockAdjustments, 
-    createStockAdjustment, 
-    getStores, 
-    getItems, 
-    getStockBatches 
+import {
+    getStockAdjustments,
+    createStockAdjustment,
+    getStores,
+    getItems,
+    getStockBatches
 } from '../api/client';
-import { RefreshCw, Plus, PackageOpen } from 'lucide-react';
+import { Plus, PackageOpen, X } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import { useToast } from '../context/ToastContext';
 
 const StockAdjustments = () => {
+    const { toast } = useToast();
     const [adjustments, setAdjustments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -63,14 +65,11 @@ const StockAdjustments = () => {
             return;
         }
         try {
-            // Reusing getStockBatches but we might need to filter by store/item
-            const res = await getStockBatches(); 
-            // In a real scenario, this would take storeId and itemId as params
-            // Filtering on frontend for now
-            const filtered = res.data.filter(b => b.storeId === storeId && b.itemId === itemId);
-            setBatches(filtered);
+            const res = await getStockBatches(storeId, itemId);
+            setBatches(Array.isArray(res.data) ? res.data : []);
         } catch (error) {
             console.error("Error fetching batches:", error);
+            setBatches([]);
         }
     };
 
@@ -85,6 +84,19 @@ const StockAdjustments = () => {
         }
     };
 
+    const closeModal = () => {
+        setShowModal(false);
+        setBatches([]);
+        setFormData({
+            storeId: '',
+            inventoryItemId: '',
+            batchNumber: '',
+            actualQty: '',
+            reason: 'SHRINKAGE',
+            remarks: ''
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -93,18 +105,11 @@ const StockAdjustments = () => {
                 ...formData,
                 actualQty: parseInt(formData.actualQty)
             });
-            setShowModal(false);
-            setFormData({
-                storeId: '',
-                inventoryItemId: '',
-                batchNumber: '',
-                actualQty: '',
-                reason: 'SHRINKAGE',
-                remarks: ''
-            });
+            closeModal();
             fetchData();
+            toast.success('Adjustment posted');
         } catch (error) {
-            alert(error.response?.data?.message || 'Error creating adjustment');
+            toast.error(error.response?.data?.message || 'Error creating adjustment');
         }
         setSubmitting(false);
     };
@@ -135,9 +140,7 @@ const StockAdjustments = () => {
             <div className="zu-page-content">
 
             {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <RefreshCw className="w-8 h-8 text-slate-800 animate-spin" />
-                </div>
+                <div className="table-empty"><div className="spinner"></div></div>
             ) : adjustments.length === 0 ? (
                 <div className="empty-state">
                     <PackageOpen size={48} className="empty-state-icon" style={{ color: '#9ca3af' }} />
@@ -190,121 +193,114 @@ const StockAdjustments = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-                        <button 
-                            onClick={() => setShowModal(false)}
-                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
-                        >
-                            ✕
-                        </button>
-                        
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">New Stock Adjustment</h2>
-                        
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Store</label>
-                                <select 
-                                    name="storeId" 
-                                    value={formData.storeId} 
-                                    onChange={handleFormChange}
-                                    required
-                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800/20 focus:border-slate-800 transition-colors"
-                                >
-                                    <option value="">Select Store</option>
-                                    {stores.map(s => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                <div className="modal-overlay active">
+                    <div className="modal" style={{ maxWidth: '520px' }}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">New Stock Adjustment</h2>
+                            <button className="modal-close" onClick={closeModal}><X size={18} /></button>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label className="form-label">Store *</label>
+                                    <select
+                                        className="form-select"
+                                        name="storeId"
+                                        value={formData.storeId}
+                                        onChange={handleFormChange}
+                                        required
+                                    >
+                                        <option value="">Select Store</option>
+                                        {stores.map(s => (
+                                            <option key={s.id} value={s.id}>{s.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Item</label>
-                                <select 
-                                    name="inventoryItemId" 
-                                    value={formData.inventoryItemId} 
-                                    onChange={handleFormChange}
-                                    required
-                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800/20 focus:border-slate-800 transition-colors"
-                                >
-                                    <option value="">Select Item</option>
-                                    {items.map(i => (
-                                        <option key={i.id} value={i.id}>{i.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                                <div className="form-group">
+                                    <label className="form-label">Item *</label>
+                                    <select
+                                        className="form-select"
+                                        name="inventoryItemId"
+                                        value={formData.inventoryItemId}
+                                        onChange={handleFormChange}
+                                        required
+                                    >
+                                        <option value="">Select Item</option>
+                                        {items.map(i => (
+                                            <option key={i.id} value={i.id}>{i.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
-                                <select 
-                                    name="batchNumber" 
-                                    value={formData.batchNumber} 
-                                    onChange={handleFormChange}
-                                    required
-                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800/20 focus:border-slate-800 transition-colors"
-                                >
-                                    <option value="">Select Batch</option>
-                                    {batches.map(b => (
-                                        <option key={b.id} value={b.batchNumber}>{b.batchNumber} (Current: {b.quantityAvailable})</option>
-                                    ))}
-                                </select>
-                            </div>
+                                <div className="form-group">
+                                    <label className="form-label">Batch *</label>
+                                    <select
+                                        className="form-select"
+                                        name="batchNumber"
+                                        value={formData.batchNumber}
+                                        onChange={handleFormChange}
+                                        required
+                                        disabled={!formData.storeId || !formData.inventoryItemId}
+                                    >
+                                        <option value="">
+                                            {!formData.storeId || !formData.inventoryItemId
+                                                ? 'Select store and item first'
+                                                : batches.length === 0 ? 'No batches with stock' : 'Select Batch'}
+                                        </option>
+                                        {batches.map(b => (
+                                            <option key={b.id} value={b.batchNumber}>
+                                                {b.batchNumber} (Current: {b.quantityAvailable})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Actual Physical Quantity</label>
-                                <input 
-                                    type="number" 
-                                    name="actualQty"
-                                    value={formData.actualQty}
-                                    onChange={handleFormChange}
-                                    required
-                                    min="0"
-                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800/20 focus:border-slate-800 transition-colors"
-                                    placeholder="Enter counted quantity"
-                                />
-                            </div>
+                                <div className="form-group">
+                                    <label className="form-label">Actual Physical Quantity *</label>
+                                    <input
+                                        className="form-input"
+                                        type="number"
+                                        name="actualQty"
+                                        value={formData.actualQty}
+                                        onChange={handleFormChange}
+                                        required
+                                        min="0"
+                                        placeholder="Enter counted quantity"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-                                <select 
-                                    name="reason" 
-                                    value={formData.reason} 
-                                    onChange={handleFormChange}
-                                    required
-                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800/20 focus:border-slate-800 transition-colors"
-                                >
-                                    <option value="SHRINKAGE">Shrinkage / Missing</option>
-                                    <option value="BREAKAGE">Breakage / Damaged</option>
-                                    <option value="EXPIRY">Expired</option>
-                                    <option value="DATA_CORRECTION">Data Entry Correction</option>
-                                </select>
-                            </div>
+                                <div className="form-group">
+                                    <label className="form-label">Reason *</label>
+                                    <select
+                                        className="form-select"
+                                        name="reason"
+                                        value={formData.reason}
+                                        onChange={handleFormChange}
+                                        required
+                                    >
+                                        <option value="SHRINKAGE">Shrinkage / Missing</option>
+                                        <option value="BREAKAGE">Breakage / Damaged</option>
+                                        <option value="EXPIRY">Expired</option>
+                                        <option value="DATA_CORRECTION">Data Entry Correction</option>
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Remarks (Optional)</label>
-                                <input 
-                                    type="text" 
-                                    name="remarks"
-                                    value={formData.remarks}
-                                    onChange={handleFormChange}
-                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800/20 focus:border-slate-800 transition-colors"
-                                    placeholder="Any notes?"
-                                />
+                                <div className="form-group">
+                                    <label className="form-label">Remarks (Optional)</label>
+                                    <input
+                                        className="form-input"
+                                        type="text"
+                                        name="remarks"
+                                        value={formData.remarks}
+                                        onChange={handleFormChange}
+                                        placeholder="Any notes?"
+                                    />
+                                </div>
                             </div>
-
-                            <div className="pt-4 flex justify-end space-x-3">
-                                <button 
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="px-6 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-50"
-                                >
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
+                                <button type="submit" className="btn btn-primary" disabled={submitting}>
                                     {submitting ? 'Submitting...' : 'Post Adjustment'}
                                 </button>
                             </div>
