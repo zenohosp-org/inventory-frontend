@@ -1,6 +1,7 @@
 import { Bell, Menu, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import CheckInWidget from './CheckInWidget';
 
 export default function Header({ onMenuClick }) {
     const { user, logout } = useAuth();
@@ -18,6 +19,7 @@ export default function Header({ onMenuClick }) {
             </button>
             <div className="zu-topnav-title">Inventory Manager</div>
             <div className="zu-topnav-right">
+                <CheckInWidget />
                 <button className="zu-topnav-bell" aria-label="Notifications">
                     <Bell size={20} />
                     <span className="zu-topnav-bell-dot"></span>

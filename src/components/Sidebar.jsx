@@ -7,7 +7,6 @@ import {
     Activity, BarChart2, Box, ArrowUpRight, ClipboardList, Settings, FileCheck,
     Stethoscope, FlaskConical, Pill
 } from 'lucide-react';
-import CheckInWidget from './CheckInWidget';
 
 export default function Sidebar({ isOpen, onToggle }) {
     const location = useLocation();
@@ -211,7 +210,6 @@ export default function Sidebar({ isOpen, onToggle }) {
             </div>
             
             <div className="sidebar-footer">
-                <CheckInWidget expanded={isOpen} />
                 {isOpen && <h3 className="sidebar-section-label" style={{ padding: '8px 12px 4px', fontSize: '10px' }}>Other Apps</h3>}
                 {[
                     { label: 'HMS', href: 'https://hms.zenohosp.com', icon: Activity },
