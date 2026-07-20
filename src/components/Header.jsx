@@ -1,7 +1,8 @@
-import { Bell, Menu, LogOut } from 'lucide-react';
+import { Bell, Menu, LogOut, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import CheckInWidget from './CheckInWidget';
+import { startProductTour } from './ProductTour';
 
 export default function Header({ onMenuClick }) {
     const { user, logout } = useAuth();
@@ -20,6 +21,15 @@ export default function Header({ onMenuClick }) {
             <div className="zu-topnav-title">Inventory Manager</div>
             <div className="zu-topnav-right">
                 <CheckInWidget />
+                <button
+                    type="button"
+                    className="zu-topnav-bell"
+                    onClick={() => startProductTour()}
+                    title="Take a tour"
+                    aria-label="Take a tour"
+                >
+                    <HelpCircle size={20} />
+                </button>
                 <button className="zu-topnav-bell" aria-label="Notifications">
                     <Bell size={20} />
                     <span className="zu-topnav-bell-dot"></span>
