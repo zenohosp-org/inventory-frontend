@@ -34,8 +34,8 @@ export default function Sidebar({ isOpen, onToggle }) {
         </li>
     );
 
-    const CollapseToggle = ({ open, onToggle, icon: Icon, label }) => (
-        <button onClick={onToggle} className="sidebar-nav-item" style={{ width: '100%', margin: '0' }}>
+    const CollapseToggle = ({ open, onToggle, icon: Icon, label, dataTour }) => (
+        <button onClick={onToggle} className="sidebar-nav-item" style={{ width: '100%', margin: '0' }} data-tour={dataTour}>
             <div className="sidebar-nav-label">
                 <Icon className="sidebar-nav-icon" size={18} />
                 <span>{label}</span>
@@ -65,6 +65,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                             to="/dashboard"
                             className={`sidebar-nav-item ${isActive('/dashboard') ? 'active' : ''} ${!isOpen ? 'is-icon-only' : ''}`}
                             title={!isOpen ? "Dashboard" : ""}
+                            data-tour="dashboard"
                         >
                             <div className="sidebar-nav-label">
                                 <LayoutDashboard className="sidebar-nav-icon" />
@@ -96,6 +97,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                                     onToggle={() => setPurchaseOpen(o => !o)}
                                     icon={ShoppingCart}
                                     label="Purchase"
+                                    dataTour="purchase"
                                 />
                                 {purchaseOpen && (
                                     <ul className="sidebar-submenu">
@@ -113,6 +115,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                                 to="/purchase-orders"
                                 className={`sidebar-nav-item is-icon-only ${isActive('/purchase-orders') ? 'active' : ''}`}
                                 title="Purchase"
+                                data-tour="purchase"
                             >
                                 <ShoppingCart className="sidebar-nav-icon" />
                             </Link>
@@ -127,6 +130,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                                     onToggle={() => setInvOpen(o => !o)}
                                     icon={Inbox}
                                     label="Stock"
+                                    dataTour="stock"
                                 />
                                 {invOpen && (
                                     <ul className="sidebar-submenu">
@@ -144,6 +148,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                                 to="/stock-overview"
                                 className={`sidebar-nav-item is-icon-only ${isActive('/stock-overview') ? 'active' : ''}`}
                                 title="Stock"
+                                data-tour="stock"
                             >
                                 <Inbox className="sidebar-nav-icon" />
                             </Link>
@@ -186,6 +191,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                                     onToggle={() => setSettingsOpen(o => !o)}
                                     icon={Settings}
                                     label="Settings"
+                                    dataTour="settings"
                                 />
                                 {settingsOpen && (
                                     <ul className="sidebar-submenu">
@@ -201,6 +207,7 @@ export default function Sidebar({ isOpen, onToggle }) {
                                 to="/item-types"
                                 className={`sidebar-nav-item is-icon-only ${isActive('/item-types') ? 'active' : ''}`}
                                 title="Settings"
+                                data-tour="settings"
                             >
                                 <Settings className="sidebar-nav-icon" />
                             </Link>
