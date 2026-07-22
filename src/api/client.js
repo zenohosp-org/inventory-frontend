@@ -63,15 +63,13 @@ export const logoutFromFinance = () => axios.post(`${FINANCE_API_URL}/api/auth/l
     withCredentials: true,
 });
 
-// ── Attendance (Directory-owned, suite-wide check-in state) ──
+// ── Attendance presence (Directory-owned, suite-wide, read-only) ──
 // Raw axios on purpose: the `api` instance's 401 interceptor redirects to SSO,
 // and a failing attendance poll must never bounce the user out of their page.
+// The check-in/check-out writers are gone — attendance is recorded by the
+// biometric device only, and reaches Directory via People's server-side mirror.
 export const getAttendanceStatus = () =>
     axios.get(`${DIRECTORY_API_URL}/api/attendance/status`, { withCredentials: true });
-export const attendanceCheckIn = (mode) =>
-    axios.post(`${DIRECTORY_API_URL}/api/attendance/check-in`, mode ? { mode } : {}, { withCredentials: true });
-export const attendanceCheckOut = () =>
-    axios.post(`${DIRECTORY_API_URL}/api/attendance/check-out`, {}, { withCredentials: true });
 
 // ── Inventory  ──
 export const getInventory = () => api.get('/api/inventory');
